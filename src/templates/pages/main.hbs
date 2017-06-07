@@ -3,9 +3,41 @@
         <p class="announce">Backend-as-a-Service</p>
         <h1 class="heading">Page Speed Comparison</h1>
         <hr class="wow">
-        <input id="currentVendorUrl" class="text-center" type="text" placeholder="Challange your Website here...">
-        <br>
-        <button class="btn btn-primary reload" onclick="reload()">start</button>
+        <input id="currentVendorUrl" class="domainInput text-center" type="text" placeholder="Challange your Website here...">
+        <div class="row hidden preWarming" id="preWarming">
+            <div class="col-sm-4 pt-10">
+                <div class="spinner">
+                    <div class="dot1"></div>
+                    <div class="dot2"></div>
+                </div>
+                <div id="myCarousel" class="carousel slide vertical mt-20">
+                    <!-- Carousel items -->
+                    <div class="carousel-inner">
+                        <div class="active item">
+                            <span>Requesting full site</span>
+                        </div>
+                        <div class="item">
+                            <span>Resolving DNS</span>
+                        </div>
+                        <div class="item">
+                            <span>Checking for HTTPS</span>
+                        </div>
+                        <div class="item">
+                            <span>Measuring load time</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8 preWarmingInfo text-left">
+                <strong>Header for the pre warming phase</strong>
+                <div class="mt-10">Praesent non nibh nisi. Proin eu massa faucibus, volutpat tellus eu, dapibus velit.
+                    Sed feugiat risus at velit lobortis porta. Praesent non nibh nisi. Proin eu massa faucibus, volutpat tellus eu, dapibus velit. Sed feugiat risus at velit lobortis porta.
+                </div>
+            </div>
+        </div>
+        <div class="row" id="startTest">
+            <button class="btn btn-primary reload" onclick="reload()">start</button>
+        </div>
     </div>
     <div class="row frame-wrapper">
         <div class="main-columns col-sm-6 text-center">
@@ -17,6 +49,40 @@
             <div class="service btn btn-static">Baqend</div>
             <div class="timing">Load time: <span class="bq_time time">...</span></div>
             <div class="iframe-baqend"></div>
+        </div>
+    </div>
+</div>
+
+<button id="myButton" type="button" style="display:none;" data-toggle="modal" data-target="#contactModal">Open Modal</button>
+<!-- Modal -->
+<div class="modal fade" id="contactModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <form id="contact_form" onsubmit="contactUs(event)">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">We are sorry...</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Apparently your Site cannot be tested normally. Contact our Web Performance Experts for further Information and Assistance!</p>
+                    <div class="form-group">
+                        <label for="c_name">Name</label>
+                        <input type="text" id="c_name" class="form-control" name="name" placeholder="Your Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="c_email">E-Mail</label>
+                        <input type="text" id="c_email" class="form-control" name="email"
+                               pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
+                               placeholder="example@example.com" required
+                        >
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="c_submit btn btn-success">Contact Baqend</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
