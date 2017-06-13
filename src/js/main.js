@@ -26,6 +26,8 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 window.reload = function() {
+    //$('.outerspace').addClass('hover');
+    $('.center-vertical').animate({ 'marginTop': '0px'}, 500);
     co_url = $('#currentVendorUrl').val();
     if(co_url) {
         db.ready().then(() => {
@@ -74,6 +76,7 @@ window.frameLoaded = function(iframe) {
         if(bq_start > 0) {
             bq_time = (stop - bq_start) / 1000;
             baqendLoadTimes.push(stop);
+            document.getElementById('callToAction').style.display = '';
         }
     } else {
         if(co_start > 0) {
@@ -81,14 +84,16 @@ window.frameLoaded = function(iframe) {
             competitorLoadTimes.push(stop);
             $('.co_time').html(co_time.toFixed(3) + 's');
             timeout = setTimeout(function () {
-                $('.iframe-baqend').html(
-                    '<iframe ' +
-                    'src="about:blank" id="iframe_baqend" ' +
-                    'class="myframe" name="competitor" onload="frameLoaded()">' +
-                    '</iframe>');
-                var frame = $('#iframe_baqend');
-                frame.addClass('loading');
-                frame.prop('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
+                var frame = document.createElement('iframe');
+                frame.setAttribute('name', 'competitor');
+                frame.setAttribute('id', 'iframe baqend');
+                frame.setAttribute('class', 'myframe loading');
+                frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
+                frame.onload = function() {
+                    frameLoaded();
+                }
+                document.getElementById('iframe-baqend').appendChild(frame);
+                document.getElementById('iframe-baqend').style.display = '';
                 bq_start = new Date().getTime();
                 timer = setInterval(updateTime, 1, bq_time_display, bq_start);
             }, 1000);
@@ -101,28 +106,46 @@ window.frameLoaded = function(iframe) {
 
 window.startComparison = function() {
     var name = 'competitor';
-    $('.iframe-competitor').html(
-        '<iframe ' +
-        'src="about:blank" id="iframe_competitor" ' +
-        'class="myframe" name="competitor" onload="frameLoaded(name)">' +
-        '</iframe>');
-    var competitorFrame = $('#iframe_competitor');
-    competitorFrame.addClass('loading');
-    competitorFrame.prop('src', co_url);
+    var competitorFrame;
+    if(document.getElementById('iframe competitor')){
+        competitorFrame = document.getElementById('iframe competitor');
+        competitorFrame.setAttribute('src', co_url);
+    } else {
+        competitorFrame = document.createElement('iframe');
+        competitorFrame.setAttribute('name', 'competitor');
+        competitorFrame.setAttribute('id', 'iframe competitor');
+        competitorFrame.setAttribute('class', 'myframe loading');
+        competitorFrame.setAttribute('src', co_url);
+        competitorFrame.onload = function () {
+            frameLoaded(name);
+        }
+        document.getElementById('iframe-competitor').appendChild(competitorFrame);
+    }
 
     co_start = new Date().getTime();
     timer = setInterval(updateTime, 1, co_time_display, co_start);
 };
 
 function startPreWarming() {
-    $('.iframe-baqend').html(
-        '<iframe ' + '' +
-        'src="about:blank" id="iframe_baqend" ' +
-        'class="myframe" name="competitor" onload="startComparison()">' +
-        '</iframe>');
+    var frame;
+    if(document.getElementById('iframe baqend')){
+        document.getElementById('iframe-baqend').style.display = 'none';
+        frame = document.getElementById('iframe baqend');
+        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
+    } else {
+        frame = document.createElement('iframe');
+        frame.setAttribute('name', 'competitor');
+        frame.setAttribute('id', 'iframe baqend');
+        frame.setAttribute('class', 'myframe');
+        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
+        frame.onload = function() {
+            //TODO: Mit animation
+            $('#preWarming').addClass('hidden');
+            startComparison();
+        }
+        document.getElementById('iframe-baqend').appendChild(frame);
+    }
 
-    var frame = $('#iframe_baqend');
-    frame.prop('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
 }
 
 function resetComparison() {
