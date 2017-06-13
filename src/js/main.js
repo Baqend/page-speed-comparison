@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 window.reload = function() {
-    //$('.outerspace').addClass('hover');
     $('.center-vertical').animate({ 'marginTop': '0px'}, 500);
     co_url = $('#currentVendorUrl').val();
     if(co_url) {
