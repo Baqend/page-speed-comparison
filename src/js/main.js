@@ -25,22 +25,32 @@ document.addEventListener("DOMContentLoaded", function() {
     bq_time_display = $('.bq_time');
 });
 
+window.keyPress = function(e){
+    if (event.keyCode == 13) {
+        reload();
+    }
+};
+
 window.reload = function() {
-    $('.center-vertical').animate({ 'marginTop': '0px'}, 500);
     co_url = $('#currentVendorUrl').val();
     if(co_url) {
+        $('.center-vertical').animate({ 'marginTop': '0px'}, 500);
         db.ready().then(() => {
             db.modules.get('checkCors', {url: co_url}).then((isCors) => {
                 if (isCors) {
                     $('#myButton').click();
                 } else {
                     resetComparison();
-                    //$('#startTest').addClass('invisible');
+                    $('#compareContent').addClass('invisible');
+                    $('#info').addClass('hidden');
                     $('#preWarming').removeClass('hidden');
+
                     $('.carousel').carousel({
-                        interval: 1500,
+                        interval: 1200,
                         wrap: false
                     });
+                    $('.carousel').carousel(0);
+                    $('.carousel').carousel('cycle');
 
                     startPreWarming();
                 }
@@ -90,7 +100,7 @@ window.frameLoaded = function(iframe) {
                 frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
                 frame.onload = function() {
                     frameLoaded();
-                }
+                };
                 document.getElementById('iframe-baqend').appendChild(frame);
                 document.getElementById('iframe-baqend').style.display = '';
                 bq_start = new Date().getTime();
@@ -117,7 +127,7 @@ window.startComparison = function() {
         competitorFrame.setAttribute('src', co_url);
         competitorFrame.onload = function () {
             frameLoaded(name);
-        }
+        };
         document.getElementById('iframe-competitor').appendChild(competitorFrame);
     }
 
@@ -138,10 +148,13 @@ function startPreWarming() {
         frame.setAttribute('class', 'myframe');
         frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
         frame.onload = function() {
-            //TODO: Mit animation
-            $('#preWarming').addClass('hidden');
-            startComparison();
-        }
+            setTimeout(function (){
+                $('#compareContent').removeClass('invisible');
+                $('#info').removeClass('hidden');
+                $('#preWarming').addClass('hidden');
+                startComparison();
+            }, 5000);
+        };
         document.getElementById('iframe-baqend').appendChild(frame);
     }
 

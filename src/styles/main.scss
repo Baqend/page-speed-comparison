@@ -4,24 +4,77 @@ body, html, .content {
 }
 
 .content {
-  padding: 50px;
-  background-color: #f8db9a;
-  background-image: linear-gradient(140deg, #2f6b91 10%, #182848 90%);
-  color: white;
+  padding: 20px 50px;
+  background: #fefefe;
+  color: black;
 }
 
 .myframe {
   width: 285%;
   height: 2250px;
-  border: none;
+  border-radius: 3px 3px 3px 3px;
+  border: 1px solid darkgrey;
+  box-shadow: 0 5px 15px 10px rgba(50, 50, 50, 0.3);
 
-  -ms-zoom: 0.35;
-  -moz-transform: scale(0.35);
-  -moz-transform-origin: 0 0;
-  -o-transform: scale(0.35);
-  -o-transform-origin: 0 0;
-  -webkit-transform: scale(0.35);
-  -webkit-transform-origin: 0 0;
+  transform: scale(0.35);
+  transform-origin: 0 0;
+  -moz-transform: scale(0.35) !important;
+  -moz-transform-origin: 0 0 !important;
+  -o-transform: scale(0.35) !important;
+  -o-transform-origin: 0 0 !important;
+  -webkit-transform: scale(0.35) !important;
+  -webkit-transform-origin: 0 0 !important;
+}
+
+input {
+  color: black;
+  border: none;
+  outline: none;
+  font-size: 20px;
+  height: 48px;
+  width: 100%;
+  font-family: 'Raleway', sans-serif;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+#search-button {
+  background-color: #FFFFFF;
+  color: #3F86F1;
+  width: 46px;
+  height: 46px;
+  border: none;
+  outline: none;
+  padding: 10px 6px;
+  display: block;
+  position: absolute;
+  font-size: 22px;
+  margin-top: 2px;
+  right: 0;
+  top: 0;
+  cursor: pointer;
+}
+
+.urlInput {
+  border-radius: 3px 3px 3px 3px;
+  box-shadow: 0 1px 4px 1px rgba(50, 50, 50, 0.3);
+  background-color: #FFFFFF;
+  display: inline-block;
+  width: 40%;
+  text-align: left;
+  padding-right: 15px;
+  padding-left: 15px;
+  position: relative;
+  z-index: 1000;
+}
+
+.urlInput:hover, #urlInput:focus {
+  box-shadow: 0 1px 5px 1px rgba(50, 50, 50, 0.4);
 }
 
 .pt-10 {
@@ -36,26 +89,16 @@ body, html, .content {
   margin-top: 20px;
 }
 
+.mb-10 {
+  margin-bottom: 10px;
+}
+
 .center-vertical {
   margin-top: 10.5em;
 }
 
 .myframe.loading {
   background-color: white;
-}
-
-.reload {
-  margin: 15px;
-  position: relative;
-  z-index: 100;
-  background-color: rgba(70,174,218,0.2);
-  color: white;
-  border: none;
-  box-shadow: inset 0 0 0 1px rgba(70,174,218,0.9);
-  border-radius: 3px;
-  line-height: 1.8em;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .headline .reload:hover,  .headline  .reload:active,  .headline .reload:focus {
@@ -69,6 +112,10 @@ body, html, .content {
 .announce {
   font-size: 22px;
   color: #c0c8d8;
+}
+
+.challenge {
+  font-size: 26px;
 }
 
 .wow {
@@ -86,6 +133,8 @@ body, html, .content {
 .frame-wrapper {
   overflow: hidden;
   height: 1000px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .btn-static {
@@ -110,21 +159,25 @@ body, html, .content {
   font-size: 28px;
 }
 
-.domainInput {
-  width: 40%;
-  padding: 6px 20px;
-  box-sizing: border-box;
-  color: #000000;
+.actionCall {
+  font-size: 21px;
+  font-weight: bold;
 }
 
-.preWarming {
+.infoBox {
   width: 40%;
   margin: 15px auto;
   padding: 5px;
 }
 
-.preWarmingInfo {
-  border-left: 1px solid #eeeeee;
+.info {
+  border-left: 1px solid #b2b2b2;
+}
+
+.infoHeader {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1.4;
 }
 
 /* carousel css starts here */

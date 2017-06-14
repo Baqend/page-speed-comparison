@@ -3,52 +3,57 @@
         <div class="text-center headline">
             <h1 class="heading">Page Speed Comparison</h1>
             <hr class="wow">
-            <input id="currentVendorUrl" class="domainInput text-center" type="text" placeholder="Challange your Website here...">
-            <div class="row hidden preWarming" id="preWarming">
+            <div class="mt-20 mb-10 actionCall">Compare Your Site Here</div>
+            <div class="urlInput">
+                <input type="text" id="currentVendorUrl" onkeydown="keyPress()" placeholder="Enter URL here...">
+                <button type="button" id="search-button" onclick="reload()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
+            </div>
+            <div class="row infoBox">
                 <div class="col-sm-4 pt-10">
-                    <div class="spinner">
-                        <div class="dot1"></div>
-                        <div class="dot2"></div>
+                    <div id="info">
+                        <span class="challenge heading">Can Baqend speed up your site?</span>
                     </div>
-                    <div id="myCarousel" class="carousel slide vertical mt-20">
-                        <!-- Carousel items -->
-                        <div class="carousel-inner">
-                            <div class="active item">
-                                <span>Requesting full site</span>
-                            </div>
-                            <div class="item">
-                                <span>Resolving DNS</span>
-                            </div>
-                            <div class="item">
-                                <span>Checking for HTTPS</span>
-                            </div>
-                            <div class="item">
-                                <span>Measuring load time</span>
+                    <div class="hidden" id="preWarming">
+                        <div class="spinner">
+                            <div class="dot1"></div>
+                            <div class="dot2"></div>
+                        </div>
+                        <div id="myCarousel" class="carousel slide vertical mt-20">
+                            <!-- Carousel items -->
+                            <div class="carousel-inner">
+                                <div class="active item">
+                                    <span>Requesting full site</span>
+                                </div>
+                                <div class="item">
+                                    <span>Resolving DNS</span>
+                                </div>
+                                <div class="item">
+                                    <span>Checking for HTTPS</span>
+                                </div>
+                                <div class="item">
+                                    <span>Measuring load time</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-8 preWarmingInfo text-left">
-                    <strong>Header for the pre warming phase</strong>
-                    <div class="mt-10">Praesent non nibh nisi. Proin eu massa faucibus, volutpat tellus eu, dapibus velit.
-                        Sed feugiat risus at velit lobortis porta. Praesent non nibh nisi. Proin eu massa faucibus, volutpat tellus eu, dapibus velit. Sed feugiat risus at velit lobortis porta.
+                <div class="col-sm-8 info text-left">
+                    <span class="infoHeader">Hosting your Website on Baqend makes it remarkably fast.</span>
+                    <div class="mt-10">In order to make our promises count we will show you your site's load time on the left and how it would look like with us on the right!
                     </div>
                 </div>
             </div>
-            <div class="row" id="startTest">
-                <button class="btn btn-primary reload" onclick="reload()">start</button>
-            </div>
         </div>
-        <div class="row frame-wrapper">
+        <div class="row frame-wrapper invisible" id="compareContent">
             <div class="main-columns col-sm-6 text-center">
-                <div class="service btn btn-static">Your Website</div>
+                <div class="service">Your Website</div>
                 <div class="timing">Load time: <span class="co_time time">...</span></div>
-                <div class="iframe-competitor" id="iframe-competitor"></div>
+                <div class="iframe-competitor mt-20" id="iframe-competitor"></div>
             </div>
             <div class="main-columns col-sm-6 text-center">
-                <div class="service btn btn-static">Baqend</div>
+                <div class="service">Baqend</div>
                 <div class="timing">Load time: <span class="bq_time time">...</span></div>
-                <div class="iframe-baqend" style="display: none;" id="iframe-baqend"></div>
+                <div class="iframe-baqend mt-20" style="display: none;" id="iframe-baqend"></div>
             </div>
         </div>
         <div class="row">
