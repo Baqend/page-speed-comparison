@@ -100,7 +100,7 @@ window.frameLoaded = function(iframe) {
                 frame.setAttribute('name', 'competitor');
                 frame.setAttribute('id', 'iframe baqend');
                 frame.setAttribute('class', 'myframe loading');
-                frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url + '&wlist=' +  wlist));
+                frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url) + '&wlist=' +  encodeURIComponent(wlist));
                 frame.onload = function() {
                     frameLoaded();
                 };
@@ -144,13 +144,13 @@ function startPreWarming() {
         document.getElementById('iframe-baqend').style.display = 'none';
         frame = document.getElementById('iframe baqend');
 
-        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url + '&wlist=' + wlist));
+        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url) + '&wlist=' +  encodeURIComponent(wlist));
     } else {
         frame = document.createElement('iframe');
         frame.setAttribute('name', 'competitor');
         frame.setAttribute('id', 'iframe baqend');
         frame.setAttribute('class', 'myframe');
-        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url + '&wlist=' + wlist));
+        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url) + '&wlist=' +  encodeURIComponent(wlist));
         frame.onload = function() {
             setTimeout(function (){
                 $('#compareContent').removeClass('invisible');
