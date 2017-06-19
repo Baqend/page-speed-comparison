@@ -5,6 +5,7 @@ import db from 'baqend';
 
 const data = {};
 var co_url;
+var wlist;
 var co_start = 0;
 var bq_start = 0;
 var timer = 0;
@@ -33,6 +34,8 @@ window.keyPress = function(e){
 
 window.reload = function() {
     co_url = $('#currentVendorUrl').val();
+    wlist = co_url.substr(co_url.indexOf('.') + 1);
+    wlist = wlist.substr(wlist, wlist.indexOf('.') + 1);
     if(co_url) {
         $('.center-vertical').animate({ 'marginTop': '0px'}, 500);
         db.ready().then(() => {
@@ -97,7 +100,7 @@ window.frameLoaded = function(iframe) {
                 frame.setAttribute('name', 'competitor');
                 frame.setAttribute('id', 'iframe baqend');
                 frame.setAttribute('class', 'myframe loading');
-                frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
+                frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url + '&wlist=' +  wlist));
                 frame.onload = function() {
                     frameLoaded();
                 };
@@ -140,13 +143,14 @@ function startPreWarming() {
     if(document.getElementById('iframe baqend')){
         document.getElementById('iframe-baqend').style.display = 'none';
         frame = document.getElementById('iframe baqend');
-        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
+
+        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url + '&wlist=' + wlist));
     } else {
         frame = document.createElement('iframe');
         frame.setAttribute('name', 'competitor');
         frame.setAttribute('id', 'iframe baqend');
         frame.setAttribute('class', 'myframe');
-        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url));
+        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url + '&wlist=' + wlist));
         frame.onload = function() {
             setTimeout(function (){
                 $('#compareContent').removeClass('invisible');
