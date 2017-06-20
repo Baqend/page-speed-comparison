@@ -4,44 +4,47 @@ import 'bootstrap';
 import db from 'baqend';
 
 const data = {};
-var co_url;
-var wlist;
-var co_start = 0;
-var bq_start = 0;
-var timer = 0;
-var co_time = 0;
-var bq_time = 0;
-var co_time_display;
-var bq_time_display;
-var timeout;
-
-var competitorLoadTimes = [];
-var baqendLoadTimes = [];
+let co_url;
+let bq_url = 'https://makefast-clone.baqend.com';
+let co_start = 0;
+let bq_start = 0;
+let timer = 0;
+let co_time = 0;
+let bq_time = 0;
+let co_time_display;
+let bq_time_display;
+let timeout;
 
 db.connect('makefast', true);
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", () => {
     $("#main").html(hbs.main(data));
     co_time_display = $('.co_time');
     bq_time_display = $('.bq_time');
+
+    $('#iframe-baqend').hover(() =>{
+            $('.openButton').animate({opacity:1},100)
+        },function(){
+            $('.openButton').animate({opacity:0},100)
+        }
+    )
 });
 
-window.keyPress = function(e){
-    if (event.keyCode == 13) {
-        reload();
-    }
+window.openBaqendFrame = () => {
+    let win = window.open(getBaqendUrl(), '_blank');
+    win.focus();
 };
 
-window.reload = function() {
-    co_url = $('#currentVendorUrl').val();
-    wlist = co_url.substr(co_url.indexOf('.') + 1);
-    wlist = wlist.substr(wlist, wlist.indexOf('.') + 1);
+window.reload = () => {
+    let urlInput = $('#currentVendorUrl').val();
+    co_url = urlInput.indexOf('http://') !== -1 || urlInput.indexOf('https://') !== -1 ? urlInput : 'http://' + urlInput;
+
     if(co_url) {
         $('.center-vertical').animate({ 'marginTop': '0px'}, 500);
         db.ready().then(() => {
-            db.modules.get('checkCors', {url: co_url}).then((isCors) => {
-                if (isCors) {
-                    $('#myButton').click();
+            db.modules.get('checkCors', {url: co_url}).then((check) => {
+                if (check.isDenied) {
+                    $('#modalButton').click();
                 } else {
                     resetComparison();
                     $('#compareContent').addClass('invisible');
@@ -62,106 +65,82 @@ window.reload = function() {
     }
 };
 
-window.contactUs = function(e){
+window.contactUs = (e) => {
     e.preventDefault();
 
-    var data = {
+    let data = {
         name: $('#c_name').val(),
         email: $('#c_email').val(),
         url: co_url,
         subject: 'from page speed comparison'
     };
 
-    $.post('https://bbq-bq.global.ssl.fastly.net/v1/code/mailUs', data,
-     function(data, status, xhr) {
-         var form = $('#contact_form');
+    $.post('https://bbq-bq.global.ssl.fastly.net/v1/code/mailUs', data, (data, status, xhr) => {
+         let form = $('#contact_form');
          form.find('.modal-body').html("<p>Thanks. We will get in touch shortly. " +
              "Check out our <a href='https://benchmark.baqend.com' target='_blank'>benchmark</a> in the meantime</p>");
          form.find('.c_submit').remove();
      });
 };
 
-window.frameLoaded = function(iframe) {
-    var stop = new Date().getTime();
+window.frameLoaded = (iframe) => {
+    let stop = new Date().getTime();
     clearInterval(timer);
     if(iframe !== 'competitor') {
         if(bq_start > 0) {
             bq_time = (stop - bq_start) / 1000;
-            baqendLoadTimes.push(stop);
-            document.getElementById('callToAction').style.display = '';
+            if(co_time / bq_time >= 1) {
+                $('#resultInfo').html('Baqend makes your site <strong>' + (co_time / bq_time).toFixed(2) + 'x</strong> faster.');
+            }
         }
     } else {
         if(co_start > 0) {
             co_time = (stop - co_start) / 1000;
-            competitorLoadTimes.push(stop);
             $('.co_time').html(co_time.toFixed(3) + 's');
-            timeout = setTimeout(function () {
-                var frame = document.createElement('iframe');
-                frame.setAttribute('name', 'competitor');
-                frame.setAttribute('id', 'iframe baqend');
-                frame.setAttribute('class', 'myframe loading');
-                frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url) + '&wlist=' +  encodeURIComponent(wlist));
-                frame.onload = function() {
+
+            timeout = setTimeout(() => {
+                let frame = createFrame('baqend', 'baqendFrame', 'myframe loading', getBaqendUrl());
+                frame.onload = () => {
                     frameLoaded();
                 };
-                document.getElementById('iframe-baqend').appendChild(frame);
-                document.getElementById('iframe-baqend').style.display = '';
+
+                $('#iframe-baqend').append(frame);
+                $('#iframe-baqend').removeClass('hide');
+
                 bq_start = new Date().getTime();
                 timer = setInterval(updateTime, 1, bq_time_display, bq_start);
             }, 1000);
         }
     }
-
-    console.log(baqendLoadTimes);
-    console.log(competitorLoadTimes);
 };
 
-window.startComparison = function() {
-    var name = 'competitor';
-    var competitorFrame;
-    if(document.getElementById('iframe competitor')){
-        competitorFrame = document.getElementById('iframe competitor');
-        competitorFrame.setAttribute('src', co_url);
-    } else {
-        competitorFrame = document.createElement('iframe');
-        competitorFrame.setAttribute('name', 'competitor');
-        competitorFrame.setAttribute('id', 'iframe competitor');
-        competitorFrame.setAttribute('class', 'myframe loading');
-        competitorFrame.setAttribute('src', co_url);
-        competitorFrame.onload = function () {
-            frameLoaded(name);
-        };
-        document.getElementById('iframe-competitor').appendChild(competitorFrame);
-    }
+window.startComparison = () =>{
+    $('#competitorFrame').remove();
+    let frame = createFrame('competitor', 'competitorFrame', 'myframe loading', co_url);
+
+    frame.onload = () => {
+        frameLoaded('competitor');
+    };
+    $('#iframe-competitor').append(frame);
 
     co_start = new Date().getTime();
     timer = setInterval(updateTime, 1, co_time_display, co_start);
 };
 
 function startPreWarming() {
-    var frame;
-    if(document.getElementById('iframe baqend')){
-        document.getElementById('iframe-baqend').style.display = 'none';
-        frame = document.getElementById('iframe baqend');
+    $('#baqendFrame').remove();
+    let frame = createFrame('baqend', 'baqendFrame', 'myframe', getBaqendUrl());
 
-        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url) + '&wlist=' +  encodeURIComponent(wlist));
-    } else {
-        frame = document.createElement('iframe');
-        frame.setAttribute('name', 'competitor');
-        frame.setAttribute('id', 'iframe baqend');
-        frame.setAttribute('class', 'myframe');
-        frame.setAttribute('src', 'https://makefast-clone.baqend.com?url=' + encodeURIComponent(co_url) + '&wlist=' +  encodeURIComponent(wlist));
-        frame.onload = function() {
-            setTimeout(function (){
-                $('#compareContent').removeClass('invisible');
-                $('#info').removeClass('hidden');
-                $('#preWarming').addClass('hidden');
-                startComparison();
-            }, 5000);
-        };
-        document.getElementById('iframe-baqend').appendChild(frame);
-    }
-
+    frame.onload = () => {
+        setTimeout(() => {
+            $('#compareContent').removeClass('invisible');
+            $('#info').removeClass('hidden');
+            $('#preWarming').addClass('hidden');
+            $('#baqendFrame').remove();
+            startComparison();
+        }, 5000);
+    };
+    $('#iframe-baqend').append(frame);
 }
 
 function resetComparison() {
@@ -171,13 +150,37 @@ function resetComparison() {
     bq_start = 0;
     $('.co_time').html('...');
     $('.bq_time').html('...');
+    $('#resultInfo').html('Can Baqend speed up your site?');
     $('#iframe_competitor').prop('src', '');
     $('#iframe_baqend').prop('src', '');
     $('.myframe').removeClass('loading');
 }
 
+function createFrame(name, id, classString, source) {
+    let frame = document.createElement('iframe');
+    frame.setAttribute('name', name);
+    frame.setAttribute('id', id);
+    frame.setAttribute('class', classString);
+    frame.setAttribute('src', source);
+
+    return frame;
+}
+
+function getBaqendUrl() {
+    return bq_url + '?url=' + encodeURIComponent(co_url) + '&wlist=' +  generateWhiteList();
+}
+
+function generateWhiteList() {
+    let wList = new URL(co_url).host;
+    if(wList.indexOf('www') !== -1) {
+        wList = wList.substr(wList.indexOf('.') + 1);
+    }
+    wList = wList.substr(wList, wList.indexOf('.') + 1);
+    return encodeURIComponent(wList);
+}
+
 function updateTime(time_display, start_time) {
-    var now = new Date().getTime();
-    var current = (now - start_time) / 1000;
+    let now = new Date().getTime();
+    let current = (now - start_time) / 1000;
     time_display.html(current.toFixed(3) + 's');
 }
