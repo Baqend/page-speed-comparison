@@ -5,15 +5,14 @@ import db from 'baqend';
 
 const data = {};
 let co_url;
-let bq_url = 'https://makefast-clone.baqend.com';
+let bq_url = 'https://makefast-staging.app.baqend.com';
 let co_start = 0;
 let bq_start = 0;
-let timer = 0;
 let co_time = 0;
 let bq_time = 0;
+let timer = 0;
 let co_time_display;
 let bq_time_display;
-let timeout;
 
 db.connect('makefast', true);
 
@@ -89,6 +88,7 @@ window.frameLoaded = (iframe) => {
     if(iframe !== 'competitor') {
         if(bq_start > 0) {
             bq_time = (stop - bq_start) / 1000;
+
             if(co_time / bq_time >= 1) {
                 $('#resultInfo').html('Baqend makes your site <strong>' + (co_time / bq_time).toFixed(2) + 'x</strong> faster.');
             }
@@ -96,9 +96,7 @@ window.frameLoaded = (iframe) => {
     } else {
         if(co_start > 0) {
             co_time = (stop - co_start) / 1000;
-            $('.co_time').html(co_time.toFixed(3) + 's');
-
-            timeout = setTimeout(() => {
+            setTimeout(() => {
                 let frame = createFrame('baqend', 'baqendFrame', 'myframe loading', getBaqendUrl());
                 frame.onload = () => {
                     frameLoaded();
@@ -106,6 +104,7 @@ window.frameLoaded = (iframe) => {
 
                 $('#iframe-baqend').append(frame);
                 $('#iframe-baqend').removeClass('hide');
+                $('#wListConfig').removeClass('hide');
 
                 bq_start = new Date().getTime();
                 timer = setInterval(updateTime, 1, bq_time_display, bq_start);
@@ -114,13 +113,14 @@ window.frameLoaded = (iframe) => {
     }
 };
 
-window.startComparison = () =>{
+window.startComparison = () => {
     $('#competitorFrame').remove();
     let frame = createFrame('competitor', 'competitorFrame', 'myframe loading', co_url);
 
     frame.onload = () => {
         frameLoaded('competitor');
     };
+
     $('#iframe-competitor').append(frame);
 
     co_start = new Date().getTime();
@@ -145,9 +145,10 @@ function startPreWarming() {
 
 function resetComparison() {
     clearInterval(timer);
-    clearTimeout(timeout);
     co_start = 0;
     bq_start = 0;
+    co_time = 0;
+    bq_time = 0;
     $('.co_time').html('...');
     $('.bq_time').html('...');
     $('#resultInfo').html('Can Baqend speed up your site?');
@@ -162,7 +163,6 @@ function createFrame(name, id, classString, source) {
     frame.setAttribute('id', id);
     frame.setAttribute('class', classString);
     frame.setAttribute('src', source);
-
     return frame;
 }
 
@@ -171,12 +171,22 @@ function getBaqendUrl() {
 }
 
 function generateWhiteList() {
-    let wList = new URL(co_url).host;
-    if(wList.indexOf('www') !== -1) {
-        wList = wList.substr(wList.indexOf('.') + 1);
+    let wListString = new URL(co_url).host;
+    if(wListString.indexOf('www') !== -1) {
+        wListString = wListString.substr(wListString.indexOf('.') + 1);
     }
-    wList = wList.substr(wList, wList.indexOf('.') + 1);
-    return encodeURIComponent(wList);
+    wListString = '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListString.substr(wListString, wListString.indexOf('.') + 1) + '.*$"';
+
+    let wListInputArray = document.getElementById('wListInput').value.split(',');
+    if(wListInputArray[0] !== '') {
+        for(let i = 0; i < wListInputArray.length; i++)
+        {
+            wListString += ',';
+            wListString += '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListInputArray[i] + '.*$"';
+        }
+    }
+
+    return encodeURIComponent(wListString);
 }
 
 function updateTime(time_display, start_time) {

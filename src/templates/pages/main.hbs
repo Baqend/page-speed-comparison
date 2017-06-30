@@ -5,7 +5,7 @@
             <hr class="wow">
             <div class="urlInput">
                 <input type="text" id="currentVendorUrl" onkeydown="if(event.keyCode == 13)reload()" placeholder="Enter URL here...">
-                <button type="button" id="search-button" onclick="reload()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
+                <button type="button" class="search-button" onclick="reload()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
             </div>
             <div class="row infoBox">
                 <div class="col-sm-4 pt-10">
@@ -39,8 +39,8 @@
                 <div class="col-sm-8 info text-left">
                     <span class="infoHeader">Hosting your Website on Baqend makes it remarkably fast.</span>
                     <div class="mt-10">
-                        Shortly after entering the URL, your Website and its load time will arise on the left side below.
-                        For comparison the load time of your Website using Baqend will be shown to its right.
+                        Shortly after entering the URL your Website and its load time will arise on the left side below.
+                        For comparison, the load time of your Website using Baqend will be shown to its right.
                     </div>
                 </div>
             </div>
@@ -59,6 +59,14 @@
                 </div>
             </div>
         </div>
+        <div id="wListConfig" class="text-center hide">
+            <h3 class="pt-10">Unexpected result?</h3>
+            <h4>Try editing your white list option!</h4>
+            <div class="urlInput">
+                <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)reload()" placeholder="Enter comma separated white list here...">
+                <button type="button" class="search-button" onclick="reload()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
+            </div>
+        </div>
     </div>
 </div>
 <div id="cta">
@@ -67,7 +75,7 @@
         <div class="row text-center">
             <div class="col-md-12">
 
-                <h2>Try <strong>Baqend Booster</strong> Today!</h2>
+                <h2>Try <strong>Baqend Speed Kit</strong> Today!</h2>
                 <p class="announce">Empower your Website to load instantly</p>
 
                 <a href="https://dashboard.baqend.com/signup" class="fancy-button cta">Get Started for Free</a>
