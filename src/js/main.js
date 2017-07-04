@@ -11,8 +11,10 @@ let bq_start = 0;
 let co_time = 0;
 let bq_time = 0;
 let timer = 0;
+let timeout = 0;
 let co_time_display;
 let bq_time_display;
+let bq_frame;
 
 db.connect('makefast', true);
 
@@ -20,17 +22,33 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#main").html(hbs.main(data));
     co_time_display = $('.co_time');
     bq_time_display = $('.bq_time');
+    bq_frame = $('#iframe-baqend');
 
-    $('#iframe-baqend').hover(() =>{
+    if(getUrlParam('url') !== '') {
+        $('#currentVendorUrl').val(getUrlParam('url'));
+    }
+
+    if(getUrlParam('wlist') !== '') {
+        $('#wListInput').val(getUrlParam('wlist'));
+        $('#wListConfig').removeClass('hide');
+    }
+
+    bq_frame.hover(() =>{
             $('.openButton').animate({opacity:1},100)
         },function(){
             $('.openButton').animate({opacity:0},100)
         }
-    )
+    );
+});
+
+window.addEventListener('message', (event) => {
+    if(event.data === 'reload') {
+        clearTimeout(timeout);
+    }
 });
 
 window.openBaqendFrame = () => {
-    let win = window.open(getBaqendUrl(), '_blank');
+    let win = window.open(getBaqendUrl(false), '_blank');
     win.focus();
 };
 
@@ -50,12 +68,13 @@ window.reload = () => {
                     $('#info').addClass('hidden');
                     $('#preWarming').removeClass('hidden');
 
-                    $('.carousel').carousel({
+                    const carousel = $('.carousel').carousel({
                         interval: 1200,
                         wrap: false
                     });
-                    $('.carousel').carousel(0);
-                    $('.carousel').carousel('cycle');
+
+                    carousel.carousel(0);
+                    carousel.carousel('cycle');
 
                     startPreWarming();
                 }
@@ -88,6 +107,7 @@ window.frameLoaded = (iframe) => {
     if(iframe !== 'competitor') {
         if(bq_start > 0) {
             bq_time = (stop - bq_start) / 1000;
+            bq_time_display.html(bq_time.toFixed(3) + 's');
 
             if(co_time / bq_time >= 1) {
                 $('#resultInfo').html('Baqend makes your site <strong>' + (co_time / bq_time).toFixed(2) + 'x</strong> faster.');
@@ -96,14 +116,16 @@ window.frameLoaded = (iframe) => {
     } else {
         if(co_start > 0) {
             co_time = (stop - co_start) / 1000;
+            co_time_display.html(co_time.toFixed(3) + 's');
+
             setTimeout(() => {
-                let frame = createFrame('baqend', 'baqendFrame', 'myframe loading', getBaqendUrl());
+                let frame = createFrame('baqend', 'baqendFrame', 'myframe loading', getBaqendUrl(false));
                 frame.onload = () => {
                     frameLoaded();
                 };
 
-                $('#iframe-baqend').append(frame);
-                $('#iframe-baqend').removeClass('hide');
+                bq_frame.append(frame);
+                bq_frame.removeClass('hide');
                 $('#wListConfig').removeClass('hide');
 
                 bq_start = new Date().getTime();
@@ -115,6 +137,7 @@ window.frameLoaded = (iframe) => {
 
 window.startComparison = () => {
     $('#competitorFrame').remove();
+
     let frame = createFrame('competitor', 'competitorFrame', 'myframe loading', co_url);
 
     frame.onload = () => {
@@ -124,15 +147,28 @@ window.startComparison = () => {
     $('#iframe-competitor').append(frame);
 
     co_start = new Date().getTime();
+
     timer = setInterval(updateTime, 1, co_time_display, co_start);
 };
 
+function getBaqendUrl(noCaching) {
+    let url = bq_url + '?url=' + encodeURIComponent(co_url) + '&wlist=' +  generateWhiteList();
+    if(noCaching) {
+        url += '&noCaching=' + noCaching;
+    }
+    return url;
+}
+
+function getUrlParam(name) {
+    return (location.search.split(name + '=')[1] || '').split('&')[0];
+}
+
 function startPreWarming() {
     $('#baqendFrame').remove();
-    let frame = createFrame('baqend', 'baqendFrame', 'myframe', getBaqendUrl());
+    let frame = createFrame('baqend', 'baqendFrame', 'myframe', getBaqendUrl(true));
 
     frame.onload = () => {
-        setTimeout(() => {
+        timeout = setTimeout(() => {
             $('#compareContent').removeClass('invisible');
             $('#info').removeClass('hidden');
             $('#preWarming').addClass('hidden');
@@ -140,11 +176,12 @@ function startPreWarming() {
             startComparison();
         }, 5000);
     };
-    $('#iframe-baqend').append(frame);
+    bq_frame.append(frame);
 }
 
 function resetComparison() {
     clearInterval(timer);
+    timer = 0;
     co_start = 0;
     bq_start = 0;
     co_time = 0;
@@ -166,16 +203,12 @@ function createFrame(name, id, classString, source) {
     return frame;
 }
 
-function getBaqendUrl() {
-    return bq_url + '?url=' + encodeURIComponent(co_url) + '&wlist=' +  generateWhiteList();
-}
-
 function generateWhiteList() {
     let wListString = new URL(co_url).host;
     if(wListString.indexOf('www') !== -1) {
         wListString = wListString.substr(wListString.indexOf('.') + 1);
     }
-    wListString = '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListString.substr(wListString, wListString.indexOf('.') + 1) + '.*$"';
+    wListString = '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListString.substr(0, wListString.indexOf('.') + 1) + '.*$"';
 
     let wListInputArray = document.getElementById('wListInput').value.split(',');
     if(wListInputArray[0] !== '') {
