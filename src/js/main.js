@@ -52,7 +52,7 @@ window.openBaqendFrame = () => {
     win.focus();
 };
 
-window.reload = () => {
+window.initComparison = () => {
     let urlInput = $('#currentVendorUrl').val();
     co_url = urlInput.indexOf('http://') !== -1 || urlInput.indexOf('https://') !== -1 ? urlInput : 'http://' + urlInput;
 
