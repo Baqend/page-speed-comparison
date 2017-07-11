@@ -17,20 +17,23 @@
                             <div class="dot1"></div>
                             <div class="dot2"></div>
                         </div>
-                        <div id="myCarousel" class="carousel slide vertical mt-20">
+                        <div id="statusCarousel" class="carousel slide vertical mt-20">
                             <!-- Carousel items -->
                             <div class="carousel-inner">
                                 <div class="active item">
-                                    <span>Requesting full site</span>
+                                    <span>Requesting website structure</span>
                                 </div>
                                 <div class="item">
-                                    <span>Resolving DNS</span>
+                                    <span>Analysing Domains</span>
                                 </div>
                                 <div class="item">
-                                    <span>Checking for HTTPS</span>
+                                    <span>Analysing Requests</span>
                                 </div>
                                 <div class="item">
-                                    <span>Measuring load time</span>
+                                    <span>Analysing Bytes</span>
+                                </div>
+                                <div class="item">
+                                    <span>Analysing speed scores</span>
                                 </div>
                             </div>
                         </div>
@@ -44,18 +47,44 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row frame-wrapper invisible" id="compareContent">
-            <div class="main-columns col-sm-6 text-center">
-                <div class="service">Your Website</div>
-                <div class="timing">Load time: <span class="co_time time">...</span></div>
-                <div class="iframe-competitor mt-20" id="iframe-competitor"></div>
+            <div class="row previewBox">
+                <div class="col-sm-4 invisible" id="numberOfHostsCol">
+                    <div><i class="fa fa-server icon-highlight" aria-hidden="true"></i> Domains</div>
+                    <div class="numberOfHosts font-highlight"></div>
+                </div>
+                <div class="col-sm-4 invisible" id="numberOfRequestsCol">
+                    <div><i class="fa fa-paper-plane-o icon-highlight" aria-hidden="true"></i> Requests</div>
+                    <div class="numberOfRequests font-highlight"></div>
+                </div>
+                <div class="col-sm-4 invisible" id="numberOfBytesCol">
+                    <div><i class="fa fa-upload icon-highlight" aria-hidden="true"></i> Bytes</div>
+                    <div class="numberOfBytes font-highlight"></div>
+                </div>
             </div>
-            <div class="main-columns col-sm-6 text-center">
-                <div class="service">Your Website using Baqend</div>
-                <div class="timing">Load time: <span class="bq_time time">...</span></div>
-                <div class="iframe-baqend mt-20 hide" id="iframe-baqend">
-                    <button class="btn openButton" onclick="openBaqendFrame()">open in new tab</button>
+        </div>
+        <div class="wrapper invisible" id="compareContent">
+            <div class="row mt-20">
+                <div class="col-sm-5 text-center">
+                    <div class="service">Your Website</div>
+                </div>
+                <div class="col-sm-2 text-center"></div>
+                <div class="col-sm-5 text-center">
+                    <div class="service">Your Website using Baqend</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="main-columns col-sm-5 text-center">
+                    <div id="competitor"></div>
+                </div>
+                <div class="main-columns col-sm-2 text-center">
+                    <div>Speed Index</div>
+                    <div>Visual Completness</div>
+                    <div>DOMContentLoaded</div>
+                    <div>FullyLoaded</div>
+                    <div>TTFB</div>
+                </div>
+                <div class="main-columns col-sm-5 text-center">
+                    <div id="speedKit"></div>
                 </div>
             </div>
         </div>

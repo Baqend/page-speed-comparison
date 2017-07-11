@@ -3,6 +3,10 @@ body, html, .content {
   min-height: 100%;
 }
 
+img {
+  max-width: 100% !important;
+}
+
 .content {
   padding: 20px 50px;
   background: #fefefe;
@@ -10,8 +14,8 @@ body, html, .content {
 }
 
 .myframe {
-  width: 285%;
-  height: 2250px;
+  width: 1200px;
+  height: 850px;
   border-radius: 3px 3px 3px 3px;
   border: 1px solid darkgrey;
   box-shadow: 0 5px 15px 10px rgba(50, 50, 50, 0.3);
@@ -24,6 +28,14 @@ body, html, .content {
   -o-transform-origin: 0 0 !important;
   -webkit-transform: scale(0.35) !important;
   -webkit-transform-origin: 0 0 !important;
+}
+
+.embedVideo {
+  width: 520px;
+  height: 448px;
+  border-radius: 3px 3px 3px 3px;
+  border: 1px solid darkgrey;
+  box-shadow: 0 5px 15px 10px rgba(50, 50, 50, 0.3);
 }
 
 #cta {
@@ -61,6 +73,16 @@ body, html, .content {
   color: #f5f5f5;
 }
 
+.font-highlight {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.icon-highlight {
+  font-size: 22px;
+  color: #3F86F1;
+}
+
 input {
   color: black;
   border: none;
@@ -76,6 +98,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
+  background-color: #FFFFFF !important;
 }
 
 .search-button {
@@ -89,7 +112,6 @@ input:-webkit-autofill:active {
   display: block;
   position: absolute;
   font-size: 22px;
-  margin-top: 2px;
   right: 0;
   top: 0;
   cursor: pointer;
@@ -132,10 +154,6 @@ input:-webkit-autofill:active {
   margin-top: 10.5em;
 }
 
-.myframe.loading {
-  background-color: white;
-}
-
 .headline .reload:hover,  .headline  .reload:active,  .headline .reload:focus {
   background-color: rgba(70,174,218,0.4);
 }
@@ -162,12 +180,12 @@ input:-webkit-autofill:active {
 }
 
 .main-columns {
-  padding: 10px 50px;
+  padding: 20px 0px;
 }
 
-.frame-wrapper {
+.wrapper {
   overflow: hidden;
-  height: 1000px;
+  height: 800px;
   margin: 0 auto;
   width: 100%;
 }
@@ -189,11 +207,6 @@ input:-webkit-autofill:active {
   font-size: 28px;
 }
 
-.time {
-  font-weight: bolder;
-  font-size: 28px;
-}
-
 .infoBox {
   width: 40%;
   margin: 15px auto;
@@ -208,6 +221,12 @@ input:-webkit-autofill:active {
   font-size: 18px;
   font-weight: bold;
   line-height: 1.4;
+}
+
+.previewBox {
+  width: 60%;
+  margin: 25px auto;
+  padding: 5px;
 }
 
 .openButton {
@@ -317,27 +336,17 @@ input:-webkit-autofill:active {
 }
 /* spin css ends  here */
 
-@media(max-width: 1500px) {
-  .myframe {
-    height: 2500px;
-  }
-  .frame-wrapper {
-    height: 1100px;
-  }
+.laser {
+  width: 320px;
+  margin: -10px auto;
+  background-color: #46AEDA;
+  height: 10px;
+  opacity: 0.8;
+  animation: scanning 6s infinite;
 }
-@media(max-width: 1350px) {
-  .myframe {
-    height: 2750px;
-  }
-  .frame-wrapper {
-    height: 1200px;
-  }
-}
-@media(max-width: 1200px) {
-  .myframe {
-    height: 3000px;
-  }
-  .frame-wrapper {
-    height: 1300px;
+
+@keyframes scanning {
+  50% {
+    transform: translateY(230px);
   }
 }
