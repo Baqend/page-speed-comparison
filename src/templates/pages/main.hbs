@@ -8,11 +8,11 @@
                 <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
             </div>
             <div class="row infoBox">
-                <div class="col-sm-4 pt-10">
+                <div class="col-sm-5">
                     <div id="info">
                         <span id="resultInfo" class="challenge heading">Can Baqend speed up your site?</span>
                     </div>
-                    <div class="hidden" id="preWarming">
+                    <div class="hidden" id="testStatus">
                         <div class="spinner">
                             <div class="dot1"></div>
                             <div class="dot2"></div>
@@ -33,57 +33,93 @@
                                     <span>Analysing Bytes</span>
                                 </div>
                                 <div class="item">
-                                    <span>Analysing speed scores</span>
+                                    <span>Analysing website performance</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-8 info text-left">
-                    <span class="infoHeader">Hosting your Website on Baqend makes it remarkably fast.</span>
+                <div class="col-sm-7 info text-left">
+                    <span class="infoHeader">Choose the region where you want the comparison to be performed!</span>
                     <div class="mt-10">
-                        Shortly after entering the URL your Website and its load time will arise on the left side below.
-                        For comparison, the load time of your Website using Baqend will be shown to its right.
+                        <div class="switch-field">
+                            <input type="radio" id="switch_left" name="switch" value="eu" checked/>
+                            <label for="switch_left">EU</label>
+                            <input type="radio" id="switch_right" name="switch" value="usa" />
+                            <label for="switch_right">USA</label>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="row previewBox">
                 <div class="col-sm-4 invisible" id="numberOfHostsCol">
-                    <div><i class="fa fa-server icon-highlight" aria-hidden="true"></i> Domains</div>
+                    <div>
+                        <i class="fa fa-server icon-highlight" aria-hidden="true"></i> Domains
+                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
+                           title="Number of unique hosts referenced by the page." aria-hidden="true"></i>
+                    </div>
                     <div class="numberOfHosts font-highlight"></div>
                 </div>
                 <div class="col-sm-4 invisible" id="numberOfRequestsCol">
-                    <div><i class="fa fa-paper-plane-o icon-highlight" aria-hidden="true"></i> Requests</div>
+                    <div>
+                        <i class="fa fa-paper-plane-o icon-highlight" aria-hidden="true"></i> Requests
+                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
+                           title="Number of HTTP resources loaded by the page." aria-hidden="true"></i>
+                    </div>
                     <div class="numberOfRequests font-highlight"></div>
                 </div>
                 <div class="col-sm-4 invisible" id="numberOfBytesCol">
-                    <div><i class="fa fa-upload icon-highlight" aria-hidden="true"></i> Bytes</div>
+                    <div>
+                        <i class="fa fa-upload icon-highlight" aria-hidden="true"></i> Bytes
+                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
+                           title="Number of uncompressed response bytes for resources on the page."
+                           aria-hidden="true"></i>
+                    </div>
                     <div class="numberOfBytes font-highlight"></div>
                 </div>
             </div>
         </div>
         <div class="wrapper invisible" id="compareContent">
             <div class="row mt-20">
-                <div class="col-sm-5 text-center">
+                <div class="col-sm-4 text-center">
                     <div class="service">Your Website</div>
                 </div>
-                <div class="col-sm-2 text-center"></div>
-                <div class="col-sm-5 text-center">
+                <div class="col-sm-4 text-center"></div>
+                <div class="col-sm-4 text-center">
                     <div class="service">Your Website using Baqend</div>
                 </div>
             </div>
             <div class="row">
-                <div class="main-columns col-sm-5 text-center">
+                <div class="main-columns col-sm-4 text-center">
                     <div id="competitor"></div>
                 </div>
-                <div class="main-columns col-sm-2 text-center">
-                    <div>Speed Index</div>
-                    <div>Visual Completness</div>
-                    <div>DOMContentLoaded</div>
-                    <div>FullyLoaded</div>
-                    <div>TTFB</div>
+                <div class="main-columns col-sm-4 text-center invisible" id="testResults">
+                    <div class="col-sm-12 primaryCol">
+                        <div class="col-sm-3 secondaryValue" id="competitor-speedIndex"></div>
+                        <div class="col-sm-6">Speed Index</div>
+                        <div class="col-sm-3 primaryValue" id="speedKit-speedIndex"></div>
+                        <div class="col-sm-12 text-center" id="speedIndex-factor"></div>
+                    </div>
+                    <div class="col-sm-12 mt-20 secondaryCol">
+                        <div class="col-sm-3" id="competitor-ttfb"></div>
+                        <div class="col-sm-6">TTFB (Time To First Byte)</div>
+                        <div class="col-sm-3" id="speedKit-ttfb"></div>
+                        <div class="col-sm-12 text-center" id="ttfb-factor"></div>
+                    </div>
+                    <div class="col-sm-12 mt-20 secondaryCol">
+                        <div class="col-sm-3" id="competitor-dom"></div>
+                        <div class="col-sm-6">DOMContentLoaded</div>
+                        <div class="col-sm-3" id="speedKit-dom"></div>
+                        <div class="col-sm-12 text-center" id="dom-factor"></div>
+                    </div>
+                    <div class="col-sm-12 mt-20 secondaryCol">
+                        <div class="col-sm-3" id="competitor-fullyLoaded"></div>
+                        <div class="col-sm-6">FullyLoaded</div>
+                        <div class="col-sm-3" id="speedKit-fullyLoaded"></div>
+                        <div class="col-sm-12 text-center" id="fullyLoaded-factor"></div>
+                    </div>
                 </div>
-                <div class="main-columns col-sm-5 text-center">
+                <div class="main-columns col-sm-4 text-center">
                     <div id="speedKit"></div>
                 </div>
             </div>

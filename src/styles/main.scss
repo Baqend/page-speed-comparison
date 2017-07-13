@@ -1,3 +1,7 @@
+:root {
+  --main-color: #3F86F1;
+}
+
 body, html, .content {
   padding: 0;
   min-height: 100%;
@@ -13,29 +17,12 @@ img {
   color: black;
 }
 
-.myframe {
-  width: 1200px;
-  height: 850px;
-  border-radius: 3px 3px 3px 3px;
-  border: 1px solid darkgrey;
-  box-shadow: 0 5px 15px 10px rgba(50, 50, 50, 0.3);
-
-  transform: scale(0.35);
-  transform-origin: 0 0;
-  -moz-transform: scale(0.35) !important;
-  -moz-transform-origin: 0 0 !important;
-  -o-transform: scale(0.35) !important;
-  -o-transform-origin: 0 0 !important;
-  -webkit-transform: scale(0.35) !important;
-  -webkit-transform-origin: 0 0 !important;
-}
-
 .embedVideo {
   width: 520px;
   height: 448px;
   border-radius: 3px 3px 3px 3px;
   border: 1px solid darkgrey;
-  box-shadow: 0 5px 15px 10px rgba(50, 50, 50, 0.3);
+  box-shadow: rgba(50, 50, 50, 0.3) 1px 1px 15px 5px;
 }
 
 #cta {
@@ -80,7 +67,7 @@ img {
 
 .icon-highlight {
   font-size: 22px;
-  color: #3F86F1;
+  color: var(--main-color);
 }
 
 input {
@@ -93,17 +80,13 @@ input {
   font-family: 'Raleway', sans-serif;
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  transition: background-color 5000s ease-in-out 0s;
-  background-color: #FFFFFF !important;
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+  background-color: #FFF; -webkit-box-shadow: 0 0 0px 1000px white inset
 }
 
 .search-button {
   background-color: #FFFFFF;
-  color: #3F86F1;
+  color: var(--main-color);
   width: 46px;
   height: 46px;
   border: none;
@@ -138,6 +121,10 @@ input:-webkit-autofill:active {
   padding-top: 10px;
 }
 
+.mt-5 {
+ margin-top: 5px;
+}
+
 .mt-10 {
   margin-top: 10px;
 }
@@ -150,12 +137,30 @@ input:-webkit-autofill:active {
   margin-bottom: 10px;
 }
 
-.center-vertical {
-  margin-top: 10.5em;
+.primaryCol {
+  font-weight: bold;
+  font-size: 24px;
+  border-bottom: 1px solid #ededed;
+  padding-bottom: 5px;
 }
 
-.headline .reload:hover,  .headline  .reload:active,  .headline .reload:focus {
-  background-color: rgba(70,174,218,0.4);
+.secondaryCol {
+  font-size: 16px;
+  color: #7e7e7e;
+  border-bottom: 1px solid #ededed;
+  padding-bottom: 5px;
+}
+
+.primaryValue {
+  color: var(--main-color);
+}
+
+.secondaryValue {
+  color: #f6c318;
+}
+
+.center-vertical {
+  margin-top: 10.5em;
 }
 
 .headline {
@@ -172,7 +177,7 @@ input:-webkit-autofill:active {
 }
 
 .wow {
-  border-color: #46AEDA;
+  border-color: var(--main-color);
 }
 
 .heading {
@@ -190,14 +195,34 @@ input:-webkit-autofill:active {
   width: 100%;
 }
 
-.btn-static {
-  cursor: default;
+.btn-blue {
+  &:not(.btn-ghost) {
+    color: white;
+    background: var(--main-color);
+    border-bottom: 3px solid var(--main-color);
+    padding-bottom: 7px;
+    &:hover {
+      background: var(--main-color);
+      border-bottom: 3px solid var(--main-color);
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+    }
+  }
+  &.btn-ghost {
+    color: var(--main-color);
+    background: transparent;
+    border: 2px solid var(--main-color);
+    &:hover {
+      color: white;
+      background: var(--main-color);
+    }
+  }
 }
 
-.btn-static:active {
-  -moz-box-shadow: inset 0 0 0px white;
-  -webkit-box-shadow: inset 0 0 0px white;
-  box-shadow: inset 0 0 0px white;
+.info-icon {
+  font-size: 14px;
+  vertical-align: text-top;
+  cursor: pointer;
 }
 
 .service {
@@ -229,18 +254,6 @@ input:-webkit-autofill:active {
   padding: 5px;
 }
 
-.openButton {
-  position:absolute;
-  opacity:0;
-  right:0px;
-  margin: 5px 60px;
-  font-size: 14px;
-  z-index: 100;
-}
-
-.openButton:hover {
-  color: #3f86f1 !important;
-}
 /* carousel css starts here */
 .vertical .carousel-inner {
   height: 100%;
@@ -303,7 +316,7 @@ input:-webkit-autofill:active {
   display: inline-block;
   position: absolute;
   top: 0;
-  background-color: #46AEDA;
+  background-color: var(--main-color);
   border-radius: 100%;
 
   -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
@@ -339,7 +352,7 @@ input:-webkit-autofill:active {
 .laser {
   width: 320px;
   margin: -10px auto;
-  background-color: #46AEDA;
+  background-color: var(--main-color);
   height: 10px;
   opacity: 0.8;
   animation: scanning 6s infinite;
@@ -350,3 +363,47 @@ input:-webkit-autofill:active {
     transform: translateY(230px);
   }
 }
+
+/* switch radio button css starts  here */
+.switch-field input {
+  display: none;
+}
+
+.switch-field label {
+  float: left;
+}
+
+.switch-field label {
+  display: inline-block;
+  width: 60px;
+  background-color: #e4e4e4;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  text-align: center;
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition:    all 0.1s ease-in-out;
+  -ms-transition:     all 0.1s ease-in-out;
+  -o-transition:      all 0.1s ease-in-out;
+  transition:         all 0.1s ease-in-out;
+}
+
+.switch-field label:hover {
+  cursor: pointer;
+}
+
+.switch-field input:checked + label {
+  background-color: var(--main-color);
+}
+
+.switch-field label:first-of-type {
+  border-radius: 4px 0 0 4px;
+}
+
+.switch-field label:last-of-type {
+  border-radius: 0 4px 4px 0;
+}
+/* switch radio button css ends  here */
