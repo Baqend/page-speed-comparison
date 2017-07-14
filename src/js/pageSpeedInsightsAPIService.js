@@ -31,11 +31,22 @@ class PageSpeedInsightsAPIService {
             bytes += parseInt(data.pageStats.imageResponseBytes) || 0;
             bytes += parseInt(data.pageStats.javascriptResponseBytes) || 0;
             bytes += parseInt(data.pageStats.otherResponseBytes) || 0;
-            results.bytes = bytes;
+
+            results.bytes = this.formatBytes(bytes, 2);
             results.screenshot = data.screenshot;
 
             return results;
         });
     }
+
+    formatBytes(bytes, decimals) {
+        if (bytes == 0) return '0 Bytes';
+        let k = 1000,
+            dm = decimals || 2,
+            sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+            i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
 }
 module.exports = PageSpeedInsightsAPIService;

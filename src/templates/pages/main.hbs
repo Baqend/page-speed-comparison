@@ -8,7 +8,7 @@
                 <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
             </div>
             <div class="row infoBox">
-                <div class="col-sm-5">
+                <div class="col-sm-4">
                     <div id="info">
                         <span id="resultInfo" class="challenge heading">Can Baqend speed up your site?</span>
                     </div>
@@ -21,7 +21,7 @@
                             <!-- Carousel items -->
                             <div class="carousel-inner">
                                 <div class="active item">
-                                    <span>Requesting website structure</span>
+                                    <span>Requesting website</span>
                                 </div>
                                 <div class="item">
                                     <span>Analysing Domains</span>
@@ -30,23 +30,45 @@
                                     <span>Analysing Requests</span>
                                 </div>
                                 <div class="item">
-                                    <span>Analysing Bytes</span>
+                                    <span>Analysing Response</span>
                                 </div>
                                 <div class="item">
-                                    <span>Analysing website performance</span>
+                                    <span id="statusQueue">Initializing test</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-7 info text-left">
-                    <span class="infoHeader">Choose the region where you want the comparison to be performed!</span>
+                <div class="col-sm-8 info text-left">
+                    <span class="infoHeader">Configure the comparison according the desired situation!</span>
                     <div class="mt-10">
-                        <div class="switch-field">
-                            <input type="radio" id="switch_left" name="switch" value="eu" checked/>
-                            <label for="switch_left">EU</label>
-                            <input type="radio" id="switch_right" name="switch" value="usa" />
-                            <label for="switch_right">USA</label>
+                        <div class="col-sm-8 noPaddding">
+                            <span class="align-middle">choose <strong>region</strong> to perform:</span>
+                        </div>
+                        <div class="col-sm-4 noPaddding">
+                            <span class="switch-field">
+                                <input type="radio" id="location_left" name="switchLanguage"
+                                       onclick="handleLocationChange(this)" value="usa" />
+                                <label for="location_left">USA</label>
+                                <input type="radio" id="location_right" name="switchLanguage"
+                                       onclick="handleLocationChange(this)" value="eu" checked/>
+                                <label for="location_right">EU</label>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-10">
+                        <div class="col-sm-8 noPaddding">
+                            <span class="align-middle">enable <strong>caching</strong> mechanism:</span>
+                        </div>
+                        <div class="col-sm-4 noPaddding">
+                            <span class="switch-field">
+                                <input type="radio" id="caching_left" name="switchCaching"
+                                       onclick="handleCachingChange(this)" value="yes" />
+                                <label for="caching_left">YES</label>
+                                <input type="radio" id="caching_right" name="switchCaching"
+                                       onclick="handleCachingChange(this)" value="no" checked/>
+                                <label for="caching_right">NO</label>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -70,7 +92,7 @@
                 </div>
                 <div class="col-sm-4 invisible" id="numberOfBytesCol">
                     <div>
-                        <i class="fa fa-upload icon-highlight" aria-hidden="true"></i> Bytes
+                        <i class="fa fa-upload icon-highlight" aria-hidden="true"></i> Response Size
                         <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
                            title="Number of uncompressed response bytes for resources on the page."
                            aria-hidden="true"></i>
