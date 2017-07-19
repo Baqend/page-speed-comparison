@@ -5,8 +5,10 @@ exports.call = function (db, data, req) {
     const testUrl = data.url;
     const testLocation = data.location;
 
+    const testScript = `setActivityTimeout\t100\nnavigate\t${testUrl}`;
+
     db.log.info('starting test for ' + testUrl + ' and location ' + testLocation);
-    return API.runTest(testUrl, {
+    return API.runTest(testScript, {
         connectivity: 'Native',
         location: testLocation,
         firstViewOnly: false,
