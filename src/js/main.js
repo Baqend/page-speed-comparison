@@ -13,28 +13,28 @@ const speedKitUrlService = new SpeedKitUrlService();
 const data = {};
 
 let co_url;
-let firstResultComplete = false;
-let firstResult = {owner: null, result: null};
+let firstResult = {owner: null, result: null, videoSrc: null};
 let testOptions = {location: 'eu-central-1:Chrome', noCaching: true};
+let testOverview;
 let co_testId;
 let sk_testId;
 let interval;
-
-db.connect('page-test', true);
 
 document.addEventListener("DOMContentLoaded", () => {
     $("#main").html(hbs.main(data));
     $('[data-toggle="tooltip"]').tooltip();
 
-    if (getUrlParam('url') !== '') {
-        $('#currentVendorUrl').val(getUrlParam('url'));
-    }
-
-    if (getUrlParam('wlist') !== '') {
-        $('#wListInput').val(getUrlParam('wlist'));
-        $('#wListConfig').removeClass('hide');
-    }
+    db.connect('makefast', true).then(() => {
+        const testIdParam = getParameterByName('testId');
+        if(testIdParam) {
+            displayTestResultsById(testIdParam);
+        }
+    });
 });
+
+window.showInfoBox = function() {
+    $('.infoBox').fadeIn(1000);
+};
 
 window.handleLocationChange =  function(radioButton) {
     if(radioButton.value === 'usa') {
@@ -46,9 +46,9 @@ window.handleLocationChange =  function(radioButton) {
 
 window.handleCachingChange =  function(radioButton) {
     if(radioButton.value === 'yes') {
-        testOptions.noCaching = false;
-    } else if(radioButton.value === 'no') {
         testOptions.noCaching = true;
+    } else if(radioButton.value === 'no') {
+        testOptions.noCaching = false;
     }
 };
 
@@ -69,12 +69,13 @@ window.playVideos = function(videoElement) {
 };
 
 window.initComparison = () => {
+    showInfoBox();
     const urlInput = $('#currentVendorUrl').val();
     co_url = urlInput.indexOf('http://') !== -1 || urlInput.indexOf('https://') !== -1 ? urlInput : 'http://' + urlInput;
 
     if (co_url) {
+        window.location.hash = '';
         resetComparison();
-
         $('.center-vertical').animate({'marginTop': '0px'}, 500);
 
         const carousel = $('.carousel').carousel({interval: false, wrap: false});
@@ -82,12 +83,16 @@ window.initComparison = () => {
 
         db.modules.get('queueTest', {url: co_url, location: testOptions.location}).then(res => co_testId = res.testId);
 
-        setTimeout(() => {
-            db.modules.get('queueTest', {url: speedKitUrlService.getBaqendUrl(co_url, testOptions.noCaching,
-                document.getElementById('wListInput')), location: testOptions.location}).then(res => sk_testId = res.testId);
-        }, 2000);
+        db.modules.get('queueTest', {url: speedKitUrlService.getBaqendUrl(co_url, testOptions.noCaching,
+            document.getElementById('wListInput')), location: testOptions.location}).then(res => sk_testId = res.testId);
 
         pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(encodeURIComponent(co_url)).then((results) => {
+            testOverview = new db.TestOverview();
+            testOverview.psiDomains = results.domains;
+            testOverview.psiRequests = results.resources;
+            testOverview.psiResponseSize = results.bytes;
+            testOverview.noCaching = testOptions.noCaching;
+
             carousel.carousel(1);
 
             setTimeout(() => {
@@ -121,8 +126,8 @@ window.initComparison = () => {
 
             setTimeout(() => {
                 $('#compareContent').removeClass('invisible');
-                $('#competitor').append(uiElementCreator.createScannerElement(),uiElementCreator.createImageElement(results.screenshot));
-                $('#speedKit').append(uiElementCreator.createScannerElement(), uiElementCreator.createImageElement(results.screenshot));
+                $('#competitor').append(uiElementCreator.createImageElement(results.screenshot), uiElementCreator.createScannerElement());
+                $('#speedKit').append(uiElementCreator.createImageElement(results.screenshot), uiElementCreator.createScannerElement());
             }, 4000);
 
             setTimeout(() => {
@@ -160,11 +165,16 @@ window.initComparison = () => {
 
 function resultStreamUpdate(result, dataView, videoView, subscription, elementId) {
     result.forEach((entry) => {
+        if(!testOverview[elementId + 'TestResult']) {
+            testOverview[elementId + 'TestResult'] = entry;
+        }
+
         if (entry[dataView]) {
             displayTestResults(elementId, entry[dataView]);
             if(firstResult.owner && firstResult.owner !== elementId) {
                 clearInterval(interval);
-                calculateFactors(entry[dataView]);
+                firstResult.owner === 'competitor' ? calculateFactors(firstResult.result, entry[dataView])
+                    : calculateFactors(entry[dataView], firstResult.result);
             } else {
                 firstResult.owner = elementId;
                 firstResult.result = entry[dataView];
@@ -172,47 +182,101 @@ function resultStreamUpdate(result, dataView, videoView, subscription, elementId
         }
 
         if (entry[videoView]) {
-            const element = $('#' + elementId);
-            element.empty();
-            setTimeout(() => {
-                const videoLink = uiElementCreator.constructVideoLink(entry, videoView);
-                element.append(uiElementCreator.createVideoElement('video-' + elementId, videoLink));
-                element.append(uiElementCreator.createDownloadButton(videoLink));
-                if(firstResultComplete) {
-                    $('#info').removeClass('hidden');
-                    $('#testStatus').addClass('hidden');
-                }
-                firstResultComplete = true;
-            }, 2000);
+            const videoLink = uiElementCreator.constructVideoLink(entry, videoView);
+
+            if(!firstResult.videoSrc && firstResult.owner === elementId) {
+                firstResult.videoSrc = videoLink;
+            } else {
+                const firstElement = $('#' + elementId);
+                const secondElement = $('#' + firstResult.owner);
+                firstElement.empty();
+                secondElement.empty();
+                firstElement.append(uiElementCreator.createVideoElement('video-' + elementId, videoLink));
+                secondElement.append(uiElementCreator.createVideoElement('video-' + firstResult.owner, firstResult.videoSrc));
+                testOverview.insert().then(() => window.location.hash = '?testId=' + testOverview.key);
+                $('.infoBox').fadeOut(1000);
+                $('#info').removeClass('hidden');
+                $('#testStatus').addClass('hidden');
+                $('#wListConfig').removeClass('hidden');
+            }
+
             subscription.unsubscribe();
         }
     });
 }
 
-function getUrlParam(name) {
-    return (location.search.split(name + '=')[1] || '').split('&')[0];
+function getParameterByName(name) {
+    let url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
 function displayTestResults(elementId, data) {
     $('#' + elementId + '-speedIndex').html(data.speedIndex + 'ms');
-    $('#' + elementId + '-ttfb').html(data.ttfb + 'ms');
     $('#' + elementId + '-dom').html(data.domLoaded + 'ms');
+    $('#' + elementId + '-lastVisualChange').html(data.lastVisualChange + 'ms');
     $('#' + elementId + '-fullyLoaded').html(data.fullyLoaded + 'ms');
+
+    if(testOptions.noCaching) {
+        $('#' + elementId + '-ttfb').html(data.ttfb + 'ms');
+    } else {
+        $('#' + elementId + '-ttfb').html('-');
+    }
     $('#testResults').removeClass('invisible');
 }
 
-function calculateFactors(compareResult) {
-    if(firstResult.owner === 'competitor') {
-        $('#speedIndex-factor').html('x' + (firstResult.result.speedIndex / compareResult.speedIndex).toFixed(2));
-        $('#ttfb-factor').html('x' + (firstResult.result.ttfb / compareResult.ttfb).toFixed(2));
-        $('#dom-factor').html('x' + (firstResult.result.domLoaded / compareResult.domLoaded).toFixed(2));
-        $('#fullyLoaded-factor').html('x' + (firstResult.result.fullyLoaded / compareResult.fullyLoaded).toFixed(2));
-    } else if (firstResult.owner === 'speedKit') {
-        $('#speedIndex-factor').html('x' + (compareResult.speedIndex / firstResult.result.speedIndex).toFixed(2));
-        $('#ttfb-factor').html('x' + (compareResult.ttfb / firstResult.result.ttfb).toFixed(2));
-        $('#dom-factor').html('x' + (compareResult.domLoaded / firstResult.result.domLoaded).toFixed(2));
-        $('#fullyLoaded-factor').html('x' + (compareResult.fullyLoaded / firstResult.result.fullyLoaded).toFixed(2));
-    }
+function calculateFactors(competitorResult, speedKitResult) {
+    $('#speedIndex-factor').html((competitorResult.speedIndex / speedKitResult.speedIndex).toFixed(2) + 'x');
+    $('#dom-factor').html((competitorResult.domLoaded / speedKitResult.domLoaded).toFixed(2) + 'x');
+    $('#lastVisualChange-factor').html((competitorResult.lastVisualChange / speedKitResult.lastVisualChange).toFixed(2) + 'x');
+    $('#fullyLoaded-factor').html((competitorResult.fullyLoaded / speedKitResult.fullyLoaded).toFixed(2) + 'x');
+
+    if(testOptions.noCaching)
+        $('#ttfb-factor').html((competitorResult.ttfb / speedKitResult.ttfb).toFixed(2) + 'x');
+}
+
+function displayTestResultsById(testId) {
+    let competitorDataView = 'firstView';
+    let competitorVideoView = 'videoIdFirstView';
+
+    db.TestOverview.load(testId, {depth: 1}).then((result) => {
+        $('#currentVendorUrl').val(result.competitorTestResult.url);
+        $('.center-vertical').removeClass('center-vertical');
+        $('.numberOfHosts').html(result.psiDomains);
+        $('#numberOfHostsCol').removeClass('invisible');
+        $('.numberOfRequests').html(result.psiRequests);
+        $('#numberOfRequestsCol').removeClass('invisible');
+        $('.numberOfBytes').html(result.psiResponseSize);
+        $('#numberOfBytesCol').removeClass('invisible');
+        $('#compareContent').removeClass('invisible');
+        $('.infoBox').fadeOut(0);
+
+        if(result.competitorTestResult.location.indexOf('us') !== -1) {
+            testOptions.location = result.competitorTestResult.location;
+            $('#location_left').prop("checked", true);
+        }
+
+        if(!result.noCaching) {
+            competitorDataView = 'repeatView';
+            competitorVideoView = 'videoIdRepeatedView';
+            $('#caching_left').prop("checked", true);
+            testOptions.noCaching = false;
+        }
+
+        displayTestResults('competitor', result.competitorTestResult[competitorDataView]);
+        $('#competitor').append(uiElementCreator.createVideoElement('video-competitor',
+            uiElementCreator.constructVideoLink(result.competitorTestResult, competitorVideoView)));
+
+        displayTestResults('speedKit', result.speedKitTestResult.repeatView);
+        $('#speedKit').append(uiElementCreator.createVideoElement('video-speedKit',
+            uiElementCreator.constructVideoLink(result.speedKitTestResult, 'videoIdRepeatedView')));
+
+        calculateFactors(result.competitorTestResult[competitorDataView], result.speedKitTestResult.repeatView);
+    })
 }
 
 function resetComparison() {
@@ -229,15 +293,17 @@ function resetComparison() {
     $('#competitor-speedIndex').html('');
     $('#competitor-ttfb').html('');
     $('#competitor-dom').html('');
+    $('#competitor-lastVisualChange').html('');
     $('#competitor-fullyLoaded').html('');
     $('#speedKit-speedIndex').html('');
     $('#speedKit-ttfb').html('');
     $('#speedKit-dom').html('');
+    $('#speedKit-lastVisualChange').html('');
     $('#speedKit-fullyLoaded').html('');
     $('#speedIndex-factor').html('');
     $('#ttfb-factor').html('');
     $('#dom-factor').html('');
+    $('#lastVisualChange-factor').html('');
     $('#fullyLoaded-factor').html('');
-    firstResultComplete = false;
-    firstResult = {owner: null, result: null};
+    firstResult = {owner: null, result: null, videoSrc: null};
 }

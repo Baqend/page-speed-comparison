@@ -1,5 +1,5 @@
 :root {
-  --main-color: #3F86F1;
+  --main-color: #0F202D;
 }
 
 body, html, .content {
@@ -7,8 +7,14 @@ body, html, .content {
   min-height: 100%;
 }
 
+.iconWrapper{
+  border-radius: 100%;
+  background: var(--main-color);
+}
+
 img {
-  max-width: 100% !important;
+  width: 100%;
+  filter: blur(1.5px);
 }
 
 .content {
@@ -18,11 +24,10 @@ img {
 }
 
 .embedVideo {
-  width: 520px;
-  height: 448px;
+  width: 100%;
   border-radius: 3px 3px 3px 3px;
   border: 1px solid darkgrey;
-  box-shadow: rgba(50, 50, 50, 0.3) 1px 1px 15px 5px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 #cta {
@@ -60,14 +65,23 @@ img {
   color: #f5f5f5;
 }
 
-.font-highlight {
+.medium-font {
   font-size: 24px;
-  font-weight: bold;
 }
 
-.icon-highlight {
-  font-size: 22px;
+.iconCycle {
+  line-height: inherit;
+  font-size: 34px;
+  color: #d3d3d3;
+}
+
+.iconInner {
+  position: absolute;
+  left: 0;
+  width: 100%;
   color: var(--main-color);
+  line-height: inherit;
+  font-size: 18px;
 }
 
 input {
@@ -142,7 +156,6 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 }
 
 .primaryCol {
-  font-weight: bold;
   font-size: 24px;
   border-bottom: 1px solid #ededed;
   padding-bottom: 5px;
@@ -155,12 +168,15 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   padding-bottom: 5px;
 }
 
-.primaryValue {
-  color: var(--main-color);
+.primaryFactor {
+  font-size: 26px;
+  font-weight: bold;
+  color: #f16746;
 }
 
-.secondaryValue {
-  color: #f6c318;
+.secondaryFactor {
+  font-weight: bold;
+  color: #f16746;
 }
 
 .center-vertical {
@@ -184,12 +200,21 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   border-color: var(--main-color);
 }
 
+.noRowMargin {
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
+
 .heading {
   font-weight: 300;
 }
 
-.main-columns {
+.media-columns {
   padding: 20px 0px;
+}
+
+.metric-column {
+  padding: 20px 30px;
 }
 
 .wrapper {
@@ -244,6 +269,10 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 .info {
   border-left: 1px solid #b2b2b2;
+}
+
+.bold {
+  font-weight: bold;
 }
 
 .infoHeader {
@@ -354,8 +383,10 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 /* spin css ends  here */
 
 .laser {
-  width: 320px;
-  margin: -10px auto;
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  margin: 20px 0px;
   background-color: var(--main-color);
   height: 10px;
   opacity: 0.8;
@@ -364,7 +395,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 @keyframes scanning {
   50% {
-    transform: translateY(230px);
+    top: 90%;
   }
 }
 
@@ -376,7 +407,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .switch-field label {
   display: inline-block;
   width: 60px;
-  background-color: #e4e4e4;
+  background-color: #ffffff;
   color: rgba(0, 0, 0, 0.6);
   font-size: 14px;
   text-align: center;
@@ -396,7 +427,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 }
 
 .switch-field input:checked + label {
-  background-color: var(--main-color);
+  background-color: #a8a8a8;
 }
 
 .switch-field label:first-of-type {

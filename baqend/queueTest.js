@@ -1,7 +1,8 @@
 const Pagetest = require('./Pagetest');
+const credentials = require('./credentials');
 
 exports.call = function (db, data, req) {
-    const API = new Pagetest.API('ec2-52-57-25-151.eu-central-1.compute.amazonaws.com', 'vjBRNvPBs6F5FviKXem');
+    const API = new Pagetest.API(credentials.wpt_dns, credentials.wpt_api_key);
     const testUrl = data.url;
     const testLocation = data.location;
 
@@ -27,7 +28,7 @@ exports.call = function (db, data, req) {
         disableHTTPHeaders: true,
         disableScreenshot: true,
         jpegQuality: 30,
-        pingback: 'https://page-test.app.baqend.com/v1/code/testPingback'
+        pingback: 'https://makefast.app.baqend.com/v1/code/testPingback'
     }).then(result => {
         db.log.info('Started Testid: ' + result.data.testId + ' for ' + testUrl);
         return {testId: result.data.testId};

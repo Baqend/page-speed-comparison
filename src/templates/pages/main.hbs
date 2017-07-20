@@ -1,16 +1,16 @@
 <div class="content">
     <div class="center-vertical">
         <div class="text-center headline">
-            <h1 class="heading">Page Speed Comparison</h1>
+            <h1 class="heading">Page Speed Analyzer</h1>
             <hr class="wow">
             <div class="urlInput">
-                <input type="text" id="currentVendorUrl" onkeydown="if(event.keyCode == 13)initComparison()" placeholder="Enter URL here...">
+                <input type="text" id="currentVendorUrl" onkeydown="if(event.keyCode == 13)initComparison()" onclick="showInfoBox()" placeholder="Enter URL here...">
                 <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
             </div>
             <div class="row infoBox">
-                <div class="col-sm-4">
+                <div class="col-sm-5 col-xs-5">
                     <div id="info">
-                        <span id="resultInfo" class="challenge heading">Can Baqend speed up your site?</span>
+                        <span id="resultInfo" class="challenge heading">Test the performance of your site!</span>
                     </div>
                     <div class="hidden" id="testStatus">
                         <div class="spinner">
@@ -33,19 +33,19 @@
                                     <span>Analysing Response</span>
                                 </div>
                                 <div class="item">
-                                    <span id="statusQueue">Initializing test</span>
+                                    <span id="statusQueue"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-8 info text-left">
-                    <span class="infoHeader">Configure the comparison according the desired situation!</span>
+                <div class="col-sm-7 col-xs-7 info text-left">
+                    <span class="infoHeader">Choose how to test:</span>
                     <div class="mt-10">
-                        <div class="col-sm-8 noPaddding">
-                            <span class="align-middle">choose <strong>region</strong> to perform:</span>
+                        <div class="col-sm-6 col-xs-6 noPaddding">
+                            <span class="align-middle">Region of client</span>
                         </div>
-                        <div class="col-sm-4 noPaddding">
+                        <div class="col-sm-6 col-xs-6 noPaddding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="location_left" name="switchLanguage"
                                        onclick="handleLocationChange(this)" value="usa" />
@@ -57,101 +57,110 @@
                         </div>
                     </div>
                     <div class="mt-10">
-                        <div class="col-sm-8 noPaddding">
-                            <span class="align-middle">enable <strong>caching</strong> mechanism:</span>
+                        <div class="col-sm-6 col-xs-6 noPaddding">
+                            <span class="align-middle">Cold cache</span>
                         </div>
-                        <div class="col-sm-4 noPaddding">
+                        <div class="col-sm-6 col-xs-6 noPaddding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="caching_left" name="switchCaching"
-                                       onclick="handleCachingChange(this)" value="yes" />
-                                <label for="caching_left">YES</label>
+                                       onclick="handleCachingChange(this)" value="no" />
+                                <label for="caching_left">NO</label>
                                 <input type="radio" id="caching_right" name="switchCaching"
-                                       onclick="handleCachingChange(this)" value="no" checked/>
-                                <label for="caching_right">NO</label>
+                                       onclick="handleCachingChange(this)" value="yes" checked/>
+                                <label for="caching_right">YES</label>
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row previewBox">
-                <div class="col-sm-4 invisible" id="numberOfHostsCol">
-                    <div>
-                        <i class="fa fa-server icon-highlight" aria-hidden="true"></i> Domains
-                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
-                           title="Number of unique hosts referenced by the page." aria-hidden="true"></i>
-                    </div>
-                    <div class="numberOfHosts font-highlight"></div>
+                <div class="col-sm-4 col-xs-4 invisible" id="numberOfHostsCol">
+                    <span data-toggle="tooltip" title="Number of unique hosts referenced by the page.">
+                        <span class="fa-stack">
+                          <i class="fa fa-circle iconCycle"></i>
+                          <i class="fa fa-server iconInner"></i>
+                        </span>Domains<br>
+                        <span class="numberOfHosts medium-font bold"></span>
+                    </span>
                 </div>
-                <div class="col-sm-4 invisible" id="numberOfRequestsCol">
-                    <div>
-                        <i class="fa fa-paper-plane-o icon-highlight" aria-hidden="true"></i> Requests
-                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
-                           title="Number of HTTP resources loaded by the page." aria-hidden="true"></i>
-                    </div>
-                    <div class="numberOfRequests font-highlight"></div>
+                <div class="col-sm-4 col-xs-4 invisible" id="numberOfRequestsCol">
+                    <span data-toggle="tooltip" title="Number of HTTP resources loaded by the page.">
+                        <span class="fa-stack">
+                          <i class="fa fa-circle iconCycle"></i>
+                          <i class="fa fa-paper-plane-o iconInner"></i>
+                        </span>Requests<br>
+                        <span class="numberOfRequests medium-font bold"></span>
+                    </span>
                 </div>
-                <div class="col-sm-4 invisible" id="numberOfBytesCol">
-                    <div>
-                        <i class="fa fa-upload icon-highlight" aria-hidden="true"></i> Response Size
-                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
-                           title="Number of uncompressed response bytes for resources on the page."
-                           aria-hidden="true"></i>
-                    </div>
-                    <div class="numberOfBytes font-highlight"></div>
+                <div class="col-sm-4 col-xs-4 invisible" id="numberOfBytesCol">
+                    <span data-toggle="tooltip" title="Number of uncompressed response bytes for resources on the page.">
+                        <span class="fa-stack">
+                          <i class="fa fa-circle iconCycle"></i>
+                          <i class="fa fa-upload iconInner"></i>
+                        </span>Response Size<br>
+                        <span class="numberOfBytes medium-font bold"></span>
+                    </span>
                 </div>
             </div>
         </div>
         <div class="wrapper invisible" id="compareContent">
             <div class="row mt-20">
-                <div class="col-sm-4 text-center">
+                <div class="col-sm-4 col-xs-4 text-center">
                     <div class="service">Your Website</div>
                 </div>
-                <div class="col-sm-4 text-center"></div>
-                <div class="col-sm-4 text-center">
-                    <div class="service">Your Website using Baqend</div>
+                <div class="col-sm-4 col-xs-4 text-center"></div>
+                <div class="col-sm-4 cl-xs-4 text-center">
+                    <div class="service">Your Website with Speed Kit</div>
                 </div>
             </div>
-            <div class="row">
-                <div class="main-columns col-sm-4 text-center">
+            <div class="row noRowMargin">
+                <div class="col-sm-4 col-xs-4 media-columns text-center">
                     <div id="competitor"></div>
                 </div>
-                <div class="main-columns col-sm-4 text-center invisible" id="testResults">
+                <div class="col-sm-4 col-xs-4 metric-column text-center invisible" id="testResults">
                     <div class="col-sm-12 primaryCol">
-                        <div class="col-sm-3 secondaryValue" id="competitor-speedIndex"></div>
+                        <div class="col-sm-3" id="competitor-speedIndex"></div>
                         <div class="col-sm-6">Speed Index</div>
-                        <div class="col-sm-3 primaryValue" id="speedKit-speedIndex"></div>
-                        <div class="col-sm-12 text-center" id="speedIndex-factor"></div>
+                        <div class="col-sm-3" id="speedKit-speedIndex"></div>
+                        <div class="col-sm-12 text-center primaryFactor" id="speedIndex-factor"></div>
                     </div>
-                    <div class="col-sm-12 mt-20 secondaryCol">
-                        <div class="col-sm-3" id="competitor-ttfb"></div>
-                        <div class="col-sm-6">TTFB (Time To First Byte)</div>
-                        <div class="col-sm-3" id="speedKit-ttfb"></div>
-                        <div class="col-sm-12 text-center" id="ttfb-factor"></div>
+                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
+                        <div class="col-sm-3 col-xs-3" id="competitor-ttfb"></div>
+                        <div class="col-sm-6 col-xs-6">TTFB (Time To First Byte)</div>
+                        <div class="col-sm-3 col-xs-3" id="speedKit-ttfb"></div>
+                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="ttfb-factor"></div>
                     </div>
-                    <div class="col-sm-12 mt-20 secondaryCol">
-                        <div class="col-sm-3" id="competitor-dom"></div>
-                        <div class="col-sm-6">DOMContentLoaded</div>
-                        <div class="col-sm-3" id="speedKit-dom"></div>
-                        <div class="col-sm-12 text-center" id="dom-factor"></div>
+                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
+                        <div class="col-sm-3 col-xs-3" id="competitor-dom"></div>
+                        <div class="col-sm-6 col-xs-6">DOMContentLoaded</div>
+                        <div class="col-sm-3 col-xs-3" id="speedKit-dom"></div>
+                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="dom-factor"></div>
                     </div>
-                    <div class="col-sm-12 mt-20 secondaryCol">
-                        <div class="col-sm-3" id="competitor-fullyLoaded"></div>
-                        <div class="col-sm-6">FullyLoaded</div>
-                        <div class="col-sm-3" id="speedKit-fullyLoaded"></div>
-                        <div class="col-sm-12 text-center" id="fullyLoaded-factor"></div>
+                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
+                        <div class="col-sm-3 col-xs-3" id="competitor-lastVisualChange"></div>
+                        <div class="col-sm-6 col-xs-6">Last Visual Change</div>
+                        <div class="col-sm-3 col-xs-3" id="speedKit-lastVisualChange"></div>
+                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="lastVisualChange-factor"></div>
+                    </div>
+                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
+                        <div class="col-sm-3 col-xs-3" id="competitor-fullyLoaded"></div>
+                        <div class="col-sm-6 col-xs-6">FullyLoaded</div>
+                        <div class="col-sm-3 col-xs-3" id="speedKit-fullyLoaded"></div>
+                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="fullyLoaded-factor"></div>
                     </div>
                 </div>
-                <div class="main-columns col-sm-4 text-center">
+                <div class="col-sm-4 col-xs-4 media-columns text-center">
                     <div id="speedKit"></div>
                 </div>
             </div>
         </div>
-        <div id="wListConfig" class="text-center hide">
+        <div id="wListConfig" class="text-center hidden">
             <h3 class="pt-10">Unexpected result?</h3>
-            <h4>Try editing your white list option!</h4>
+            <h4>Tell Speed Kit a comma-separated list of (regex) domain patterns it should handle</h4>
             <div class="urlInput">
-                <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)reload()" placeholder="Enter comma separated white list here...">
-                <button type="button" class="search-button" onclick="reload()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
+                <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)initComparison()"
+                       onclick="showInfoBox()" placeholder="Enter comma separated white list here...">
+                <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
             </div>
         </div>
     </div>

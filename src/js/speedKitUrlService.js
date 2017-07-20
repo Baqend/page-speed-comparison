@@ -20,7 +20,7 @@ class SpeedKitUrlService {
         if (wListInputArray[0] !== '') {
             for (let i = 0; i < wListInputArray.length; i++) {
                 wListString += ',';
-                wListString += '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListInputArray[i] + '.*$"';
+                wListString += '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListInputArray[i].replace(/\s+/, "") + '..*$"';
             }
         }
         return encodeURIComponent(wListString);
