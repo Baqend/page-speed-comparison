@@ -31,7 +31,9 @@ exports.call = function (db, data, req) {
             db.log.info('videos created for ' + testId, {data: result});
 
             testResult.videoIdFirstView = result[0].data.videoId;
-            testResult.videoIdRepeatedView = result[1].data.videoId;
+            if (result[1].data && result[1].data.videoId) {
+                testResult.videoIdRepeatedView = result[1].data.videoId;
+            }
             return testResult.save();
         }).catch(error => {
             db.log.info('Error handling test result for ' + testId + ' with error: ' + error);
