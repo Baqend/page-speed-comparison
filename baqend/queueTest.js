@@ -5,8 +5,8 @@ exports.call = function (db, data, req) {
     const API = new Pagetest.API(credentials.wpt_dns, credentials.wpt_api_key);
     const testUrl = data.url;
     const testLocation = data.location;
-    const isClone = !!data.isClone;
-    const caching = !!data.caching;
+    const isClone = data.isClone == 'true';
+    const caching = data.caching == 'true';
 
     const testScript =
 `setActivityTimeout\t150
