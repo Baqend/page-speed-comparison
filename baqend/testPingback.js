@@ -46,7 +46,9 @@ function createTestResult(testId, testResult, db) {
     result.url = testResult.testUrl;
     result.summaryUrl = testResult.summary;
     result.firstView = createRun(testResult.runs['1'].firstView, db);
-    result.repeatView = createRun(testResult.runs['1'].repeatView, db);
+    if (testResult.runs['1'].repeatView) {
+        result.repeatView = createRun(testResult.runs['1'].repeatView, db);
+    }
     return result;
 }
 

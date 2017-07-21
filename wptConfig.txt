@@ -14,5 +14,4 @@ archive_s3_server=s3.amazonaws.com
 archive_s3_key=AKIAJQLPG6VFVZWQCDEA
 archive_s3_secret=<s3 secret>
 archive_s3_bucket=makefast-bq
-archive_s3_url=https://makefast.s3.amazonaws.com/wpt/
 archive_days=1
