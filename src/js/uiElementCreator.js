@@ -1,6 +1,6 @@
 class UiElementCreator {
     createImageElement(screenshotData) {
-        let img = document.createElement('IMG');
+        const img = document.createElement('IMG');
         img.setAttribute('src', 'data:' + screenshotData.mime_type + ';base64,' +
             screenshotData.data.replace(/_/g, '/').replace(/-/g, '+'));
         img.setAttribute('alt', 'preview of website screen');
@@ -9,10 +9,11 @@ class UiElementCreator {
     }
 
     createVideoElement(elementId, videoSrc) {
-        let video = document.createElement('video');
+        const video = document.createElement('video');
         video.setAttribute('controls', 'controls');
         video.setAttribute('type', 'video/mp4');
         video.setAttribute('poster', videoSrc.substr(0, videoSrc.lastIndexOf('.')) + '.png');
+        video.setAttribute('autoplay', 'autoplay');
         video.setAttribute('onplay', 'playVideos(this)');
         video.setAttribute('id', elementId);
         video.setAttribute('src', videoSrc);
@@ -24,6 +25,14 @@ class UiElementCreator {
         const scanner = document.createElement('div');
         scanner.setAttribute('class', 'laser');
         return scanner;
+    }
+
+    createLinkButton() {
+        const button = document.createElement('button');
+        button.setAttribute('class', 'btn openButton');
+        button.setAttribute('onclick', 'openBaqendFrame()');
+        button.innerHTML = 'open in new tab';
+        return button;
     }
 
     constructVideoLink(data, videoAttr) {

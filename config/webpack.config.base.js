@@ -80,7 +80,7 @@ module.exports = {
       disable: true
     }),
     new HtmlWebpackPlugin({
-      title: 'Page Speed Comparison',
+      title: 'Page Speed Analyzer',
       filename: 'index.html',
       template: 'src/templates/layout/default.hbs',
       chunks: ['vendor', 'main']

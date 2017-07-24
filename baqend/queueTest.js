@@ -22,6 +22,7 @@ exports.call = function (db, data, req) {
         saveResponseBodies: false,
         tcpDump: false,
         timeline: false,
+        priority: 0,
         chromeTrace: false,
         netLog: false,
         disableHTTPHeaders: true,

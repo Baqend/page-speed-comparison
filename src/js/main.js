@@ -14,7 +14,10 @@ const data = {};
 
 let co_url;
 let firstResult = {owner: null, result: null, videoSrc: null};
-let testOptions = {location: 'eu-central-1:Chrome', noCaching: true};
+let testOptions = {location: 'eu-central-1:Chrome', caching: false};
+let testInstance;
+let co_subscription;
+let sk_subscription;
 let testOverview;
 let co_testId;
 let sk_testId;
@@ -36,6 +39,11 @@ window.showInfoBox = function() {
     $('.infoBox').fadeIn(1000);
 };
 
+window.openBaqendFrame = () => {
+    const win = window.open(speedKitUrlService.getBaqendUrl(co_url, document.getElementById('wListInput'), '_blank'));
+    win.focus();
+};
+
 window.handleLocationChange =  function(radioButton) {
     if(radioButton.value === 'usa') {
         testOptions.location = 'us-east-1:Chrome';
@@ -46,9 +54,9 @@ window.handleLocationChange =  function(radioButton) {
 
 window.handleCachingChange =  function(radioButton) {
     if(radioButton.value === 'yes') {
-        testOptions.noCaching = true;
+        testOptions.caching = false;
     } else if(radioButton.value === 'no') {
-        testOptions.noCaching = false;
+        testOptions.caching = true;
     }
 };
 
@@ -68,78 +76,107 @@ window.playVideos = function(videoElement) {
     }
 };
 
+window.printReport = function() {
+    const competitorVideo = document.getElementById('video-competitor');
+    const speedKitVideo = document.getElementById('video-speedKit');
+    competitorVideo.currentTime = competitorVideo.duration;
+    speedKitVideo.currentTime = speedKitVideo.duration;
+
+    setTimeout(function() {
+        window.print();
+    }, 100);
+
+};
+
 window.initComparison = () => {
+    const now = Date.now();
+    testInstance = now;
+
+    resetComparison();
     showInfoBox();
     const urlInput = $('#currentVendorUrl').val();
     co_url = urlInput.indexOf('http://') !== -1 || urlInput.indexOf('https://') !== -1 ? urlInput : 'http://' + urlInput;
 
     if (co_url) {
         window.location.hash = '';
-        resetComparison();
         $('.center-vertical').animate({'marginTop': '0px'}, 500);
+        $('#configInfo').addClass('hidden');
+        $('#runningInfo').removeClass('hidden');
 
         const carousel = $('.carousel').carousel({interval: false, wrap: false});
         carousel.carousel(0);
 
-        db.modules.get('queueTest', {url: co_url, location: testOptions.location}).then(res => co_testId = res.testId);
+        db.modules.get('queueTest', {url: co_url, location: testOptions.location, isClone: false, caching: testOptions.caching})
+            .then(res => co_testId = res.testId);
 
-        db.modules.get('queueTest', {url: speedKitUrlService.getBaqendUrl(co_url, testOptions.noCaching,
-            document.getElementById('wListInput')), location: testOptions.location}).then(res => sk_testId = res.testId);
+        db.modules.get('queueTest', {url: speedKitUrlService.getBaqendUrl(co_url, document.getElementById('wListInput')),
+            location: testOptions.location, isClone: true, caching: testOptions.caching})
+            .then(res => sk_testId = res.testId);
 
         pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(encodeURIComponent(co_url)).then((results) => {
             testOverview = new db.TestOverview();
             testOverview.psiDomains = results.domains;
             testOverview.psiRequests = results.resources;
             testOverview.psiResponseSize = results.bytes;
-            testOverview.noCaching = testOptions.noCaching;
+            testOverview.caching = testOptions.caching;
 
             carousel.carousel(1);
 
             setTimeout(() => {
-                $('.numberOfHosts').html(results.domains);
-                $('#numberOfHostsCol').removeClass('invisible');
-                carousel.carousel(2);
+                if(now === testInstance) {
+                    $('.numberOfHosts').html(results.domains);
+                    $('#numberOfHostsCol').removeClass('invisible');
+                    carousel.carousel(2);
+                }
             }, 1000);
 
             setTimeout(() => {
-                $('.numberOfRequests').html(results.resources);
-                $('#numberOfRequestsCol').removeClass('invisible');
-
-                carousel.carousel(3);
+                if(now === testInstance) {
+                    $('.numberOfRequests').html(results.resources);
+                    $('#numberOfRequestsCol').removeClass('invisible');
+                    carousel.carousel(3);
+                }
             }, 2000);
 
             setTimeout(() => {
-                $('.numberOfBytes').html(results.bytes);
-                $('#numberOfBytesCol').removeClass('invisible');
+                if(now === testInstance) {
+                    $('.numberOfBytes').html(results.bytes);
+                    $('#numberOfBytesCol').removeClass('invisible');
 
-                carousel.carousel(4);
-                interval = setInterval(function() {
-                    db.modules.get('getTestStatus', {testId: co_testId}).then(res => {
-                        if(res.status.statusCode === 101) {
-                            $('#statusQueue').html(res.status.statusText);
-                        } else if(res.status.statusCode === 100 || res.status.statusCode === 200) {
-                            $('#statusQueue').html('Test has been started...');
-                        }
-                    });
-                }, 2000);
+                    carousel.carousel(4);
+                    interval = setInterval(function() {
+                        db.modules.get('getTestStatus', {testId: co_testId}).then(res => {
+                            if(res.status.statusCode === 101) {
+                                $('#statusQueue').html(res.status.statusText);
+                            } else if(res.status.statusCode === 100 || res.status.statusCode === 200) {
+                                $('#statusQueue').html('Test has been started...');
+                            }
+                        });
+                    }, 2000);
+                }
             }, 3000);
 
             setTimeout(() => {
-                $('#compareContent').removeClass('invisible');
-                $('#competitor').append(uiElementCreator.createImageElement(results.screenshot), uiElementCreator.createScannerElement());
-                $('#speedKit').append(uiElementCreator.createImageElement(results.screenshot), uiElementCreator.createScannerElement());
+                if(now === testInstance) {
+                    $('#compareContent').removeClass('invisible');
+                    $('#competitor').append(uiElementCreator.createImageElement(results.screenshot),
+                        uiElementCreator.createScannerElement());
+
+                    $('#speedKit').append(uiElementCreator.createImageElement(results.screenshot),
+                        uiElementCreator.createScannerElement());
+                }
             }, 4000);
 
             setTimeout(() => {
-                const co_query = db.TestResult.find().equal('testId', co_testId);
-                const co_subscription = co_query.resultStream(result =>
-                    resultStreamUpdate(result, testOptions.noCaching ? 'firstView' : 'repeatView',
-                        testOptions.noCaching ? 'videoIdFirstView' : 'videoIdRepeatedView',
-                        co_subscription, 'competitor'));
+                if(now === testInstance) {
+                    const co_query = db.TestResult.find().equal('testId', co_testId);
+                    co_subscription = co_query.resultStream(result =>
+                        resultStreamUpdate(result, co_subscription, 'competitor'));
 
-                const sk_query = db.TestResult.find().equal('testId', sk_testId);
-                const sk_subscription = sk_query.resultStream(result =>
-                    resultStreamUpdate(result, 'repeatView', 'videoIdRepeatedView', sk_subscription, 'speedKit'));
+                    const sk_query = db.TestResult.find().equal('testId', sk_testId);
+                    sk_subscription = sk_query.resultStream(result =>
+                        resultStreamUpdate(result, sk_subscription, 'speedKit'));
+                }
             }, 6000)
         });
     }
@@ -163,16 +200,22 @@ window.initComparison = () => {
  });
  };*/
 
-function resultStreamUpdate(result, dataView, videoView, subscription, elementId) {
-    result.forEach((entry) => {
+function resultStreamUpdate(result, subscription, elementId) {
+    const dataView = testOptions.caching ? 'repeatView' : 'firstView';
+    const videoView = testOptions.caching ? 'videoIdRepeatedView' : 'videoIdFirstView';
+
+    if(result.length > 0) {
+        const entry = result[0];
+
         if(!testOverview[elementId + 'TestResult']) {
             testOverview[elementId + 'TestResult'] = entry;
         }
 
         if (entry[dataView]) {
-            displayTestResults(elementId, entry[dataView]);
             if(firstResult.owner && firstResult.owner !== elementId) {
                 clearInterval(interval);
+                displayTestResults(firstResult.owner, firstResult.result);
+                displayTestResults(elementId, entry[dataView]);
                 firstResult.owner === 'competitor' ? calculateFactors(firstResult.result, entry[dataView])
                     : calculateFactors(entry[dataView], firstResult.result);
             } else {
@@ -189,20 +232,25 @@ function resultStreamUpdate(result, dataView, videoView, subscription, elementId
             } else {
                 const firstElement = $('#' + elementId);
                 const secondElement = $('#' + firstResult.owner);
+
                 firstElement.empty();
                 secondElement.empty();
                 firstElement.append(uiElementCreator.createVideoElement('video-' + elementId, videoLink));
                 secondElement.append(uiElementCreator.createVideoElement('video-' + firstResult.owner, firstResult.videoSrc));
                 testOverview.insert().then(() => window.location.hash = '?testId=' + testOverview.key);
+
                 $('.infoBox').fadeOut(1000);
                 $('#info').removeClass('hidden');
                 $('#testStatus').addClass('hidden');
+                $('#runningInfo').addClass('hidden');
+                $('#configInfo').removeClass('hidden');
                 $('#wListConfig').removeClass('hidden');
+                $('#speedKit').append(uiElementCreator.createLinkButton());
             }
 
             subscription.unsubscribe();
         }
-    });
+    }
 }
 
 function getParameterByName(name) {
@@ -216,35 +264,46 @@ function getParameterByName(name) {
 }
 
 function displayTestResults(elementId, data) {
+    const lastVisualChange = ((data.lastVisualChange / 1000) % 60).toFixed(1);
     $('#' + elementId + '-speedIndex').html(data.speedIndex + 'ms');
     $('#' + elementId + '-dom').html(data.domLoaded + 'ms');
-    $('#' + elementId + '-lastVisualChange').html(data.lastVisualChange + 'ms');
     $('#' + elementId + '-fullyLoaded').html(data.fullyLoaded + 'ms');
+    $('#' + elementId + '-lastVisualChange').html(Math.round(lastVisualChange * 100)/100 + 's');
 
-    if(testOptions.noCaching) {
-        $('#' + elementId + '-ttfb').html(data.ttfb + 'ms');
-    } else {
+    if(testOptions.caching) {
         $('#' + elementId + '-ttfb').html('-');
+    } else {
+        $('#' + elementId + '-ttfb').html(data.ttfb + 'ms');
     }
     $('#testResults').removeClass('invisible');
 }
 
 function calculateFactors(competitorResult, speedKitResult) {
-    $('#speedIndex-factor').html((competitorResult.speedIndex / speedKitResult.speedIndex).toFixed(2) + 'x');
-    $('#dom-factor').html((competitorResult.domLoaded / speedKitResult.domLoaded).toFixed(2) + 'x');
-    $('#lastVisualChange-factor').html((competitorResult.lastVisualChange / speedKitResult.lastVisualChange).toFixed(2) + 'x');
-    $('#fullyLoaded-factor').html((competitorResult.fullyLoaded / speedKitResult.fullyLoaded).toFixed(2) + 'x');
+    const speedIndexFactor = (competitorResult.speedIndex / speedKitResult.speedIndex).toFixed(2);
+    $('#speedIndex-factor').html(speedIndexFactor + 'x ' + (speedIndexFactor > 1 ? 'Faster' : ''));
 
-    if(testOptions.noCaching)
-        $('#ttfb-factor').html((competitorResult.ttfb / speedKitResult.ttfb).toFixed(2) + 'x');
+    const domFactor = (competitorResult.domLoaded / speedKitResult.domLoaded).toFixed(2);
+    $('#dom-factor').html(domFactor + 'x ' + (domFactor > 1 ? 'Faster' : ''));
+
+    const fullyLoadedFactor = (competitorResult.fullyLoaded / speedKitResult.fullyLoaded).toFixed(2);
+    $('#fullyLoaded-factor').html(fullyLoadedFactor + 'x ' + (fullyLoadedFactor > 1 ? 'Faster' : ''));
+
+    const lastVisualChangeFactor = (competitorResult.lastVisualChange / speedKitResult.lastVisualChange).toFixed(2);
+    $('#lastVisualChange-factor').html(lastVisualChangeFactor + 'x ' + (lastVisualChangeFactor > 1 ? 'Faster' : ''));
+
+    if(!testOptions.caching) {
+        const ttfbFactor = (competitorResult.ttfb / speedKitResult.ttfb).toFixed(2);
+        $('#ttfb-factor').html(ttfbFactor + 'x ' + (ttfbFactor > 1 ? 'Faster' : ''));
+    }
 }
 
 function displayTestResultsById(testId) {
-    let competitorDataView = 'firstView';
-    let competitorVideoView = 'videoIdFirstView';
-
     db.TestOverview.load(testId, {depth: 1}).then((result) => {
-        $('#currentVendorUrl').val(result.competitorTestResult.url);
+        const dataView = testOptions.caching ? 'repeatView' : 'firstView';
+        const videoView = testOptions.caching ? 'videoIdRepeatedView' : 'videoIdFirstView';
+        co_url = result.competitorTestResult.url;
+
+        $('#currentVendorUrl').val(co_url);
         $('.center-vertical').removeClass('center-vertical');
         $('.numberOfHosts').html(result.psiDomains);
         $('#numberOfHostsCol').removeClass('invisible');
@@ -260,33 +319,39 @@ function displayTestResultsById(testId) {
             $('#location_left').prop("checked", true);
         }
 
-        if(!result.noCaching) {
-            competitorDataView = 'repeatView';
-            competitorVideoView = 'videoIdRepeatedView';
-            $('#caching_left').prop("checked", true);
-            testOptions.noCaching = false;
-        }
+        $('#caching_left').prop("checked", result.caching);
+        testOptions.caching = result.caching;
 
-        displayTestResults('competitor', result.competitorTestResult[competitorDataView]);
+        displayTestResults('competitor', result.competitorTestResult[dataView]);
         $('#competitor').append(uiElementCreator.createVideoElement('video-competitor',
-            uiElementCreator.constructVideoLink(result.competitorTestResult, competitorVideoView)));
+            uiElementCreator.constructVideoLink(result.competitorTestResult, videoView)));
 
-        displayTestResults('speedKit', result.speedKitTestResult.repeatView);
-        $('#speedKit').append(uiElementCreator.createVideoElement('video-speedKit',
-            uiElementCreator.constructVideoLink(result.speedKitTestResult, 'videoIdRepeatedView')));
+        displayTestResults('speedKit', result.speedKitTestResult[dataView]);
+        $('#speedKit').append(uiElementCreator.createLinkButton(), uiElementCreator.createVideoElement('video-speedKit',
+            uiElementCreator.constructVideoLink(result.speedKitTestResult, videoView)));
 
-        calculateFactors(result.competitorTestResult[competitorDataView], result.speedKitTestResult.repeatView);
+        calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView]);
     })
 }
 
 function resetComparison() {
+    if(co_subscription)
+        co_subscription.unsubscribe();
+
+    if(sk_subscription)
+        sk_subscription.unsubscribe();
+
+    firstResult = {owner: null, result: null, videoSrc: null};
+
     $('#numberOfHostsCol').addClass('invisible');
     $('#numberOfRequestsCol').addClass('invisible');
     $('#numberOfBytesCol').addClass('invisible');
     $('#compareContent').addClass('invisible');
     $('#testResults').addClass('invisible');
     $('#info').addClass('hidden');
+    $('#runningInfo').addClass('hidden');
     $('#testStatus').removeClass('hidden');
+    $('#configInfo').removeClass('hidden');
     $('#statusQueue').html('Initializing test');
     $('#competitor').empty();
     $('#speedKit').empty();
@@ -305,5 +370,4 @@ function resetComparison() {
     $('#dom-factor').html('');
     $('#lastVisualChange-factor').html('');
     $('#fullyLoaded-factor').html('');
-    firstResult = {owner: null, result: null, videoSrc: null};
 }

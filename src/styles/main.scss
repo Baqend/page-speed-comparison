@@ -1,15 +1,15 @@
-:root {
-  --main-color: #0F202D;
-}
-
 body, html, .content {
   padding: 0;
   min-height: 100%;
 }
 
+h1 {
+  padding-top: 80px;
+}
+
 .iconWrapper{
   border-radius: 100%;
-  background: var(--main-color);
+  background: #0F202D;
 }
 
 img {
@@ -28,6 +28,20 @@ img {
   border-radius: 3px 3px 3px 3px;
   border: 1px solid darkgrey;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+#speedKit .openButton{
+  display: none;
+  position:absolute;
+  right: 0px;
+  color: #0F202D !important;
+  margin: 5px;
+  font-size: 14px;
+  z-index: 100;
+}
+
+#speedKit:hover .openButton{
+  display: inline
 }
 
 #cta {
@@ -79,7 +93,7 @@ img {
   position: absolute;
   left: 0;
   width: 100%;
-  color: var(--main-color);
+  color: #0F202D;
   line-height: inherit;
   font-size: 18px;
 }
@@ -100,7 +114,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 .search-button {
   background-color: #FFFFFF;
-  color: var(--main-color);
+  color: #0F202D;
   width: 46px;
   height: 46px;
   border: none;
@@ -197,7 +211,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 }
 
 .wow {
-  border-color: var(--main-color);
+  border-color: #0F202D;
 }
 
 .noRowMargin {
@@ -219,7 +233,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 .wrapper {
   overflow: hidden;
-  height: 800px;
+  height: 750px;
   margin: 0 auto;
   width: 100%;
 }
@@ -227,23 +241,24 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .btn-blue {
   &:not(.btn-ghost) {
     color: white;
-    background: var(--main-color);
-    border-bottom: 3px solid var(--main-color);
+    background: #0F202D;
+    border-bottom: 3px solid #0F202D;
     padding-bottom: 7px;
     &:hover {
-      background: var(--main-color);
-      border-bottom: 3px solid var(--main-color);
+      background: #0F202D;
+      border-bottom: 3px solid #0F202D;
       border-bottom-left-radius: 5px;
       border-bottom-right-radius: 5px;
     }
   }
   &.btn-ghost {
-    color: var(--main-color);
+    color: #0F202D;
     background: transparent;
-    border: 2px solid var(--main-color);
+    border: 2px solid #0F202D;
+    padding: 6px 8px;
     &:hover {
       color: white;
-      background: var(--main-color);
+      background: #0F202D;
     }
   }
 }
@@ -251,6 +266,11 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .info-icon {
   font-size: 14px;
   vertical-align: text-top;
+  cursor: pointer;
+}
+
+.tooltipInfo {
+  display: inline-block;
   cursor: pointer;
 }
 
@@ -349,7 +369,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   display: inline-block;
   position: absolute;
   top: 0;
-  background-color: var(--main-color);
+  background-color: #0F202D;
   border-radius: 100%;
 
   -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
@@ -387,7 +407,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   top: 0px;
   width: 100%;
   margin: 20px 0px;
-  background-color: var(--main-color);
+  background-color: #0F202D;
   height: 10px;
   opacity: 0.8;
   animation: scanning 6s infinite;
@@ -439,3 +459,108 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   border-radius: 0 4px 4px 0;
 }
 /* switch radio button css ends  here */
+
+@media print {
+  @page {
+    size: landscape;
+  }
+
+  body {
+    font-size: 12px;
+  }
+
+  h1 {
+    font-size: 32px;
+    margin-top: -100px;
+  }
+
+  hr {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  input {
+    text-align: center;
+  }
+
+  #cta {
+    display: none;
+  }
+
+  #wListConfig {
+    display: none;
+  }
+
+  .wrapper {
+    height: 420px;
+  }
+
+  .iconCycle {
+    display: none;
+  }
+
+  .btn-blue {
+    display: none;
+  }
+
+  .fa-rocket {
+    display: none;
+  }
+
+  .challenge {
+    font-size: 16px;
+  }
+
+  .service {
+    font-size: 20px;
+  }
+
+  .medium-font {
+    font-size: 14px;
+  }
+
+  .infoHeader {
+    font-size: 12px;
+  }
+
+  .infoBox {
+    margin: 0px auto;
+  }
+
+  .previewBox {
+    margin: 0px auto;
+  }
+
+  .switch-field label {
+    width: 40px;
+    font-size: 10px;
+  }
+
+  .switch-field input:checked + label {
+    background-color: #a8a8a8 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .primaryCol {
+    font-size: 16px;
+  }
+
+  .secondaryCol {
+    font-size: 11px;
+  }
+
+  .primaryFactor {
+    font-size: 18px;
+    color: #f16746 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .secondaryFactor {
+    color: #f16746 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  *::-webkit-media-controls {
+    display:none !important;
+  }
+}

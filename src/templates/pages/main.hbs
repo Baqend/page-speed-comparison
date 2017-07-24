@@ -4,8 +4,11 @@
             <h1 class="heading">Page Speed Analyzer</h1>
             <hr class="wow">
             <div class="urlInput">
-                <input type="text" id="currentVendorUrl" onkeydown="if(event.keyCode == 13)initComparison()" onclick="showInfoBox()" placeholder="Enter URL here...">
-                <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
+                <input type="text" id="currentVendorUrl" onkeydown="if(event.keyCode == 13)initComparison()"
+                       onclick="showInfoBox()" placeholder="Enter URL here...">
+                <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket"
+                                                                                          aria-hidden="true"></i>
+                </button>
             </div>
             <div class="row infoBox">
                 <div class="col-sm-5 col-xs-5">
@@ -24,13 +27,13 @@
                                     <span>Requesting website</span>
                                 </div>
                                 <div class="item">
-                                    <span>Analysing Domains</span>
+                                    <span>Analyzing Domains</span>
                                 </div>
                                 <div class="item">
-                                    <span>Analysing Requests</span>
+                                    <span>Analyzing Requests</span>
                                 </div>
                                 <div class="item">
-                                    <span>Analysing Response</span>
+                                    <span>Analyzing Response</span>
                                 </div>
                                 <div class="item">
                                     <span id="statusQueue"></span>
@@ -39,7 +42,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-7 col-xs-7 info text-left">
+                <div class="col-sm-7 col-xs-7 info text-left" id="configInfo">
                     <span class="infoHeader">Choose how to test:</span>
                     <div class="mt-10">
                         <div class="col-sm-6 col-xs-6 noPaddding">
@@ -48,7 +51,7 @@
                         <div class="col-sm-6 col-xs-6 noPaddding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="location_left" name="switchLanguage"
-                                       onclick="handleLocationChange(this)" value="usa" />
+                                       onclick="handleLocationChange(this)" value="usa"/>
                                 <label for="location_left">USA</label>
                                 <input type="radio" id="location_right" name="switchLanguage"
                                        onclick="handleLocationChange(this)" value="eu" checked/>
@@ -63,7 +66,7 @@
                         <div class="col-sm-6 col-xs-6 noPaddding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="caching_left" name="switchCaching"
-                                       onclick="handleCachingChange(this)" value="no" />
+                                       onclick="handleCachingChange(this)" value="no"/>
                                 <label for="caching_left">NO</label>
                                 <input type="radio" id="caching_right" name="switchCaching"
                                        onclick="handleCachingChange(this)" value="yes" checked/>
@@ -72,34 +75,44 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-sm-7 col-xs-7 info text-left hidden" id="runningInfo">
+                    <span class="infoHeader">We are running a series of tests against your site</span><br>
+                    <span>
+                        See how fast your current backend stack delivers your site to users.
+                        We will compare the results to a version of your site using Baqend Speed Kit.
+                    </span>
+                </div>
             </div>
             <div class="row previewBox">
                 <div class="col-sm-4 col-xs-4 invisible" id="numberOfHostsCol">
-                    <span data-toggle="tooltip" title="Number of unique hosts referenced by the page.">
+                    <div class="tooltipInfo" data-toggle="tooltip"
+                         title="Number of unique hosts referenced by the page.">
                         <span class="fa-stack">
                           <i class="fa fa-circle iconCycle"></i>
                           <i class="fa fa-server iconInner"></i>
                         </span>Domains<br>
                         <span class="numberOfHosts medium-font bold"></span>
-                    </span>
+                    </div>
                 </div>
                 <div class="col-sm-4 col-xs-4 invisible" id="numberOfRequestsCol">
-                    <span data-toggle="tooltip" title="Number of HTTP resources loaded by the page.">
+                    <div class="tooltipInfo" data-toggle="tooltip"
+                         title="Number of HTTP resources loaded by the page.">
                         <span class="fa-stack">
                           <i class="fa fa-circle iconCycle"></i>
                           <i class="fa fa-paper-plane-o iconInner"></i>
                         </span>Requests<br>
                         <span class="numberOfRequests medium-font bold"></span>
-                    </span>
+                    </div>
                 </div>
                 <div class="col-sm-4 col-xs-4 invisible" id="numberOfBytesCol">
-                    <span data-toggle="tooltip" title="Number of uncompressed response bytes for resources on the page.">
+                    <div class="tooltipInfo" data-toggle="tooltip"
+                         title="Number of uncompressed response bytes for resources on the page.">
                         <span class="fa-stack">
                           <i class="fa fa-circle iconCycle"></i>
                           <i class="fa fa-upload iconInner"></i>
                         </span>Response Size<br>
                         <span class="numberOfBytes medium-font bold"></span>
-                    </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -118,35 +131,71 @@
                     <div id="competitor"></div>
                 </div>
                 <div class="col-sm-4 col-xs-4 metric-column text-center invisible" id="testResults">
-                    <div class="col-sm-12 primaryCol">
-                        <div class="col-sm-3" id="competitor-speedIndex"></div>
-                        <div class="col-sm-6">Speed Index</div>
-                        <div class="col-sm-3" id="speedKit-speedIndex"></div>
-                        <div class="col-sm-12 text-center primaryFactor" id="speedIndex-factor"></div>
+                    <div class="col-sm-12 col-xs-12 primaryCol">
+                        <div class="col-sm-3 col-xs-3" id="competitor-speedIndex"></div>
+                        <div class="col-sm-6 col-xs-6">
+                            <div class="tooltipInfo" data-toggle="tooltip"
+                                 title="Represents how quickly the page rendered the user-visible content.">
+                                Speed Index
+                                <br>
+                                <span class="primaryFactor" id="speedIndex-factor"></span>
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-xs-3" id="speedKit-speedIndex"></div>
                     </div>
                     <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
                         <div class="col-sm-3 col-xs-3" id="competitor-ttfb"></div>
-                        <div class="col-sm-6 col-xs-6">TTFB (Time To First Byte)</div>
+                        <div class="col-sm-6 col-xs-6">
+                            <div class="tooltipInfo" data-toggle="tooltip"
+                                 title="Measures the amount of time between creating a
+                                connection to the server and downloading the contents.">
+                                TTFB (Time To First Byte)
+                                <br>
+                                <span id="ttfb-factor" class="secondaryFactor"></span>
+                            </div>
+                        </div>
                         <div class="col-sm-3 col-xs-3" id="speedKit-ttfb"></div>
-                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="ttfb-factor"></div>
                     </div>
                     <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
                         <div class="col-sm-3 col-xs-3" id="competitor-dom"></div>
-                        <div class="col-sm-6 col-xs-6">DOMContentLoaded</div>
+                        <div class="col-sm-6 col-xs-6">
+                            <div class="tooltipInfo" data-toggle="tooltip"
+                                 title="Represents the time when the initial HTML document has been
+                                 completely loaded and parsed, without waiting for external resources.">
+                                DOMContentLoaded
+                                <br>
+                                <span class="secondaryFactor" id="dom-factor"></span>
+                            </div>
+                        </div>
                         <div class="col-sm-3 col-xs-3" id="speedKit-dom"></div>
-                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="dom-factor"></div>
-                    </div>
-                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
-                        <div class="col-sm-3 col-xs-3" id="competitor-lastVisualChange"></div>
-                        <div class="col-sm-6 col-xs-6">Last Visual Change</div>
-                        <div class="col-sm-3 col-xs-3" id="speedKit-lastVisualChange"></div>
-                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="lastVisualChange-factor"></div>
                     </div>
                     <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
                         <div class="col-sm-3 col-xs-3" id="competitor-fullyLoaded"></div>
-                        <div class="col-sm-6 col-xs-6">FullyLoaded</div>
+                        <div class="col-sm-6 col-xs-6">
+                            <div class="tooltipInfo" data-toggle="tooltip"
+                                 title="Measures the time from the start of the initial navigation
+                                until there was 2 seconds of no network activity after Document Complete.">
+                                FullyLoaded
+                                <br>
+                                <span class="secondaryFactor" id="fullyLoaded-factor"></span>
+                            </div>
+                        </div>
                         <div class="col-sm-3 col-xs-3" id="speedKit-fullyLoaded"></div>
-                        <div class="col-sm-12 col-xs-12 text-center secondaryFactor" id="fullyLoaded-factor"></div>
+                    </div>
+                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
+                        <div class="col-sm-3 col-xs-3" id="competitor-lastVisualChange"></div>
+                        <div class="col-sm-6 col-xs-6">
+                            <div class="tooltipInfo" data-toggle="tooltip"
+                                 title="Represents the last point in the test when something visually changed on the screen.">
+                                Last Visual Change
+                                <br>
+                                <span class="secondaryFactor" id="lastVisualChange-factor"></span>
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-xs-3" id="speedKit-lastVisualChange"></div>
+                    </div>
+                    <div class="col-sm-12 col-xs-12 mt-20" onclick="printReport()">
+                        <button class="btn btn-blue btn-ghost">Print Report</button>
                     </div>
                 </div>
                 <div class="col-sm-4 col-xs-4 media-columns text-center">
@@ -156,11 +205,13 @@
         </div>
         <div id="wListConfig" class="text-center hidden">
             <h3 class="pt-10">Unexpected result?</h3>
-            <h4>Tell Speed Kit a comma-separated list of (regex) domain patterns it should handle</h4>
+            <h4>Tell Speed Kit a comma-separated list of domains it should handle</h4>
             <div class="urlInput">
                 <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)initComparison()"
-                       onclick="showInfoBox()" placeholder="Enter comma separated white list here...">
-                <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket" aria-hidden="true"></i></button>
+                       onclick="showInfoBox()" placeholder="Enter domains here...">
+                <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket"
+                                                                                          aria-hidden="true"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -191,12 +242,14 @@
                     <h4 class="modal-title">We are sorry...</h4>
                 </div>
                 <div class="modal-body">
-                    <p>Apparently your Site cannot be tested because the <strong>X-Frame-Option</strong> disallows framing the page.
+                    <p>Apparently your Site cannot be tested because the <strong>X-Frame-Option</strong> disallows
+                        framing the page.
                         Contact our Web Performance Experts for further Information and Assistance!
                     </p>
                     <div class="form-group">
                         <label for="c_name">Name</label>
-                        <input type="text" id="c_name" class="form-control" name="name" placeholder="Your Name" required>
+                        <input type="text" id="c_name" class="form-control" name="name" placeholder="Your Name"
+                               required>
                     </div>
                     <div class="form-group">
                         <label for="c_email">E-Mail</label>

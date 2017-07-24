@@ -1,12 +1,8 @@
 const bq_url = 'https://makefast-staging.app.baqend.com';
 
 class SpeedKitUrlService {
-    getBaqendUrl(originalUrl, noCaching, wlist) {
-        let url = bq_url + '?url=' + encodeURIComponent(originalUrl) + '&wlist=' + this.generateWhiteList(originalUrl, wlist);
-        if (noCaching) {
-            url += '&noCaching=' + noCaching;
-        }
-        return url;
+    getBaqendUrl(originalUrl, wlist) {
+        return bq_url + '?url=' + encodeURIComponent(originalUrl) + '&wlist=' + this.generateWhiteList(originalUrl, wlist);
     }
 
     generateWhiteList(originalUrl, wlist) {
