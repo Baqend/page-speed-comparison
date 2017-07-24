@@ -8,20 +8,7 @@ exports.call = function (db, data, req) {
     const isClone = data.isClone == 'true';
     const caching = data.caching == 'true';
 
-    const testScript =
-`setActivityTimeout\t150
-logData\t0
-navigate\t${testUrl}&noCaching=true&blockExternal=true
-navigate\tabout:blank
-clearCache
-logData\t1
-navigate\t${testUrl}`;
-
-    const testEntity = isClone ? testScript : testUrl;
-
-    db.log.info('starting test for ' + testUrl + ' and location ' + testLocation);
-    db.log.info('Test entity ' + testEntity);
-    return API.runTest(testEntity, {
+    const testOptions = {
         connectivity: 'Native',
         location: testLocation,
         firstViewOnly: !caching,
@@ -41,7 +28,32 @@ navigate\t${testUrl}`;
         disableScreenshot: true,
         jpegQuality: 100,
         pingback: 'https://makefast.app.baqend.com/v1/code/testPingback'
-    }).then(result => {
+    };
+
+    // test cloned website
+    if (isClone) {
+        const prewarmScript = `logData\t0\nnavigate\t${testUrl}`;
+
+        const makefastUrl = testUrl.substr(testUrl.indexOf('?'));
+        const testScript =
+`setActivityTimeout\t150
+logData\t0
+navigate\t${makefastUrl}
+navigate\tabout:blank
+logData\t1
+navigate\t${testUrl}`;
+
+        return API.runTest(prewarmScript, Object.assign({}, testOptions, {pingback: ''})).then(() => {
+            return API.runTest(testScript, testOptions);
+        }).then(result => {
+            db.log.info(`Clone test, id: ${result.data.testId} script:\n${testScript}`);
+            return {testId: result.data.testId};
+        });
+    }
+
+    // test original website
+    return API.runTest(testUrl, testOptions).then(result => {
+        db.log.info(`Original test, id: ${result.data.testId} url:\n${testUrl}`);
         db.log.info('Started Testid: ' + result.data.testId + ' for ' + testUrl);
         return {testId: result.data.testId};
     });
