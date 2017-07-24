@@ -30,6 +30,8 @@ exports.call = function (db, data, req) {
         pingback: 'https://makefast.app.baqend.com/v1/code/testPingback'
     };
 
+    const prewarmOptions = Object.assign({}, testOptions, {pingback: '', firstViewOnly: true});
+
     // test cloned website
     if (isClone) {
         const prewarmScript = `logData\t0\nnavigate\t${testUrl}`;
@@ -43,7 +45,7 @@ navigate\tabout:blank
 logData\t1
 navigate\t${testUrl}`;
 
-        return API.runTest(prewarmScript, Object.assign({}, testOptions, {pingback: ''})).then(() => {
+        return API.runTest(prewarmScript, prewarmOptions).then(() => {
             return API.runTest(testScript, testOptions);
         }).then(result => {
             db.log.info(`Clone test, id: ${result.data.testId} script:\n${testScript}`);
