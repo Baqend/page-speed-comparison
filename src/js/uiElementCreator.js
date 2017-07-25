@@ -5,6 +5,7 @@ class UiElementCreator {
             screenshotData.data.replace(/_/g, '/').replace(/-/g, '+'));
         img.setAttribute('alt', 'preview of website screen');
         img.setAttribute('id', 'preview-image');
+        img.setAttribute('class', 'blur');
         return img;
     }
 

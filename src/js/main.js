@@ -53,6 +53,7 @@ window.handleLocationChange =  function(radioButton) {
 };
 
 window.handleCachingChange =  function(radioButton) {
+    testOptions.caching = radioButton.value;
     if(radioButton.value === 'yes') {
         testOptions.caching = false;
     } else if(radioButton.value === 'no') {
@@ -207,49 +208,61 @@ function resultStreamUpdate(result, subscription, elementId) {
     if(result.length > 0) {
         const entry = result[0];
 
-        if(!testOverview[elementId + 'TestResult']) {
-            testOverview[elementId + 'TestResult'] = entry;
-        }
-
-        if (entry[dataView]) {
-            if(firstResult.owner && firstResult.owner !== elementId) {
-                clearInterval(interval);
-                displayTestResults(firstResult.owner, firstResult.result);
-                displayTestResults(elementId, entry[dataView]);
-                firstResult.owner === 'competitor' ? calculateFactors(firstResult.result, entry[dataView])
-                    : calculateFactors(entry[dataView], firstResult.result);
-            } else {
-                firstResult.owner = elementId;
-                firstResult.result = entry[dataView];
-            }
-        }
-
-        if (entry[videoView]) {
-            const videoLink = uiElementCreator.constructVideoLink(entry, videoView);
-
-            if(!firstResult.videoSrc && firstResult.owner === elementId) {
-                firstResult.videoSrc = videoLink;
-            } else {
-                const firstElement = $('#' + elementId);
-                const secondElement = $('#' + firstResult.owner);
-
-                firstElement.empty();
-                secondElement.empty();
-                firstElement.append(uiElementCreator.createVideoElement('video-' + elementId, videoLink));
-                secondElement.append(uiElementCreator.createVideoElement('video-' + firstResult.owner, firstResult.videoSrc));
-                testOverview.insert().then(() => window.location.hash = '?testId=' + testOverview.key);
-
-                $('.infoBox').fadeOut(1000);
-                $('#info').removeClass('hidden');
-                $('#testStatus').addClass('hidden');
-                $('#runningInfo').addClass('hidden');
-                $('#configInfo').removeClass('hidden');
-                $('#wListConfig').removeClass('hidden');
-                $('#speedKit').append(uiElementCreator.createLinkButton());
+        if(!entry.testDataMissing) {
+            if(!testOverview[elementId + 'TestResult']) {
+                testOverview[elementId + 'TestResult'] = entry;
             }
 
+            if (entry[dataView]) {
+                if(firstResult.owner && firstResult.owner !== elementId) {
+                    clearInterval(interval);
+                    displayTestResults(firstResult.owner, firstResult.result);
+                    displayTestResults(elementId, entry[dataView]);
+                    firstResult.owner === 'competitor' ? calculateFactors(firstResult.result, entry[dataView])
+                        : calculateFactors(entry[dataView], firstResult.result);
+                } else {
+                    firstResult.owner = elementId;
+                    firstResult.result = entry[dataView];
+                }
+            }
+
+            if (entry[videoView]) {
+                const videoLink = uiElementCreator.constructVideoLink(entry, videoView);
+
+                if(!firstResult.videoSrc && firstResult.owner === elementId) {
+                    firstResult.videoSrc = videoLink;
+                } else {
+                    const firstElement = $('#' + elementId);
+                    const secondElement = $('#' + firstResult.owner);
+
+                    firstElement.empty();
+                    secondElement.empty();
+                    firstElement.append(uiElementCreator.createVideoElement('video-' + elementId, videoLink));
+                    secondElement.append(uiElementCreator.createVideoElement('video-' + firstResult.owner, firstResult.videoSrc));
+                    testOverview.insert().then(() => window.location.hash = '?testId=' + testOverview.key);
+
+                    $('.infoBox').fadeOut(1000);
+                    $('#info').removeClass('hidden');
+                    $('#testStatus').addClass('hidden');
+                    $('#runningInfo').addClass('hidden');
+                    $('#configInfo').removeClass('hidden');
+                    $('#wListConfig').removeClass('hidden');
+                    $('#speedKit').append(uiElementCreator.createLinkButton());
+                }
+                subscription.unsubscribe();
+            }
+        } else {
+            clearInterval(interval);
             subscription.unsubscribe();
+            resetComparison();
+
+            $('#info').removeClass('hidden');
+            $('#testStatus').addClass('hidden');
+            $('#runningInfo').addClass('hidden');
+            $('#configInfo').removeClass('hidden');
+            $('#wListConfig').removeClass('hidden');
         }
+
     }
 }
 

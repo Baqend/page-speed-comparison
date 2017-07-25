@@ -4,6 +4,7 @@ body, html, .content {
 }
 
 h1 {
+  font-size: 38px;
   padding-top: 80px;
 }
 
@@ -14,11 +15,14 @@ h1 {
 
 img {
   width: 100%;
+}
+
+.blur {
   filter: blur(1.5px);
 }
 
 .content {
-  padding: 20px 50px;
+  padding: 20px;
   background: #fefefe;
   color: black;
 }
@@ -62,7 +66,7 @@ img {
   padding: 20px;
 }
 #cta .triangle {
-  color: #fefefe;
+  color: #f5f5f5;
 }
 
 #cta .fancy-button {
@@ -80,7 +84,7 @@ img {
 }
 
 .medium-font {
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .iconCycle {
@@ -126,23 +130,6 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   right: 0;
   top: 0;
   cursor: pointer;
-}
-
-.urlInput {
-  border-radius: 3px 3px 3px 3px;
-  box-shadow: 0 1px 4px 1px rgba(50, 50, 50, 0.3);
-  background-color: #FFFFFF;
-  display: inline-block;
-  width: 40%;
-  text-align: left;
-  padding-right: 15px;
-  padding-left: 15px;
-  position: relative;
-  z-index: 1000;
-}
-
-.urlInput:hover, #urlInput:focus {
-  box-shadow: 0 1px 5px 1px rgba(50, 50, 50, 0.4);
 }
 
 .noPaddding {
@@ -207,11 +194,16 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 }
 
 .challenge {
-  font-size: 26px;
+  font-size: 24px;
 }
 
 .wow {
   border-color: #0F202D;
+}
+
+.printTeaser {
+  display: none;
+  align-items: center;
 }
 
 .noRowMargin {
@@ -233,12 +225,30 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 .wrapper {
   overflow: hidden;
-  height: 750px;
+  height: 800px;
   margin: 0 auto;
   width: 100%;
 }
 
+.implementation {
+  background-color: #F5F5F5;
+  padding: 30px 0;
+}
+
+.implementation-text{
+  font-family: 'Raleway', sans-serif;
+  font-size: 21px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.58
+}
+
+.implementation-row {
+  padding: 30px 0px;
+}
+
 .btn-blue {
+  display: none;
   &:not(.btn-ghost) {
     color: white;
     background: #0F202D;
@@ -278,11 +288,28 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   background: none;
   font-weight: normal;
   border: 0;
-  font-size: 28px;
+  font-size: 26px;
+}
+
+.urlInput {
+  border-radius: 3px 3px 3px 3px;
+  box-shadow: 0 1px 4px 1px rgba(50, 50, 50, 0.3);
+  background-color: #FFFFFF;
+  display: inline-block;
+  width: 70%;
+  text-align: left;
+  padding-right: 15px;
+  padding-left: 15px;
+  position: relative;
+  z-index: 1000;
+}
+
+.urlInput:hover, #urlInput:focus {
+  box-shadow: 0 1px 5px 1px rgba(50, 50, 50, 0.4);
 }
 
 .infoBox {
-  width: 40%;
+  width: 70%;
   margin: 15px auto;
   padding: 5px;
 }
@@ -302,7 +329,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 }
 
 .previewBox {
-  width: 60%;
+  width: 70%;
   margin: 25px auto;
   padding: 5px;
 }
@@ -415,7 +442,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 @keyframes scanning {
   50% {
-    top: 90%;
+    top: 82%;
   }
 }
 
@@ -427,6 +454,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .switch-field label {
   display: inline-block;
   width: 60px;
+  max-width: 50%;
   background-color: #ffffff;
   color: rgba(0, 0, 0, 0.6);
   font-size: 14px;
@@ -460,6 +488,54 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 }
 /* switch radio button css ends  here */
 
+@media (min-width: 992px) {
+  h1 {
+    font-size: 46px;
+  }
+
+  .content {
+    padding: 20px 50px;
+  }
+
+  .urlInput {
+    width: 40%;
+  }
+
+  .infoBox {
+    width: 40%;
+  }
+
+  .challenge {
+    font-size: 26px;
+  }
+
+  .medium-font {
+    font-size: 24px;
+  }
+
+  .previewBox {
+    width: 60%;
+  }
+
+  .service {
+    font-size: 28px;
+  }
+
+  .btn-blue {
+    display: inline-block;
+  }
+
+  .implementation-row {
+    padding: 30px 100px;
+  }
+
+  @keyframes scanning {
+    50% {
+      top: 90%;
+    }
+  }
+}
+
 @media print {
   @page {
     size: landscape;
@@ -491,19 +567,23 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
     display: none;
   }
 
+  .printTeaser{
+    display: flex;
+  }
+
   .wrapper {
-    height: 420px;
+    height: 520px;
   }
 
   .iconCycle {
     display: none;
   }
 
-  .btn-blue {
+  .fa-rocket {
     display: none;
   }
 
-  .fa-rocket {
+  .implementation {
     display: none;
   }
 
