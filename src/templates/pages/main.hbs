@@ -11,7 +11,7 @@
                 </button>
             </div>
             <div class="row infoBox">
-                <div class="col-sm-5 col-xs-5">
+                <div class="col-lg-5 col-md-56 col-sm-5">
                     <div id="info">
                         <span id="resultInfo" class="challenge heading">Test the performance of your site!</span>
                     </div>
@@ -42,13 +42,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-7 col-xs-7 info text-left" id="configInfo">
+                <div class="col-lg-7 col-md-7 col-sm-7 info text-left" id="configInfo">
                     <span class="infoHeader">Choose how to test:</span>
                     <div class="mt-10">
-                        <div class="col-sm-6 col-xs-6 noPaddding">
+                        <div class="col-lg-6 col-md-6 col-sm-6 noPaddding">
                             <span class="align-middle">Region of client</span>
                         </div>
-                        <div class="col-sm-6 col-xs-6 noPaddding text-right">
+                        <div class="col-lg-6 col-md-6 col-sm-6 noPaddding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="location_left" name="switchLanguage"
                                        onclick="handleLocationChange(this)" value="usa"/>
@@ -60,10 +60,10 @@
                         </div>
                     </div>
                     <div class="mt-10">
-                        <div class="col-sm-6 col-xs-6 noPaddding">
+                        <div class="col-lg-6 col-md-6 col-sm-6 noPaddding">
                             <span class="align-middle">Cold cache</span>
                         </div>
-                        <div class="col-sm-6 col-xs-6 noPaddding text-right">
+                        <div class="col-lg-6 col-md-6 col-sm-6 noPaddding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="caching_left" name="switchCaching"
                                        onclick="handleCachingChange(this)" value="no"/>
@@ -75,7 +75,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-7 col-xs-7 info text-left hidden" id="runningInfo">
+                <div class="col-lg-7 col-md-7 col-sm-7 info text-left hidden" id="runningInfo">
                     <span class="infoHeader">We are running a series of tests against your site</span><br>
                     <span>
                         See how fast your current backend stack delivers your site to users.
@@ -84,7 +84,7 @@
                 </div>
             </div>
             <div class="row previewBox">
-                <div class="col-sm-4 col-xs-4 invisible" id="numberOfHostsCol">
+                <div class="col-lg-4 col-md-4 col-sm-4 invisible" id="numberOfHostsCol">
                     <div class="tooltipInfo" data-toggle="tooltip"
                          title="Number of unique hosts referenced by the page.">
                         <span class="fa-stack">
@@ -94,7 +94,7 @@
                         <span class="numberOfHosts medium-font bold"></span>
                     </div>
                 </div>
-                <div class="col-sm-4 col-xs-4 invisible" id="numberOfRequestsCol">
+                <div class="col-lg-4 col-md-4 col-sm-4 invisible" id="numberOfRequestsCol">
                     <div class="tooltipInfo" data-toggle="tooltip"
                          title="Number of HTTP resources loaded by the page.">
                         <span class="fa-stack">
@@ -104,7 +104,7 @@
                         <span class="numberOfRequests medium-font bold"></span>
                     </div>
                 </div>
-                <div class="col-sm-4 col-xs-4 invisible" id="numberOfBytesCol">
+                <div class="col-lg-4 col-md-4 col-sm-4 invisible" id="numberOfBytesCol">
                     <div class="tooltipInfo" data-toggle="tooltip"
                          title="Number of uncompressed response bytes for resources on the page.">
                         <span class="fa-stack">
@@ -118,197 +118,47 @@
         </div>
         <div class="wrapper invisible" id="compareContent">
             <div class="row mt-20">
-                <div class="col-sm-4 col-xs-4 text-center">
+                <div class="col-lg-4 col-md-6 col-sm-6 media-columns text-center">
                     <div class="service">Your Website</div>
                 </div>
-                <div class="col-sm-4 col-xs-4 text-center"></div>
-                <div class="col-sm-4 cl-xs-4 text-center">
+                <div class="col-lg-4 col-md-4 col-sm-4 metric-column text-center hidden-md hidden-sm"></div>
+                <div class="col-lg-4 col-md-6 col-sm-6 media-columns text-center">
                     <div class="service">Your Website with Speed Kit</div>
                 </div>
             </div>
             <div class="row noRowMargin">
-                <div class="col-sm-4 col-xs-4 media-columns text-center">
+                <div class="col-lg-4 col-md-6 col-sm-6 media-columns text-center">
                     <div id="competitor"></div>
                 </div>
-                <div class="col-sm-4 col-xs-4 metric-column text-center invisible" id="testResults">
-                    <div class="col-sm-12 col-xs-12 primaryCol">
-                        <div class="col-sm-3 col-xs-3" id="competitor-speedIndex"></div>
-                        <div class="col-sm-6 col-xs-6">
-                            <div class="tooltipInfo" data-toggle="tooltip"
-                                 title="Represents how quickly the page rendered the user-visible content.">
-                                Speed Index
-                                <br>
-                                <span class="primaryFactor" id="speedIndex-factor"></span>
-                            </div>
-                        </div>
-                        <div class="col-sm-3 col-xs-3" id="speedKit-speedIndex"></div>
-                    </div>
-                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
-                        <div class="col-sm-3 col-xs-3" id="competitor-ttfb"></div>
-                        <div class="col-sm-6 col-xs-6">
-                            <div class="tooltipInfo" data-toggle="tooltip"
-                                 title="Measures the amount of time between creating a
-                                connection to the server and downloading the contents.">
-                                TTFB (Time To First Byte)
-                                <br>
-                                <span id="ttfb-factor" class="secondaryFactor"></span>
-                            </div>
-                        </div>
-                        <div class="col-sm-3 col-xs-3" id="speedKit-ttfb"></div>
-                    </div>
-                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
-                        <div class="col-sm-3 col-xs-3" id="competitor-dom"></div>
-                        <div class="col-sm-6 col-xs-6">
-                            <div class="tooltipInfo" data-toggle="tooltip"
-                                 title="Represents the time when the initial HTML document has been
-                                 completely loaded and parsed, without waiting for external resources.">
-                                DOMContentLoaded
-                                <br>
-                                <span class="secondaryFactor" id="dom-factor"></span>
-                            </div>
-                        </div>
-                        <div class="col-sm-3 col-xs-3" id="speedKit-dom"></div>
-                    </div>
-                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
-                        <div class="col-sm-3 col-xs-3" id="competitor-fullyLoaded"></div>
-                        <div class="col-sm-6 col-xs-6">
-                            <div class="tooltipInfo" data-toggle="tooltip"
-                                 title="Measures the time from the start of the initial navigation
-                                until there was 2 seconds of no network activity after Document Complete.">
-                                FullyLoaded
-                                <br>
-                                <span class="secondaryFactor" id="fullyLoaded-factor"></span>
-                            </div>
-                        </div>
-                        <div class="col-sm-3 col-xs-3" id="speedKit-fullyLoaded"></div>
-                    </div>
-                    <div class="col-sm-12 col-xs-12 mt-20 secondaryCol">
-                        <div class="col-sm-3 col-xs-3" id="competitor-lastVisualChange"></div>
-                        <div class="col-sm-6 col-xs-6">
-                            <div class="tooltipInfo" data-toggle="tooltip"
-                                 title="Represents the last point in the test when something visually changed on the screen.">
-                                Last Visual Change
-                                <br>
-                                <span class="secondaryFactor" id="lastVisualChange-factor"></span>
-                            </div>
-                        </div>
-                        <div class="col-sm-3 col-xs-3" id="speedKit-lastVisualChange"></div>
-                    </div>
-                    <div class="col-sm-12 col-xs-12 mt-20">
-                        <button class="btn btn-blue btn-ghost" onclick="printReport()">Print Report</button>
-                    </div>
+                <div class="col-lg-4 col-md-6 col-sm-6 metric-column text-center invisible hidden-md hidden-sm testResults">
+                    {{> metric }}
                 </div>
-                <div class="col-sm-4 col-xs-4 media-columns text-center">
+                <div class="col-lg-4 col-md-6 col-sm-6 col-md-6 media-columns text-center">
                     <div id="speedKit"></div>
                 </div>
             </div>
+            <div class="row text-center invisible hidden-lg testResults">
+                <div class="col-lg-2 col-md-2 col-sm-2"></div>
+                <div class="col-lg-8 col-md-8 col-sm-8">
+                    {{> metric }}
+                </div>
+                <div class="col-lg-2 col-md-2 col-sm-2"></div>
+            </div>
             <div class="row printTeaser">
-                <div class="col-sm-2 col-xs-2">
+                <div class="col-lg-2 col-md-2 col-sm-2">
                     <img src="../../img/Baqend-logo-newflame.png" alt="baqend logo"/>
                 </div>
-                <div class="col-sm-10 col-xs-10">
+                <div class="col-lg-10 col-md-10 col-sm-10">
                     Baqend Speed Kit hooks into your existing website and makes it faster. Speed Kit is the perfect tool
                     for publishers, landing pages, shops, and agencies to minmize page loads times and make backends stable.
                     Learn more at baqend.com or contact sales@baqend.com.
                 </div>
             </div>
         </div>
-        <div id="wListConfig" class="text-center hidden">
-            <h3 class="pt-10">Unexpected result?</h3>
-            <h4>Tell Speed Kit a comma-separated list of domains it should handle</h4>
-            <div class="urlInput">
-                <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)initComparison()"
-                       onclick="showInfoBox()" placeholder="Enter domains here...">
-                <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket"
-                                                                                          aria-hidden="true"></i>
-                </button>
-            </div>
-        </div>
+        {{> wlist }}
     </div>
 </div>
-<div class="implementation">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-sm-12 col-xs-12">
-                <h2>Implementation Remarks</h2>
-                <hr class="wow">
-            </div>
-        </div>
-        <div class="row implementation-row">
-            <div class="col-sm-10 col-sm-offset-1 col-xs-10 col-xs-offset-1 implementation-text">
-                <p>
-                    The web application follows the purpose of giving you an impression about how Baqend Speed Kit
-                    can influence the performance of your website. Therefore it runs a series of tests against your
-                    website and analyses how your current backend stack delivers your website compared to a version
-                    using Baqend Speed Kit.
-                </p>
-                <p>
-                    For comparison, the web application collects several metrics by means of the usage of
-                    <a href="https://developers.google.com/speed/docs/insights/v1/getting_started" target="_blank">PageSpeed Insights API</a>
-                    and a private instance of <a href="https://sites.google.com/a/webpagetest.org/docs/private-instances" target="_blank">WebPagetest</a>.
-                    Additionally, a performance video of both versions is provided, which allows a visual comparison. There is also the possibility
-                    to configure the Analyzer according to the desired test situation. On the one hand, you can switch the region of the client, which
-                    defines the location from where to request your website. On the other hand, the option "cold cache" enables or disables the delivery of cached content.
-                    Besides you can provide a comma-separated list of domains to tell Baqend Speed Kit which requests it should handle.
-                </p>
-                <p>
-                    Baqend achieves its unique performance by leveraging the HTTP caching infrastructure and combines
-                    it with new algorithms for cache invalidation. For more details on how Baqend enables caching of arbitrary resources
-                    and database objects visit our <a href="https://medium.baqend.com/bringing-web-performance-to-the-next-level-an-overview-of-baqend-be3521bc2faf" target="_blank">blog</a>.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-<div id="cta">
-    <i class="triangle fa fa-caret-down"></i>
-    <div class="container box marketing">
-        <div class="row text-center">
-            <div class="col-sm-12 col-xs-12">
-
-                <h2>Try <strong>Baqend Speed Kit</strong> Today!</h2>
-                <p class="announce">Empower your Website to load instantly</p>
-
-                <a href="https://dashboard.baqend.com/signup" class="fancy-button cta">Get Started for Free</a>
-            </div>
-        </div>
-    </div>
-</div>
-<button id="modalButton" type="button" class="hide" data-toggle="modal" data-target="#contactModal">Open Modal</button>
-<!-- Modal -->
-<div class="modal fade" id="contactModal" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <form id="contact_form" onsubmit="contactUs(event)">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">We are sorry...</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Apparently your Site cannot be tested because the <strong>X-Frame-Option</strong> disallows
-                        framing the page.
-                        Contact our Web Performance Experts for further Information and Assistance!
-                    </p>
-                    <div class="form-group">
-                        <label for="c_name">Name</label>
-                        <input type="text" id="c_name" class="form-control" name="name" placeholder="Your Name"
-                               required>
-                    </div>
-                    <div class="form-group">
-                        <label for="c_email">E-Mail</label>
-                        <input type="text" id="c_email" class="form-control" name="email"
-                               pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
-                               placeholder="example@example.com" required
-                        >
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="c_submit btn btn-success">Contact Baqend</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+{{> implementation }}
+{{> cta }}
+{{> modal }}
 

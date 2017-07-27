@@ -1,0 +1,132 @@
+@media print {
+  @page {
+    size: landscape;
+  }
+
+  body {
+    font-size: 12px !important;
+  }
+
+  h1 {
+    font-size: 32px !important;
+    margin-top: -100px !important;;
+  }
+
+  hr {
+    margin-top: 10px !important;;
+    margin-bottom: 10px !important;;
+  }
+
+  input {
+    text-align: center !important;;
+  }
+
+  #cta {
+    display: none !important;;
+  }
+
+  #wListConfig {
+    display: none !important;;
+  }
+
+  .wrapper {
+    height: 500px !important;
+  }
+
+  .media-columns {
+    width: 33.33333333% !important;
+  }
+
+  .metric-column {
+    width: 33.33333333% !important;
+  }
+
+  .hidden-sm {
+    display: inline-block !important;
+  }
+
+  .hidden-lg {
+    display: none!important;
+  }
+
+  .printTeaser{
+    display: flex !important;;
+  }
+
+  .hideDesktop {
+    display: none !important;;
+  }
+
+  .iconCycle {
+    display: none !important;;
+  }
+
+  .fa-rocket {
+    display: none !important;;
+  }
+
+  .implementation {
+    display: none !important;;
+  }
+
+  .challenge {
+    font-size: 16px !important;;
+  }
+
+  .service {
+    font-size: 20px !important;;
+  }
+
+  .medium-font {
+    font-size: 14px !important;;
+  }
+
+  .infoHeader {
+    font-size: 12px !important;;
+  }
+
+  .infoBox {
+    margin: 0px auto !important;;
+  }
+
+  .previewBox {
+    margin: 0px auto !important;;
+  }
+
+  .switch-field label {
+    width: 40px !important;;
+    font-size: 10px !important;;
+  }
+
+  .switch-field input:checked + label {
+    background-color: #a8a8a8 !important;
+    -webkit-print-color-adjust: exact !important;;
+  }
+
+  .primaryCol {
+    font-size: 16px !important;;
+  }
+
+  .secondaryCol {
+    font-size: 11px !important;;
+  }
+
+  .btn-blue {
+    display: none !important;
+  }
+
+  .primaryFactor {
+    font-size: 18px !important;;
+    color: #f16746 !important;
+    -webkit-print-color-adjust: exact !important;;
+  }
+
+  .secondaryFactor {
+    color: #f16746 !important;
+    -webkit-print-color-adjust: exact !important;;
+  }
+
+  *::-webkit-media-controls {
+    display:none !important;
+  }
+}

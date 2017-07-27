@@ -38,7 +38,7 @@ class UiElementCreator {
 
     constructVideoLink(data, videoAttr) {
         const date = data.testId.substr(0, 2) + '/' + data.testId.substr(2, 2) + '/' + data.testId.substr(4, 2);
-        return 'http://ec2-35-159-2-124.eu-central-1.compute.amazonaws.com/results/video/' +
+        return 'http://ec2-52-59-11-249.eu-central-1.compute.amazonaws.com/results/video/' +
             date + '/' + data[videoAttr].substr(data[videoAttr].indexOf('_') + 1,
                 data[videoAttr].length) + '/video.mp4';
     }
