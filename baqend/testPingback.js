@@ -24,6 +24,8 @@ exports.call = function (db, data, req) {
             testResult = createTestResult(testId, result.data, db);
             return testResult.save();
         }).then(ignored => {
+            if(testResult.testDataMissing)
+                throw new Error('Test Data Missing');
 
             db.log.info('creating video for ' + testId);
             return Promise.all([API.createVideo(testId + '-r:1-c:0'), API.createVideo(testId + '-r:1-c:1')]);
@@ -48,8 +50,10 @@ function createTestResult(testId, testResult, db) {
     result.url = testResult.testUrl;
     result.summaryUrl = testResult.summary;
     result.firstView = createRun(testResult.runs['1'].firstView, db);
+    result.testDataMissing = result.firstView.lastVisualChange <= 0;
     if (testResult.runs['1'].repeatView) {
         result.repeatView = createRun(testResult.runs['1'].repeatView, db);
+        result.testDataMissing = result.repeatView.lastVisualChange <= 0;
     }
     return result;
 }

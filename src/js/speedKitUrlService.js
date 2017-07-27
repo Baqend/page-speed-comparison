@@ -12,7 +12,7 @@ class SpeedKitUrlService {
         }
         wListString = '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListString.substr(0, wListString.indexOf('.') + 1) + '.*$"';
 
-        let wListInputArray = wlist.value.split(',');
+        let wListInputArray = wlist.split(',');
         if (wListInputArray[0] !== '') {
             for (let i = 0; i < wListInputArray.length; i++) {
                 wListString += ',';
