@@ -19,7 +19,7 @@ exports.call = function (db, data, req) {
             domains: false,
             pageSpeed: false,
         }).then(result => {
-            db.log.info('Saving test result for ' + testId);
+            db.log.info('Saving test result for ' + testId, result);
 
             testResult = createTestResult(testId, result.data, db);
             return testResult.save();

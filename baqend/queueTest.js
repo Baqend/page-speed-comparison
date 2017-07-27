@@ -37,11 +37,11 @@ exports.call = function (db, data, req) {
     if (isClone) {
         const prewarmScript = `logData\t0\nnavigate\t${testUrl}`;
 
-        const makefastUrl = testUrl.substr(testUrl.indexOf('?'));
+        const makefastUrl = testUrl.substr(0, testUrl.indexOf('?'));
         const testScript =
 `setActivityTimeout\t150
 logData\t0
-navigate\t${makefastUrl}
+navigate\t${testUrl}&noCaching=true&blockExternal=true
 navigate\tabout:blank
 logData\t1
 navigate\t${testUrl}`;
@@ -55,9 +55,9 @@ navigate\t${testUrl}`;
     }
 
     // test original website
-    return API.runTest(testUrl, testOptions).then(result => {
-        db.log.info(`Original test, id: ${result.data.testId} url:\n${testUrl}`);
-        db.log.info('Started Testid: ' + result.data.testId + ' for ' + testUrl);
+    const testScript = `setActivityTimeout\t150\nnavigate\t${testUrl}`;
+    return API.runTest(testScript, testOptions).then(result => {
+        db.log.info(`Original test, id: ${result.data.testId} script:\n${testScript}`);
         return {testId: result.data.testId};
     });
 };
