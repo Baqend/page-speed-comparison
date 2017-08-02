@@ -1,5 +1,8 @@
 const Pagetest = require('./Pagetest');
 const credentials = require('./credentials');
+const activityTimeout = 50;
+const timeout = 30;
+
 
 exports.call = function (db, data, req) {
     const API = new Pagetest.API(credentials.wpt_dns, credentials.wpt_api_key);
@@ -21,13 +24,15 @@ exports.call = function (db, data, req) {
         domains: false,
         saveResponseBodies: false,
         tcpDump: false,
-        timeline: false,
+        timeline: true, //TODO: only for debugging
         priority: 0,
         chromeTrace: false,
         netLog: false,
         disableHTTPHeaders: true,
         disableScreenshot: true,
         jpegQuality: 100,
+        poll: 1, //poll every second
+        timeout: 2 * timeout, //set timeout
         pingback: 'https://makefast.app.baqend.com/v1/code/testPingback'
     };
 
@@ -38,12 +43,18 @@ exports.call = function (db, data, req) {
         const prewarmScript = `logData\t0\nnavigate\t${testUrl}`;
 
         const makefastUrl = testUrl.substr(0, testUrl.indexOf('?'));
-        const testScript =
-`setActivityTimeout\t150
-logData\t0
+
+        //only pre-install SW, if we are interested in the first view
+        const installSW = caching ? "" : `logData\t0
+setTimeout\t${timeout}	
 navigate\t${testUrl}&noCaching=true&blockExternal=true
 navigate\tabout:blank
-logData\t1
+logData\t1`
+
+        const testScript =
+            `setActivityTimeout\t${activityTimeout}
+${installSW}
+setTimeout\t${timeout}	
 navigate\t${testUrl}`;
 
         return API.runTest(prewarmScript, prewarmOptions).then(() => {
@@ -55,7 +66,7 @@ navigate\t${testUrl}`;
     }
 
     // test original website
-    const testScript = `setActivityTimeout\t150\nnavigate\t${testUrl}`;
+    const testScript = `setActivityTimeout\t${activityTimeout}\nsetTimeout\t${timeout}\nnavigate\t${testUrl}`;
     return API.runTest(testScript, testOptions).then(result => {
         db.log.info(`Original test, id: ${result.data.testId} script:\n${testScript}`);
         return {testId: result.data.testId};
