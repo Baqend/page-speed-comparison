@@ -1,6 +1,7 @@
 const Pagetest = require('./Pagetest');
 const credentials = require('./credentials');
 const download = require('./download');
+const _ = require('underscore');
 
 exports.call = function (db, data, req) {
     const API = new Pagetest.API(credentials.wpt_dns, credentials.wpt_api_key);
@@ -15,7 +16,7 @@ exports.call = function (db, data, req) {
 
         let testResult;
         return API.getTestResults(testId, {
-            requests: false,
+            requests: true,
             breakdown: false,
             domains: false,
             pageSpeed: false,
@@ -88,7 +89,8 @@ function createRun(data, db) {
     run.startRender = data.render;
     run.lastVisualChange = data.lastVisualChange;
     run.speedIndex = data.SpeedIndex;
-    run.requests = data.requests;
+    run.requests = data.requests.length;
+    run.hits = new db.Hits(countHits(data));
     run.bytes = data.bytesOut;
     run.domElements = data.domElements;
     run.basePageCDN = data.base_page_cdn;
@@ -101,4 +103,15 @@ function createRun(data, db) {
     completeness.p100 = data.visualComplete;
     run.visualCompleteness = completeness;
     return run;
+}
+
+function countHits(data) {
+    return _.countBy(data.requests, req => {
+        const headers = req.headers.response.join(" ").toLowerCase();
+        if(headers.indexOf("x-cache") != -1) {
+            return headers.indexOf('hit') != -1  ? 'hit': 'miss';
+        } else {
+            return 'other';
+        }
+    });
 }
