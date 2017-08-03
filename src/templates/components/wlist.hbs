@@ -1,11 +1,13 @@
-<div id="wListConfig" class="text-center invisible">
-    <h3>Unexpected result?</h3>
-    <h4>Tell Speed Kit a comma-separated list of domains it should handle</h4>
-    <div class="urlInput mt-10">
-        <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)initComparison()"
-               onclick="showInfoBox()" placeholder="Enter domains here...">
-        <button type="button" class="search-button" onclick="initComparison()"><i class="fa fa-rocket"
-                                                                                  aria-hidden="true"></i>
-        </button>
+<div id="wListConfig" class="row p-64-0 border-top text-center invisible">
+    <div class="col-xs-12">
+        <h3 class="p-0">Unexpected result?</h3>
+        <h4 class="subhead p-0 mt-16">Tell Speed Kit a comma-separated list of domains it should handle</h4>
+        <div class="urlInput mt-24">
+            <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)initComparison()"
+                   onclick="showInfoBox()" placeholder="Enter domains here...">
+            <button type="button" class="search-button btn btn-orange btn-ghost" onclick="initComparison()">
+              Go
+            </button>
+        </div>
     </div>
 </div>

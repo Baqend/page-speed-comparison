@@ -1,0 +1,43 @@
+$screen-sm-max: 991px;
+$screen-xs-max: 767px;
+
+$sizes: 0 8 16 24 32 64 128;
+$border-color: #ddd;
+
+.border {border: 1px solid $border-color;}
+.border-top {border-top: 1px solid $border-color;}
+.border-bottom {border-bottom: 1px solid $border-color;}
+.border-left {border-left: 1px solid $border-color;}
+.border-right {border-right: 1px solid $border-color;}
+
+@each $size in $sizes {.m-#{$size} {margin: $size * 1px;}}
+@each $size in $sizes {.m-#{$size}-0 {margin-top: $size * 1px;margin-bottom: $size * 1px;}}
+@each $size in $sizes {.mt-#{$size} {margin-top: $size * 1px;}}
+@each $size in $sizes {.mb-#{$size} {margin-bottom: $size * 1px;}}
+@each $size in $sizes {.ml-#{$size} {margin-left: $size * 1px;}}
+@each $size in $sizes {.mr-#{$size} {margin-right: $size * 1px;}}
+
+@each $size in $sizes {.p-#{$size} {padding: $size * 1px;}}
+@each $size in $sizes {.p-#{$size}-0 {padding-top: $size * 1px;padding-bottom: $size * 1px;}}
+@each $size in $sizes {.pt-#{$size} {padding-top: $size * 1px;}}
+@each $size in $sizes {.pb-#{$size} {padding-bottom: $size * 1px;}}
+@each $size in $sizes {.pl-#{$size} {padding-left: $size * 1px;}}
+@each $size in $sizes {.pr-#{$size} {padding-right: $size * 1px;}}
+
+@media(max-width: $screen-sm-max) {
+  .text-center-sm {text-align: center;}
+  .text-left-sm {text-align: left;}
+  .text-right-sm {text-align: right;}
+}
+
+@media(max-width: $screen-xs-max) {
+  .text-center-xs {text-align: center;}
+  .text-left-xs {text-align: left;}
+  .text-right-xs {text-align: right;}
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}

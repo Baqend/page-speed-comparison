@@ -143,4 +143,16 @@
   *::-webkit-media-controls {
     display:none !important;
   }
+
+  .printButtonContainer, .btn {
+    display: none !important;
+  }
+
+  .flex {
+    display: block !important;
+  }
+  .p-64-0 {
+    padding-top: 16px !important;
+    padding-bottom: 16px !important;
+  }
 }

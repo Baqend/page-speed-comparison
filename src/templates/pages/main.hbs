@@ -1,16 +1,15 @@
 <div class="content">
     <div class="center-vertical">
-        <div class="text-center">
-            <h1>Page Speed Analyzer</h1>
-            <hr>
+        <div class="container p-64-0 text-center">
+            <h1 class="mb-24">Page Speed Analyzer</h1>
             <div class="urlInput">
                 <input type="text" id="currentVendorUrl" onkeydown="if(event.keyCode == 13)initComparison()"
                        onclick="showInfoBox()" placeholder="Enter URL here...">
-                <button type="button" class="search-button" onclick="initComparison()">
-                    <i class="fa fa-rocket" aria-hidden="true"></i>
+                <button type="button" class="search-button btn btn-orange btn-ghost" onclick="initComparison()">
+                    Go
                 </button>
             </div>
-            <div class="row infoBox">
+            <div class="row infoBox flex" style="margin-top: 32px;margin-bottom: 0;">
                 <div class="col-lg-5 col-md-5 col-sm-5 col-xs-4">
                     <div id="info">
                         <span id="resultInfo" class="challenge">Test the performance of your site!</span>
@@ -83,8 +82,10 @@
                     </span>
                 </div>
             </div>
-            <div class="row previewBox">
-                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 invisible" id="numberOfHostsCol">
+        </div>
+        <div class="container wrapper border invisible" id="compareContent">
+            <div class="row p-16 border-bottom previewBox text-center">
+                <div class="invisible" id="numberOfHostsCol">
                     <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
                          title="Number of unique hosts referenced by the page.">
                         <span class="fa-stack">
@@ -94,7 +95,7 @@
                         <h4 class="numberOfHosts noPadding"></h4>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 invisible" id="numberOfRequestsCol">
+                <div class="invisible" id="numberOfRequestsCol">
                     <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
                          title="Number of HTTP resources loaded by the page.">
                         <span class="fa-stack">
@@ -104,7 +105,7 @@
                         <h4 class="numberOfRequests noPadding"></h4>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 invisible" id="numberOfBytesCol">
+                <div class="invisible" id="numberOfBytesCol">
                     <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
                          title="Number of uncompressed response bytes for resources on the page.">
                         <span class="fa-stack">
@@ -115,9 +116,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="wrapper invisible" id="compareContent">
-            <div class="row">
+            <div class="row p-16 pt-32 pb-0">
                 <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 media-columns text-center">
                     <h4 class="noPadding">Your Website</h4>
                 </div>
@@ -126,7 +125,7 @@
                     <h4 class="noPadding">Your Website with Speed Kit</h4>
                 </div>
             </div>
-            <div class="row noRowMargin">
+            <div class="row p-16 pb-32 flex">
                 <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 p-5 media-columns text-center">
                     <div id="competitor"></div>
                 </div>
@@ -137,14 +136,19 @@
                     <div id="speedKit"></div>
                 </div>
             </div>
-            <div class="row text-center invisible hidden-lg testResults mt-20">
+            <div class="row text-center invisible hidden-lg testResults pb-32">
                 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-0"></div>
                 <div class="col-lg-8 col-md-8 col-sm-8 col-xs-12">
                     {{> metric }}
                 </div>
                 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-0"></div>
             </div>
-            <div class="row printTeaser">
+            <div class="row printButtonContainer text-center">
+              <div class="pb-32 hidden-md hidden-sm hidden-xs">
+                  <button class="btn btn-blue btn-ghost" onclick="printReport()">Print Report</button>
+              </div>
+            </div>
+            <div class="row printTeaser p-16 pt-0">
                 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
                     <img src="../../img/Baqend-logo-newflame.png" alt="baqend logo"/>
                 </div>
@@ -154,11 +158,10 @@
                     Learn more at <a href="https://www.baqend.com">baqend.com</a> or contact sales@baqend.com.
                 </div>
             </div>
+            {{> wlist }}
         </div>
-        {{> wlist }}
     </div>
 </div>
 {{> implementation }}
 {{> cta }}
 {{> modal }}
-
