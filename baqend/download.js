@@ -13,7 +13,7 @@ const http = require('http');
  * @param maxRetries number of retries if the response is a 4xx or 5xx status code
  * @returns {Promise} a Promise that resolved to the uploaded file
  */
-exports.toFile = function(db, url, target, maxRetries = 10) {
+function toFile(db, url, target, maxRetries = 10) {
     return new Promise((resolve, reject) => {
         http.get(url, (res) => {
             const file = new db.File({path: target});
@@ -25,7 +25,7 @@ exports.toFile = function(db, url, target, maxRetries = 10) {
                 if(maxRetries <= 0) {
                     reject(new Error("Maximum number of retries reached without success"));
                 } else {
-                    resolve(get(db, url, target, maxRetries - 1));
+                    resolve(toFile(db, url, target, maxRetries - 1));
                 }
                 return;
             }
@@ -47,4 +47,6 @@ exports.toFile = function(db, url, target, maxRetries = 10) {
             reject(e);
         });
     });
-};
+}
+
+exports.toFile = toFile;
