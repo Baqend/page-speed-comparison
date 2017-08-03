@@ -5,7 +5,7 @@ const http = require('http');
  *
  * Usage example:
  * download = require('./download');
- * return download.toFile(db, "http://...test.jpg", "/www/image.jpg", 0);
+ * download.toFile(db, "http://...test.jpg", "/www/image.jpg", 0);
  *
  * @param db Baqend db to use
  * @param url the URL that should be downloaded
@@ -13,7 +13,7 @@ const http = require('http');
  * @param maxRetries number of retries if the response is a 4xx or 5xx status code
  * @returns {Promise} a Promise that resolved to the uploaded file
  */
-exports.call = function(db, url, target, maxRetries = 10) {
+exports.toFile = function(db, url, target, maxRetries = 10) {
     return new Promise((resolve, reject) => {
         http.get(url, (res) => {
             const file = new db.File({path: target});
