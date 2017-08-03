@@ -1,7 +1,6 @@
 const http = require('http');
-
 /**
- * Fetches a URL an saves it to a Baqend file.
+ * Fetches a URL and saves it to a Baqend file.
  *
  * Usage example:
  * download = require('./download');
@@ -9,9 +8,9 @@ const http = require('http');
  *
  * @param db Baqend db to use
  * @param url the URL that should be downloaded
- * @param target the name of the Baqend file to save it into
- * @param maxRetries number of retries if the response is a 4xx or 5xx status code
- * @returns {Promise} a Promise that resolved to the uploaded file
+ * @param target the name of the target Baqend file
+ * @param maxRetries number of retries if the response has a 4xx or 5xx status code
+ * @returns {Promise} a Promise that resolves to the uploaded file
  */
 function toFile(db, url, target, maxRetries = 10) {
     return new Promise((resolve, reject) => {
@@ -25,7 +24,7 @@ function toFile(db, url, target, maxRetries = 10) {
                 if(maxRetries <= 0) {
                     reject(new Error("Maximum number of retries reached without success"));
                 } else {
-                    resolve(toFile(db, url, target, maxRetries - 1));
+                    setTimeout(() => resolve(toFile(db, url, target, maxRetries - 1)), 300);
                 }
                 return;
             }
@@ -48,5 +47,4 @@ function toFile(db, url, target, maxRetries = 10) {
         });
     });
 }
-
 exports.toFile = toFile;
