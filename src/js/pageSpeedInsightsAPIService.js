@@ -1,3 +1,4 @@
+import 'whatwg-fetch';
 const API_KEY = 'AIzaSyBVAGvv1O8d6H7mrTKZW6pds7KUlp8CixY';
 const API_URL = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?';
 

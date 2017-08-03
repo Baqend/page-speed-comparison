@@ -1,0 +1,27 @@
+.implementation {
+  background-color: #F5F5F5;
+  padding: 30px 0;
+  margin-top: 40px;
+}
+
+.implementation-text{
+  font-size: inherit;
+}
+
+.implementation-row {
+  padding: 0;
+}
+
+.implementation-hidden {
+  display: none;
+}
+
+@media (min-width: 768px), print {
+  .implementation-row {
+    padding: 0 100px;
+  }
+
+  .implementation-text {
+    font-size: 21px;
+  }
+}

@@ -1,23 +1,30 @@
 <div class="implementation">
     <div class="container">
         <div class="row text-center">
-            <div class="col-lg-12 col-md-12 col-sm-12">
-                <h2>Implementation Remarks</h2>
-                <button class="btn btn-blue btn-ghost" id="implementation-toggle" onclick="toggleImplementation()">show</button>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <h2>About the Page Speed Analyzer</h2>
+                <hr class="wow">
             </div>
         </div>
         <div class="row implementation-row">
-            <div class="col-lg-10 col-lg-offset-1 col-md-10 col-md-offset-1 implementation-text">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 implementation-text">
                 <p>
-                    The page speed analyzer gives you an impression of how <a
+                    <span>
+                        The page speed analyzer gives you an impression of how <a
                         href="https://www.baqend.com/speedkit.html" target="_blank"><strong>Baqend Speed
-                    Kit</strong></a> influences the performance of your website. To this end, the analyzer runs a series
-                    of tests against your website and reports how your current backend stack delivers your website
-                    compared to a version using Speed Kit. The result on the right simply shows measurements for your
-                    site with an embedded <a href="https://developer.mozilla.org/en/docs/Web/API/Service_Worker_API"
-                                             target="_blank">Service Worker</a> containing Speed Kit's caching logic.
+                        Kit</strong></a> influences the performance of your website. To this end,
+                        <span id="implementation-dots">... </span>
+                        <a href="javascript:;" onclick="showImplementation()" id="implementation-toggle">show more</a>
+                    </span>
+                    <span class="implementation-hidden">
+                        the analyzer runs a series of tests against your website and reports how your current backend stack
+                        delivers your website compared to a version using Speed Kit. The result on the right simply shows
+                        measurements for your site with an embedded
+                        <a href="https://developer.mozilla.org/en/docs/Web/API/Service_Worker_API"
+                           target="_blank">Service Worker</a> containing Speed Kit's caching logic.
+                    </span>
                 </p>
-                <p>
+                <p class="implementation-hidden">
                     For comparison, the analyzer collects several metrics by using Google's <a
                         href="https://developers.google.com/speed/docs/insights/v1/getting_started" target="_blank">PageSpeed
                     Insights API</a>
@@ -25,7 +32,8 @@
                                                 target="_blank">WebPagetest</a>.
                     Additionally, the toll collects a <strong>performance video</strong> of both versions, to give a
                     visual impression. You can customize the analyzer to your desired test situation:
-                <ul>
+                </p>
+                <ul class="implementation-hidden">
                     <li><strong>Region:</strong> you can switch the location of the client</li>
                     <li><strong>Cold Cache:</strong> choose, whether to measure the first view with a cold browser cache
                         or the second view with a warm cache
@@ -34,8 +42,7 @@
                         which requests it should handle
                     </li>
                 </ul>
-                </p>
-                <p>
+                <p class="implementation-hidden">
                     Speed Kit achieves its performance through <strong>browser and CDN caching</strong> with new
                     algorithms for cache coherence. For more details on how to integrate Speed Kit to accelerate even
                     highly dynamic content of your site, see the <a href="https://www.baqend.com/speedkit.html"
@@ -44,7 +51,6 @@
                     or more information, please contact <a href="mailto:support@baqend.com">support@baqend.com</a>.
                 </p>
             </div>
-
         </div>
     </div>
 </div>

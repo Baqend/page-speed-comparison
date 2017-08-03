@@ -11,7 +11,7 @@ class ResetVariablesService {
         $('#numberOfRequestsCol').addClass('invisible');
         $('#numberOfBytesCol').addClass('invisible');
         $('#compareContent').addClass('invisible');
-        $('#wListConfig').removeClass('hidden');
+        $('#wListConfig').removeClass('invisible');
         $('#modalButton').click();
     }
 

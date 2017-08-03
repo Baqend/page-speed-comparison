@@ -6,7 +6,10 @@ class SpeedKitUrlService {
     }
 
     generateWhiteList(originalUrl, wlist) {
-        let wListString = new URL(originalUrl).host;
+        const dummyElement = document.createElement('a');
+        dummyElement.href = originalUrl;
+
+        let wListString = dummyElement.hostname;
         if (wListString.indexOf('www') !== -1) {
             wListString = wListString.substr(wListString.indexOf('.') + 1);
         }

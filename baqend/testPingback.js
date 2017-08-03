@@ -1,5 +1,6 @@
 const Pagetest = require('./Pagetest');
 const credentials = require('./credentials');
+const download = require('./download');
 
 exports.call = function (db, data, req) {
     const API = new Pagetest.API(credentials.wpt_dns, credentials.wpt_api_key);
@@ -33,15 +34,33 @@ exports.call = function (db, data, req) {
             db.log.info('videos created for ' + testId, {data: result});
 
             testResult.videoIdFirstView = result[0].data.videoId;
+            const videoFirstViewPromise = download.toFile(db,
+                constructVideoLink(testId, testResult.videoIdFirstView), '/www/videoFirstView/' + testId +'.mp4');
+
+            let videoRepeatViewPromise = Promise.resolve(true);
             if (result[1].data && result[1].data.videoId) {
                 testResult.videoIdRepeatedView = result[1].data.videoId;
+                videoRepeatViewPromise = download.toFile(db,
+                    constructVideoLink(testId, testResult.videoIdRepeatedView), '/www/videoRepeatView/' + testId + '.mp4');
             }
-            return testResult.save();
+
+            return Promise.all([videoFirstViewPromise, videoRepeatViewPromise]).then((values) => {
+                const [videoFirstView, videoRepeatView] = values;
+                testResult.videoFileFirstView = videoFirstView;
+                testResult.videoFileRepeatView = videoRepeatView;
+                return testResult.save();
+            })
         }).catch(error => {
             db.log.info('Error handling test result for ' + testId + ' with error: ' + error);
         });
     });
 };
+
+function constructVideoLink(testId, videoId) {
+    const date = testId.substr(0, 2) + '/' + testId.substr(2, 2) + '/' + testId.substr(4, 2);
+    return 'http://' + credentials.wpt_dns + '/results/video/' + date + '/' +
+        videoId.substr(videoId.indexOf('_') + 1, videoId.length) + '/video.mp4';
+}
 
 function createTestResult(testId, testResult, db) {
     const result = new db.TestResult();

@@ -13,7 +13,6 @@ class UiElementCreator {
         const video = document.createElement('video');
         video.setAttribute('controls', 'controls');
         video.setAttribute('type', 'video/mp4');
-        video.setAttribute('poster', videoSrc.substr(0, videoSrc.lastIndexOf('.')) + '.png');
         video.setAttribute('autoplay', 'autoplay');
         video.setAttribute('onplay', 'playVideos(this)');
         video.setAttribute('id', elementId);
@@ -34,13 +33,6 @@ class UiElementCreator {
         button.setAttribute('onclick', 'openBaqendFrame()');
         button.innerHTML = 'open in new tab';
         return button;
-    }
-
-    constructVideoLink(data, videoAttr) {
-        const date = data.testId.substr(0, 2) + '/' + data.testId.substr(2, 2) + '/' + data.testId.substr(4, 2);
-        return 'http://ec2-52-59-11-249.eu-central-1.compute.amazonaws.com/results/video/' +
-            date + '/' + data[videoAttr].substr(data[videoAttr].indexOf('_') + 1,
-                data[videoAttr].length) + '/video.mp4';
     }
 }
 

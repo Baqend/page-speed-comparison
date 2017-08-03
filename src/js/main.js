@@ -34,7 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
     db.connect('makefast', true).then(() => {
         const testIdParam = getParameterByName('testId');
         if(testIdParam) {
-            testResultHandler.displayTestResultsById(testIdParam, testOptions, db);
+            db.TestOverview.load(testIdParam, {depth: 1}).then((result) => {
+                testOptions.caching = result.caching;
+                testOptions.location = result.competitorTestResult.location;
+                co_url = result.competitorTestResult.url;
+                testResultHandler.displayTestResultsById(testOptions, result);
+            });
         }
     });
 });
@@ -43,16 +48,10 @@ window.showInfoBox = function() {
     $('.infoBox').fadeIn(1000);
 };
 
-window.toggleImplementation = function() {
-    const toggle = $('#implementation-toggle');
-    const row = $('.implementation-row');
-    if(toggle.text() === 'show') {
-        row.show("medium");
-        toggle.text('hide');
-    } else if(toggle.text() === 'hide') {
-        row.hide("medium");
-        toggle.text('show');
-    }
+window.showImplementation = function() {
+    $('#implementation-toggle').hide();
+    $('#implementation-dots').hide();
+    $('.implementation-hidden').show("medium");
 };
 
 window.openBaqendFrame = () => {
@@ -112,6 +111,7 @@ window.contactUs = (e) => {
         name: $('#c_name').val(),
         email: $('#c_email').val(),
         url: co_url,
+        testOverviewId: testOverview.id,
         subject: 'from page speed comparison'
     };
 
@@ -220,16 +220,16 @@ window.initComparison = () => {
 
 function resultStreamUpdate(result, subscription, elementId) {
     const dataView = testOptions.caching ? 'repeatView' : 'firstView';
-    const videoView = testOptions.caching ? 'videoIdRepeatedView' : 'videoIdFirstView';
+    const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
 
     if(result.length > 0) {
         const entry = result[0];
 
-        if(!entry.testDataMissing) {
-            if(!testOverview[elementId + 'TestResult']) {
-                testOverview[elementId + 'TestResult'] = entry;
-            }
+        if(!testOverview[elementId + 'TestResult']) {
+            testOverview[elementId + 'TestResult'] = entry;
+        }
 
+        if(!entry.testDataMissing) {
             if (entry[dataView]) {
                 if(firstResult.owner && firstResult.owner !== elementId) {
                     clearInterval(interval);
@@ -244,7 +244,7 @@ function resultStreamUpdate(result, subscription, elementId) {
             }
 
             if (entry[videoView]) {
-                const videoLink = uiElementCreator.constructVideoLink(entry, videoView);
+                const videoLink = entry[videoView].url;
 
                 if(!firstResult.videoSrc && firstResult.owner === elementId) {
                     firstResult.videoSrc = videoLink;
@@ -256,14 +256,13 @@ function resultStreamUpdate(result, subscription, elementId) {
                     secondElement.empty();
                     firstElement.append(uiElementCreator.createVideoElement('video-' + elementId, videoLink));
                     secondElement.append(uiElementCreator.createVideoElement('video-' + firstResult.owner, firstResult.videoSrc));
-                    testOverview.insert().then(() => window.location.hash = '?testId=' + testOverview.key);
 
                     $('.infoBox').fadeOut(1000);
                     $('#info').removeClass('hidden');
                     $('#testStatus').addClass('hidden');
                     $('#runningInfo').addClass('hidden');
                     $('#configInfo').removeClass('hidden');
-                    $('#wListConfig').removeClass('hidden');
+                    $('#wListConfig').removeClass('invisible');
                     $('#speedKit').append(uiElementCreator.createLinkButton());
                 }
                 subscription.unsubscribe();
@@ -273,7 +272,40 @@ function resultStreamUpdate(result, subscription, elementId) {
             subscription.unsubscribe();
             resetViewService.resetViewFromError();
         }
+
+        testOverview.ready().then(() => {
+            testOverview.save().then(() => window.location.hash = '?testId=' + testOverview.key);
+        });
     }
+}
+
+function requestVideoSrc(elementId, videoSrc) {
+    const maxRetry = 5;
+    const element = $('#' + elementId);
+    let retryCount = 0;
+
+    element.empty();
+
+    if(!doesFileExist(videoSrc)) {
+       const interval = setInterval(() =>{
+            if(doesFileExist(videoSrc) || retryCount >= maxRetry) {
+                clearInterval(interval)
+            }
+            retryCount++;
+        }, 2000);
+    }
+    element.append(uiElementCreator.createVideoElement('video-' + elementId, videoSrc));
+}
+
+function doesFileExist(urlToFile) {
+    const myInit = { method: 'HEAD'};
+
+    return fetch(urlToFile, myInit).then((response) => {
+        return response.status === 200;
+    }).catch((err) => {
+        console.log('error');
+        return false;
+    });
 }
 
 function resetComparison() {
