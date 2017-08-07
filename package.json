@@ -11,7 +11,7 @@
     "start": "npm run dev",
     "dev": "webpack-dev-server --config ./config/webpack.config.dev.js --inline --hot --open",
     "build": "webpack --config ./config/webpack.config.prod.js --optimize-minimize",
-    "deploy": "npm run build && baqend deploy --file-dir dist"
+    "deploy": "npm run build && baqend deploy --file-dir dist makefast"
   },
   "devDependencies": {
     "babel-core": "^6.24.0",

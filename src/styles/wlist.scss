@@ -1,0 +1,22 @@
+#wListConfig {
+  padding: 30px 0;
+  margin-top: 40px;
+  li {
+    margin-bottom: 14px;
+  }
+  p {
+    margin-top: 38px;
+  }
+  line-height: 1.58;
+}
+
+@media (min-width: 768px), print {
+  #wListConfig {
+    padding-left: 100px;
+    padding-right: 100px;
+  }
+
+  #wListConfig {
+    font-size: 21px;
+  }
+}

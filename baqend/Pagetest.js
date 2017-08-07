@@ -4,6 +4,7 @@ class Pagetest {
 
     constructor(url, apiKey) {
         this.wpt = new WebPageTest(url, apiKey);
+        this.promises = {};
     }
 
     /**
@@ -23,6 +24,28 @@ class Pagetest {
                     }
                 });
         });
+    }
+
+    /**
+     * Queues a new testrun of the given url with the given options.
+     * @param testUrl The url to test.
+     * @param options The options of this test (see https://github.com/marcelduran/webpagetest-api).
+     * @returns {Promise} A promise of the queuing result containing the testId under 'data.testId'
+     */
+    runTestSync(testUrl, options) {
+        return new Promise((resolve, reject) => {
+            this.wpt.runTest(testUrl, options,
+                (err, result) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    this.promises[testId] = resolve;
+                });
+        });
+    }
+
+    resolveTest(testId, ttfb) {
+        this.promises[testId].call(ttfb);
     }
 
     /**

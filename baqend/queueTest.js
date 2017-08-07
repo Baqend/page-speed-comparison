@@ -36,7 +36,7 @@ exports.call = function (db, data, req) {
         pingback: 'https://makefast.app.baqend.com/v1/code/testPingback'
     };
 
-    const prewarmOptions = Object.assign({}, testOptions, {pingback: '', firstViewOnly: true});
+    const prewarmOptions = Object.assign({}, testOptions, {pingback: '', video: false, firstViewOnly: true});
 
     // test cloned website
     if (isClone) {
@@ -49,7 +49,7 @@ exports.call = function (db, data, req) {
 setTimeout\t${timeout}	
 navigate\t${testUrl}&noCaching=true&blockExternal=true
 navigate\tabout:blank
-logData\t1`
+logData\t1`;
 
         const testScript =
             `setActivityTimeout\t${activityTimeout}
@@ -57,7 +57,8 @@ ${installSW}
 setTimeout\t${timeout}	
 navigate\t${testUrl}`;
 
-        return API.runTest(prewarmScript, prewarmOptions).then(() => {
+        return API.runTestSync(prewarmScript, prewarmOptions).then((ttfb) => {
+            testOptions.pingback += `?ttfb=${ttfb}`;
             return API.runTest(testScript, testOptions);
         }).then(result => {
             db.log.info(`Clone test, id: ${result.data.testId} script:\n${testScript}`);

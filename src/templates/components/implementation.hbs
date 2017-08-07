@@ -30,25 +30,46 @@
                     Insights API</a>
                     and private instances of <a href="https://sites.google.com/a/webpagetest.org/docs/private-instances"
                                                 target="_blank">WebPagetest</a>.
-                    Additionally, the toll collects a <strong>performance video</strong> of both versions, to give a
+                    Additionally, the tool collects a <strong>performance video</strong> of both versions to give a
                     visual impression. You can customize the analyzer to your desired test situation:
                 </p>
                 <ul class="implementation-hidden">
                     <li><strong>Region:</strong> you can switch the location of the client</li>
-                    <li><strong>Cold Cache:</strong> choose, whether to measure the first view with a cold browser cache
+                    <li><strong>Cold Cache:</strong> choose whether to measure the first view with a cold browser cache
                         or the second view with a warm cache
                     </li>
-                    <li><strong>Domains:</strong> provide a comma-separated list of domain patterns, to tell Speed Kit
+                    <li><strong>Domains:</strong> provide a comma-separated list of domain patterns to tell Speed Kit
                         which requests it should handle
                     </li>
                 </ul>
                 <p class="implementation-hidden">
                     Speed Kit achieves its performance through <strong>browser and CDN caching</strong> with new
-                    algorithms for cache coherence. For more details on how to integrate Speed Kit to accelerate even
-                    highly dynamic content of your site, see the <a href="https://www.baqend.com/speedkit.html"
-                                                                    target="_blank">Speed Kit page</a> and our <a
-                        href="https://medium.baqend.com/" target="_blank">blog</a>. If you need help during integration
-                    or more information, please contact <a href="mailto:support@baqend.com">support@baqend.com</a>.
+                    algorithms for cache coherence.
+                </p>
+            </div>
+        </div>
+        <div class="row pb-16 text-center implementation-hidden">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <h2 class="p-0 extra-margin">Is this how my site will look like with Speed Kit?</h2>
+            </div>
+        </div>
+        <div class="row implementation-row implementation-hidden">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 implementation-text">
+                <p>
+                    No, fine-tuning will make your site even faster. The Page Speed Analyzer uses sensible defaults. However, websites will <strong>load faster</strong>, when Speed Kit is configured specifically for the site:
+                </p>
+                <ul>
+                    <li>By default, all your <strong>subdomains</strong> are handled by Speed Kit. In production, you extend this configuration to all relevant domains, e.g. <em>cdn3.example.com</em>.</li>
+                    <li>Speed Kit turns any site into a <strong><a href="https://developers.google.com/web/progressive-web-apps/" target="_blank">Progressive Web App</a> (PWA)</strong>. This implies two things. First, your website will still be browsable, when users are offline. Second, users can install your site to their home screen like a native app.</li>
+                    <li>If you execute the test with a warm browser cache, by default Speed Kit only serves <strong>up-to-date resources</strong> and loads the rest over the network. This is in contrast to most sites, that will also serve stale resources from the cache.</li>
+                    <li>When you deploy Speed Kit, you provide rules or hooks for how Baqend <strong>updates cached content</strong> from your site. This is why Speed Kit will always serve up-to-date content.</li>
+                </ul>
+                <p>
+                For more details on how to integrate Speed Kit to accelerate even
+                                    highly dynamic content of your site, see the <a href="https://www.baqend.com/speedkit.html"
+                                                                                    target="_blank">Speed Kit page</a> and our <a
+                                        href="https://medium.baqend.com/" target="_blank">blog</a>. If you need help during integration
+                                    or more information, please contact <a href="mailto:support@baqend.com">support@baqend.com</a>.
                 </p>
             </div>
         </div>
