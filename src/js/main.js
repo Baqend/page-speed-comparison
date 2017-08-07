@@ -141,15 +141,14 @@ window.initComparison = () => {
         const carousel = $('.carousel').carousel({interval: false, wrap: false});
         carousel.carousel(0);
 
-        db.modules.get('queueTest', {
+        db.modules.post('queueTest', {
             url: co_url,
             location: testOptions.location,
             isClone: false,
             caching: testOptions.caching
-        })
-            .then(res => co_testId = res.testId);
+        }).then(res => co_testId = res.testId);
 
-        db.modules.get('queueTest', {
+        db.modules.post('queueTest', {
             url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
             location: testOptions.location, isClone: true, caching: testOptions.caching
         }).then(res => sk_testId = res.testId);

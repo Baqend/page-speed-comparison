@@ -35,8 +35,11 @@ exports.call = function (db, data, req) {
         pingback: 'https://makefast.app.baqend.com/v1/code/testPingback'
     };
 
-    const prewarmOptions = Object.assign({}, testOptions, {pingback: 'https://makefast.app.baqend.com/v1/code/prewarmPingback',
-        video: false, firstViewOnly: true});
+    const prewarmOptions = Object.assign({}, testOptions, {
+        pingback: 'https://makefast.app.baqend.com/v1/code/prewarmPingback',
+        video: false,
+        firstViewOnly: true}
+    );
 
     // test cloned website
     if (isClone) {
@@ -53,13 +56,15 @@ ${installSW}
 setTimeout\t${timeout}	
 navigate\t${testUrl}`;
 
-        return API.runPrewarmSync(testUrl, prewarmOptions).then((ttfb) => {
-            testOptions.pingback += `?ttfb=${ttfb}`;
+        const baqendId = db.util.uuid();
+        API.runPrewarmSync(testUrl, prewarmOptions).then((ttfb) => {
+            testOptions.pingback += `?ttfb=${ttfb}&baqendId={${baqendId}`;
             return API.runTest(testScript, testOptions);
         }).then(result => {
             db.log.info(`Clone test, id: ${result.data.testId} script:\n${testScript}`);
-            return {testId: result.data.testId};
         });
+
+        return {baqendId: baqendId};
     }
 
     // test original website

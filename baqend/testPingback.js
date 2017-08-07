@@ -5,7 +5,8 @@ const _ = require('underscore');
 
 exports.call = function (db, data, req) {
     const testId = data.id;
-    const ttfb = data.ttfb;
+    const ttfb = data.ttfb; //Taken from prewarm run with cold connection
+    const baqendId = data.baqendId; //internal TestResult ID
 
     db.log.info('Pingback received for ' + testId);
 
@@ -24,7 +25,7 @@ exports.call = function (db, data, req) {
         }).then(result => {
             db.log.info('Saving test result for ' + testId, result);
 
-            testResult = createTestResult(testId, result.data, ttfb,  db);
+            testResult = createTestResult(testId, result.data, ttfb, baqendId, db);
             return testResult.save();
         }).then(ignored => {
             if(testResult.testDataMissing)
@@ -64,8 +65,9 @@ function constructVideoLink(testId, videoId) {
         videoId.substr(videoId.indexOf('_') + 1, videoId.length) + '/video.mp4';
 }
 
-function createTestResult(testId, testResult, ttfb, db) {
+function createTestResult(testId, testResult, ttfb, baqendId, db) {
     const result = new db.TestResult();
+    result.id = baqendId;
     result.testId = testId;
     result.location = testResult.location;
     result.url = testResult.testUrl;
