@@ -17,7 +17,8 @@ const testResultHandler = new TestResultHandler();
 const data = {};
 
 let co_url;
-let firstResult = {owner: null, result: null, videoSrc: null};
+let testResult = {};
+let testVideo = {};
 let testOptions = {location: 'eu-central-1:Chrome', caching: false};
 let testInstance;
 let co_subscription;
@@ -33,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     db.connect('makefast', true).then(() => {
         const testIdParam = getParameterByName('testId');
-        if(testIdParam) {
+        if (testIdParam) {
             db.TestOverview.load(testIdParam, {depth: 1}).then((result) => {
                 testOptions.caching = result.caching;
                 testOptions.location = result.competitorTestResult.location;
@@ -44,61 +45,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-window.showInfoBox = function() {
+window.showInfoBox = () => {
     $('.infoBox').fadeIn(1000);
 };
 
-window.showImplementation = function() {
+window.showImplementation = () => {
     $('#implementation-toggle').hide();
     $('#implementation-dots').hide();
     $('.implementation-hidden').show("medium");
 };
 
 window.openBaqendFrame = () => {
-    const win = window.open(speedKitUrlService.getBaqendUrl(co_url,  $('#wListInput').val(), '_blank'));
+    const win = window.open(speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val(), '_blank'));
     win.focus();
 };
 
-window.handleLocationChange =  function(radioButton) {
-    if(radioButton.value === 'usa') {
+window.handleLocationChange = (radioButton) => {
+    if (radioButton.value === 'usa') {
         testOptions.location = 'us-east-1:Chrome';
-    } else if(radioButton.value === 'eu') {
+    } else if (radioButton.value === 'eu') {
         testOptions.location = 'eu-central-1:Chrome';
     }
 };
 
-window.handleCachingChange =  function(radioButton) {
+window.handleCachingChange = (radioButton) => {
     testOptions.caching = radioButton.value;
-    if(radioButton.value === 'yes') {
+    if (radioButton.value === 'yes') {
         testOptions.caching = false;
-    } else if(radioButton.value === 'no') {
+    } else if (radioButton.value === 'no') {
         testOptions.caching = true;
     }
 };
 
-window.playVideos = function(videoElement) {
-    if(videoElement.id === 'video-competitor') {
+window.playVideos = (videoElement) => {
+    if (videoElement.id === 'video-competitor') {
         const videoSpeedKit = document.getElementById('video-speedKit');
-        if(videoSpeedKit) {
+        if (videoSpeedKit) {
             videoSpeedKit.currentTime = videoElement.currentTime;
             videoSpeedKit.play();
         }
     } else {
         const videoCompetitor = document.getElementById('video-competitor');
-        if(videoCompetitor) {
+        if (videoCompetitor) {
             videoCompetitor.currentTime = videoElement.currentTime;
             videoCompetitor.play();
         }
     }
 };
 
-window.printReport = function() {
+window.printReport = () => {
     const competitorVideo = document.getElementById('video-competitor');
     const speedKitVideo = document.getElementById('video-speedKit');
     competitorVideo.currentTime = competitorVideo.duration;
     speedKitVideo.currentTime = speedKitVideo.duration;
 
-    setTimeout(function() {
+    setTimeout(function () {
         window.print();
     }, 100);
 
@@ -141,11 +142,18 @@ window.initComparison = () => {
         const carousel = $('.carousel').carousel({interval: false, wrap: false});
         carousel.carousel(0);
 
-        db.modules.get('queueTest', {url: co_url, location: testOptions.location, isClone: false, caching: testOptions.caching})
+        db.modules.get('queueTest', {
+            url: co_url,
+            location: testOptions.location,
+            isClone: false,
+            caching: testOptions.caching
+        })
             .then(res => co_testId = res.testId);
 
-        db.modules.get('queueTest', {url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
-            location: testOptions.location, isClone: true, caching: testOptions.caching})
+        db.modules.get('queueTest', {
+            url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
+            location: testOptions.location, isClone: true, caching: testOptions.caching
+        })
             .then(res => sk_testId = res.testId);
 
         pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(encodeURIComponent(co_url)).then((results) => {
@@ -159,32 +167,29 @@ window.initComparison = () => {
             carousel.carousel(1);
 
             setTimeout(() => {
-                if(now === testInstance) {
+                if (now === testInstance) {
                     $('.numberOfHosts').html(results.domains);
-                    $('#numberOfHostsCol').removeClass('invisible');
                     carousel.carousel(2);
                 }
             }, 1000);
 
             setTimeout(() => {
-                if(now === testInstance) {
+                if (now === testInstance) {
                     $('.numberOfRequests').html(results.resources);
-                    $('#numberOfRequestsCol').removeClass('invisible');
                     carousel.carousel(3);
                 }
             }, 2000);
 
             setTimeout(() => {
-                if(now === testInstance) {
+                if (now === testInstance) {
                     $('.numberOfBytes').html(results.bytes);
-                    $('#numberOfBytesCol').removeClass('invisible');
 
                     carousel.carousel(4);
-                    interval = setInterval(function() {
+                    interval = setInterval(function () {
                         db.modules.get('getTestStatus', {testId: co_testId}).then(res => {
-                            if(res.status.statusCode === 101) {
+                            if (res.status.statusCode === 101) {
                                 $('#statusQueue').html(res.status.statusText);
-                            } else if(res.status.statusCode === 100 || res.status.statusCode === 200) {
+                            } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
                                 $('#statusQueue').html('Test has been started...');
                             }
                         });
@@ -193,7 +198,7 @@ window.initComparison = () => {
             }, 3000);
 
             setTimeout(() => {
-                if(now === testInstance) {
+                if (now === testInstance) {
                     $('#compareContent').removeClass('invisible');
                     $('#competitor').append(uiElementCreator.createImageElement(results.screenshot),
                         uiElementCreator.createScannerElement());
@@ -204,7 +209,7 @@ window.initComparison = () => {
             }, 4000);
 
             setTimeout(() => {
-                if(now === testInstance) {
+                if (now === testInstance) {
                     const co_query = db.TestResult.find().equal('testId', co_testId);
                     co_subscription = co_query.resultStream(result =>
                         resultStreamUpdate(result, co_subscription, 'competitor'));
@@ -222,48 +227,47 @@ function resultStreamUpdate(result, subscription, elementId) {
     const dataView = testOptions.caching ? 'repeatView' : 'firstView';
     const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
 
-    if(result.length > 0) {
+    if (result.length > 0) {
         const entry = result[0];
 
-        if(!testOverview[elementId + 'TestResult']) {
+        if (!testOverview[elementId + 'TestResult']) {
             testOverview[elementId + 'TestResult'] = entry;
         }
 
-        if(!entry.testDataMissing) {
+        if (!entry.testDataMissing) {
             if (entry[dataView]) {
-                if(firstResult.owner && firstResult.owner !== elementId) {
+                testResult[elementId] = entry[dataView];
+                if (Object.keys(testResult).length === 2) {
                     clearInterval(interval);
-                    testResultHandler.displayTestResults(firstResult.owner, firstResult.result, testOptions);
-                    testResultHandler.displayTestResults(elementId, entry[dataView], testOptions);
-                    firstResult.owner === 'competitor' ? testResultHandler.calculateFactors(firstResult.result, entry[dataView], testOptions)
-                        : testResultHandler.calculateFactors(entry[dataView], firstResult.result, testOptions);
-                } else {
-                    firstResult.owner = elementId;
-                    firstResult.result = entry[dataView];
+                    testResultHandler.displayTestResults('competitor', testResult['competitor'], testOptions);
+                    testResultHandler.displayTestResults('speedKit', testResult['speedKit'], testOptions);
+                    testResultHandler.calculateFactors(testResult['competitor'], testResult['speedKit'], testOptions);
                 }
             }
 
             if (entry[videoView]) {
-                const videoLink = entry[videoView].url;
+                testVideo[elementId] = entry[videoView].url;
+                if (Object.keys(testVideo).length === 2) {
+                    const competitorElement = $('#competitor');
+                    const speedKitElement = $('#speedKit');
 
-                if(!firstResult.videoSrc && firstResult.owner === elementId) {
-                    firstResult.videoSrc = videoLink;
-                } else {
-                    const firstElement = $('#' + elementId);
-                    const secondElement = $('#' + firstResult.owner);
+                    const totalRequests = testResult['speedKit'].requests;
+                    const cacheHits = testResult['speedKit'].hits.hit || 0;
+                    const cacheMisses = testResult['speedKit'].hits.miss || 0;
+                    const otherRequests = testResult['speedKit'].hits.other || 0;
 
-                    firstElement.empty();
-                    secondElement.empty();
-                    firstElement.append(uiElementCreator.createVideoElement('video-' + elementId, videoLink));
-                    secondElement.append(uiElementCreator.createVideoElement('video-' + firstResult.owner, firstResult.videoSrc));
+                    console.log('hit: ' + cacheHits + ' miss: ' + cacheMisses + ' other: ' +
+                        otherRequests + ' total: ' + (totalRequests || 0));
 
-                    $('.infoBox').fadeOut(1000);
-                    $('#info').removeClass('hidden');
-                    $('#testStatus').addClass('hidden');
-                    $('#runningInfo').addClass('hidden');
-                    $('#configInfo').removeClass('hidden');
-                    $('#wListConfig').removeClass('invisible');
-                    $('#speedKit').append(uiElementCreator.createLinkButton());
+                    $('#servedRequests').text((100 / totalRequests * ((totalRequests || 0) - otherRequests)).toFixed(0));
+
+                    competitorElement.empty();
+                    speedKitElement.empty();
+                    competitorElement.append(uiElementCreator.createVideoElement('video-competitor', testVideo['competitor']));
+                    speedKitElement.append(uiElementCreator.createVideoElement('video-speedKit', testVideo['speedKit']));
+                    speedKitElement.append(uiElementCreator.createLinkButton());
+
+                    resetViewService.resetViewAfterTest();
                 }
                 subscription.unsubscribe();
             }
@@ -279,43 +283,15 @@ function resultStreamUpdate(result, subscription, elementId) {
     }
 }
 
-function requestVideoSrc(elementId, videoSrc) {
-    const maxRetry = 5;
-    const element = $('#' + elementId);
-    let retryCount = 0;
-
-    element.empty();
-
-    if(!doesFileExist(videoSrc)) {
-       const interval = setInterval(() =>{
-            if(doesFileExist(videoSrc) || retryCount >= maxRetry) {
-                clearInterval(interval)
-            }
-            retryCount++;
-        }, 2000);
-    }
-    element.append(uiElementCreator.createVideoElement('video-' + elementId, videoSrc));
-}
-
-function doesFileExist(urlToFile) {
-    const myInit = { method: 'HEAD'};
-
-    return fetch(urlToFile, myInit).then((response) => {
-        return response.status === 200;
-    }).catch((err) => {
-        console.log('error');
-        return false;
-    });
-}
-
 function resetComparison() {
-    if(co_subscription)
+    if (co_subscription)
         co_subscription.unsubscribe();
 
-    if(sk_subscription)
+    if (sk_subscription)
         sk_subscription.unsubscribe();
 
-    firstResult = {owner: null, result: null, videoSrc: null};
+    testResult = {};
+    testVideo = {};
 
     resetViewService.resetViewFromSuccess();
 }

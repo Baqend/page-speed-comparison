@@ -1,6 +1,7 @@
-<div id="wListConfig" class="row p-64-0 border-top text-center invisible">
+<div id="wListConfig" class="row p-64-0 border-top text-center hidden">
     <div class="col-xs-12">
         <h3 class="p-0">Unexpected result?</h3>
+        <h4 id="servedRequestsInfo" class="font-weight-normal p-0 mt-16 hidden">Speed Kit served <strong><span id="servedRequests"></span>%</strong> of all requests.</h4>
         <h4 class="subhead p-0 mt-16">Tell Speed Kit a comma-separated list of domains it should handle</h4>
         <div class="urlInput mt-24">
             <input type="text" id="wListInput" onkeydown="if(event.keyCode == 13)initComparison()"

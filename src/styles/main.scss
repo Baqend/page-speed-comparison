@@ -8,6 +8,7 @@
 body, html, .content {
   background: #f8f8f8;
   padding: 0;
+  height: auto !important;
   min-height: 100%;
   color: rgba(0,0,0,.7);
   line-height: 1.42857143;
@@ -117,7 +118,6 @@ img {
   width: 100%;
   border-radius: 3px 3px 3px 3px;
   border: 1px solid #e8e8e8;
-  // box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   box-shadow: 0 2px 4px rgba(0,0,0,.05);
 }
 
@@ -230,16 +230,16 @@ img {
   margin-right: 0 !important;
 }
 
-// .metric-column {
-//   padding: 20px 30px;
-// }
-
 .wrapper {
   border-radius: 2px;
   background: white;
   overflow: hidden;
   margin: 0 auto;
   width: 100%;
+}
+
+.font-weight-normal {
+  font-weight: normal !important;
 }
 
 .btn-orange {
@@ -311,7 +311,6 @@ img {
 .urlInput {
   border: 1px solid #e8e8e8;
   border-radius: 2px;
-  // box-shadow: 0 1px 4px 1px rgba(50, 50, 50, 0.3);
   box-shadow: 0 2px 4px 1px rgba(0,0,0,.01);
   background-color: #FFFFFF;
   display: inline-block;
@@ -325,7 +324,6 @@ img {
 }
 
 .urlInput:hover, #urlInput:focus {
-  // box-shadow: 0 1px 5px 1px rgba(50, 50, 50, 0.4);
   box-shadow: 0 2px 4px 1px rgba(0,0,0,.05);
 }
 
@@ -411,10 +409,6 @@ img {
     height: 46px;
   }
 
-  // .urlInput {
-  //   width: 80%;
-  // }
-
   .infoBox {
     width: 80%;
   }
@@ -449,34 +443,14 @@ img {
     font-size: 50px;
   }
 
-  // .announce {
-  //   font-size: 22px;
-  // }
-
-  // .content {
-  //   padding: 20px 10px;
-  // }
-
-  // .urlInput {
-  //   width: 40%;
-  // }
-
   .infoBox {
     width: 50%;
     margin: 15px auto;
   }
 
-  .laser {
-    width: 100%;
-  }
-
   .challenge {
     font-size: 22px;
   }
-
-  // .metric-column {
-  //   padding: 0 30px;
-  // }
 
   .infoHeader {
     font-size: 18px;

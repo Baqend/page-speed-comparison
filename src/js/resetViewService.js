@@ -7,22 +7,18 @@ class ResetVariablesService {
         $('#testStatus').addClass('hidden');
         $('#runningInfo').addClass('hidden');
         $('#configInfo').removeClass('hidden');
-        $('#numberOfHostsCol').addClass('invisible');
-        $('#numberOfRequestsCol').addClass('invisible');
-        $('#numberOfBytesCol').addClass('invisible');
         $('#compareContent').addClass('invisible');
-        $('#wListConfig').removeClass('invisible');
+        $('#wListConfig').removeClass('hidden');
+        $('#servedRequestsInfo').addClass('hidden');
         $('#modalButton').click();
     }
 
     resetViewFromSuccess() {
-        $('#numberOfHostsCol').addClass('invisible');
-        $('#numberOfRequestsCol').addClass('invisible');
-        $('#numberOfBytesCol').addClass('invisible');
         $('#compareContent').addClass('invisible');
         $('.testResults').addClass('invisible');
         $('#info').addClass('hidden');
         $('#runningInfo').addClass('hidden');
+        $('#printButton').addClass('hidden');
         $('#testStatus').removeClass('hidden');
         $('#configInfo').removeClass('hidden');
         $('#statusQueue').html('Initializing test');
@@ -43,6 +39,19 @@ class ResetVariablesService {
         $('#dom-factor').html('');
         $('#lastVisualChange-factor').html('');
         $('#fullyLoaded-factor').html('');
+        $('#servedRequestsInfo').addClass('hidden');
+    }
+
+    resetViewAfterTest() {
+        $('.infoBox').fadeOut(1000);
+        $('#info').removeClass('hidden');
+        $('#informationContent').removeClass('hidden');
+        $('#testStatus').addClass('hidden');
+        $('#runningInfo').addClass('hidden');
+        $('#configInfo').removeClass('hidden');
+        $('#printButton').removeClass('hidden');
+        $('#wListConfig').removeClass('hidden');
+        $('#servedRequestsInfo').removeClass('hidden');
     }
 }
 module.exports = ResetVariablesService;
