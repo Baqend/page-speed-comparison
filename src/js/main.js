@@ -102,7 +102,6 @@ window.printReport = () => {
     setTimeout(function () {
         window.print();
     }, 100);
-
 };
 
 window.contactUs = (e) => {
@@ -153,8 +152,7 @@ window.initComparison = () => {
         db.modules.get('queueTest', {
             url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
             location: testOptions.location, isClone: true, caching: testOptions.caching
-        })
-            .then(res => sk_testId = res.testId);
+        }).then(res => sk_testId = res.testId);
 
         pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(encodeURIComponent(co_url)).then((results) => {
             testOverview = new db.TestOverview();

@@ -1,4 +1,5 @@
 const WebPageTest = require('webpagetest');
+const credentials = require('./credentials');
 
 class Pagetest {
 
@@ -32,20 +33,20 @@ class Pagetest {
      * @param options The options of this test (see https://github.com/marcelduran/webpagetest-api).
      * @returns {Promise} A promise of the queuing result containing the testId under 'data.testId'
      */
-    runTestSync(testUrl, options) {
+    runPrewarmSync(testUrl, options) {
         return new Promise((resolve, reject) => {
             this.wpt.runTest(testUrl, options,
                 (err, result) => {
                     if (err) {
                         reject(err);
                     }
-                    this.promises[testId] = resolve;
+                    this.promises[result.data.testId] = resolve;
                 });
         });
     }
 
-    resolveTest(testId, ttfb) {
-        this.promises[testId].call(ttfb);
+    resolvePrewarmTest(testId, ttfb) {
+        this.promises[testId].call(null, ttfb);
     }
 
     /**
@@ -127,4 +128,4 @@ class Pagetest {
     }
 }
 
-exports.API = Pagetest;
+exports.API = new Pagetest(credentials.wpt_dns, credentials.wpt_api_key);

@@ -1,11 +1,10 @@
-const Pagetest = require('./Pagetest');
+const API = require('./Pagetest').API;
 const credentials = require('./credentials');
 const activityTimeout = 50;
 const timeout = 30;
 
 
 exports.call = function (db, data, req) {
-    const API = new Pagetest.API(credentials.wpt_dns, credentials.wpt_api_key);
     const testUrl = data.url;
     const testLocation = data.location;
     const isClone = data.isClone == 'true';
@@ -36,14 +35,11 @@ exports.call = function (db, data, req) {
         pingback: 'https://makefast.app.baqend.com/v1/code/testPingback'
     };
 
-    const prewarmOptions = Object.assign({}, testOptions, {pingback: '', video: false, firstViewOnly: true});
+    const prewarmOptions = Object.assign({}, testOptions, {pingback: 'https://makefast.app.baqend.com/v1/code/prewarmPingback',
+        video: false, firstViewOnly: true});
 
     // test cloned website
     if (isClone) {
-        const prewarmScript = `logData\t0\nnavigate\t${testUrl}`;
-
-        const makefastUrl = testUrl.substr(0, testUrl.indexOf('?'));
-
         //only pre-install SW, if we are interested in the first view
         const installSW = caching ? "" : `logData\t0
 setTimeout\t${timeout}	
@@ -57,7 +53,7 @@ ${installSW}
 setTimeout\t${timeout}	
 navigate\t${testUrl}`;
 
-        return API.runTestSync(prewarmScript, prewarmOptions).then((ttfb) => {
+        return API.runPrewarmSync(testUrl, prewarmOptions).then((ttfb) => {
             testOptions.pingback += `?ttfb=${ttfb}`;
             return API.runTest(testScript, testOptions);
         }).then(result => {

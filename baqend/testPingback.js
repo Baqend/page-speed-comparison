@@ -1,11 +1,12 @@
-const Pagetest = require('./Pagetest');
+const API = require('./Pagetest').API;
 const credentials = require('./credentials');
 const download = require('./download');
 const _ = require('underscore');
 
 exports.call = function (db, data, req) {
-    const API = new Pagetest.API(credentials.wpt_dns, credentials.wpt_api_key);
     const testId = data.id;
+    const ttfb = data.ttfb;
+
     db.log.info('Pingback received for ' + testId);
 
     return db.TestResult.find().equal('testId', testId).count().then(exists => {
@@ -23,7 +24,7 @@ exports.call = function (db, data, req) {
         }).then(result => {
             db.log.info('Saving test result for ' + testId, result);
 
-            testResult = createTestResult(testId, result.data, db);
+            testResult = createTestResult(testId, result.data, ttfb,  db);
             return testResult.save();
         }).then(ignored => {
             if(testResult.testDataMissing)
@@ -63,25 +64,25 @@ function constructVideoLink(testId, videoId) {
         videoId.substr(videoId.indexOf('_') + 1, videoId.length) + '/video.mp4';
 }
 
-function createTestResult(testId, testResult, db) {
+function createTestResult(testId, testResult, ttfb, db) {
     const result = new db.TestResult();
     result.testId = testId;
     result.location = testResult.location;
     result.url = testResult.testUrl;
     result.summaryUrl = testResult.summary;
-    result.firstView = createRun(testResult.runs['1'].firstView, db);
+    result.firstView = createRun(testResult.runs['1'].firstView, ttfb, db);
     result.testDataMissing = result.firstView.lastVisualChange <= 0;
     if (testResult.runs['1'].repeatView) {
-        result.repeatView = createRun(testResult.runs['1'].repeatView, db);
+        result.repeatView = createRun(testResult.runs['1'].repeatView, ttfb, db);
         result.testDataMissing = result.repeatView.lastVisualChange <= 0;
     }
     return result;
 }
 
-function createRun(data, db) {
+function createRun(data, ttfb, db) {
     const run = new db.Run();
     run.loadTime = data.loadTime;
-    run.ttfb = data.TTFB;
+    run.ttfb = ttfb ? ttfb : data.TTFB;
     run.domLoaded = data.domContentLoadedEventStart;
     run.load = data.loadEventStart;
     run.fullyLoaded = data.fullyLoaded;
@@ -94,7 +95,6 @@ function createRun(data, db) {
     run.bytes = data.bytesOut;
     run.domElements = data.domElements;
     run.basePageCDN = data.base_page_cdn;
-
     const completeness = new db.Completeness();
     completeness.p85 = data.visualComplete85;
     completeness.p90 = data.visualComplete90;
