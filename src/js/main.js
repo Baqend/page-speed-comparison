@@ -24,8 +24,8 @@ let testInstance;
 let co_subscription;
 let sk_subscription;
 let testOverview;
-let co_testId;
-let sk_testId;
+let co_baqendId;
+let sk_baqendId;
 let interval;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -146,12 +146,12 @@ window.initComparison = () => {
             location: testOptions.location,
             isClone: false,
             caching: testOptions.caching
-        }).then(res => co_testId = res.testId);
+        }).then(res => co_baqendId = res.baqendId);
 
         db.modules.post('queueTest', {
             url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
             location: testOptions.location, isClone: true, caching: testOptions.caching
-        }).then(res => sk_testId = res.testId);
+        }).then(res => sk_baqendId = res.baqendId);
 
         pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(encodeURIComponent(co_url)).then((results) => {
             testOverview = new db.TestOverview();
@@ -183,13 +183,13 @@ window.initComparison = () => {
 
                     carousel.carousel(4);
                     interval = setInterval(function () {
-                        db.modules.get('getTestStatus', {testId: co_testId}).then(res => {
+                        db.modules.get('getTestStatus', {baqendId: co_baqendId}).then(res => {
                             if (res.status.statusCode === 101) {
                                 $('#statusQueue').html(res.status.statusText);
                             } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
                                 $('#statusQueue').html('Test has been started...');
                             }
-                        });
+                        }).catch();
                     }, 2000);
                 }
             }, 3000);
@@ -207,11 +207,11 @@ window.initComparison = () => {
 
             setTimeout(() => {
                 if (now === testInstance) {
-                    const co_query = db.TestResult.find().equal('testId', co_testId);
+                    const co_query = db.TestResult.find().equal('id', '/db/TestResult/' + co_baqendId);
                     co_subscription = co_query.resultStream(result =>
                         resultStreamUpdate(result, co_subscription, 'competitor'));
 
-                    const sk_query = db.TestResult.find().equal('testId', sk_testId);
+                    const sk_query = db.TestResult.find().equal('id', '/db/TestResult/' + sk_baqendId);
                     sk_subscription = sk_query.resultStream(result =>
                         resultStreamUpdate(result, sk_subscription, 'speedKit'));
                 }

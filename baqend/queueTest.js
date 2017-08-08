@@ -7,8 +7,8 @@ const timeout = 30;
 exports.call = function (db, data, req) {
     const testUrl = data.url;
     const testLocation = data.location;
-    const isClone = data.isClone == 'true';
-    const caching = data.caching == 'true';
+    const isClone = data.isClone;
+    const caching = data.caching;
 
     const testOptions = {
         connectivity: 'Native',
@@ -36,9 +36,10 @@ exports.call = function (db, data, req) {
     };
 
     const prewarmOptions = Object.assign({}, testOptions, {
-        pingback: 'https://makefast.app.baqend.com/v1/code/prewarmPingback',
-        video: false,
-        firstViewOnly: true}
+            pingback: 'https://makefast.app.baqend.com/v1/code/prewarmPingback',
+            video: false,
+            firstViewOnly: true
+        }
     );
 
     // test cloned website
@@ -58,7 +59,7 @@ navigate\t${testUrl}`;
 
         const baqendId = db.util.uuid();
         API.runPrewarmSync(testUrl, prewarmOptions).then((ttfb) => {
-            testOptions.pingback += `?ttfb=${ttfb}&baqendId={${baqendId}`;
+            testOptions.pingback += `?ttfb=${ttfb}&baqendId=${baqendId}`;
             return API.runTest(testScript, testOptions);
         }).then(result => {
             db.log.info(`Clone test, id: ${result.data.testId} script:\n${testScript}`);
@@ -68,9 +69,13 @@ navigate\t${testUrl}`;
     }
 
     // test original website
+    const baqendId = db.util.uuid();
     const testScript = `setActivityTimeout\t${activityTimeout}\nsetTimeout\t${timeout}\nnavigate\t${testUrl}`;
-    return API.runTest(testScript, testOptions).then(result => {
+    testOptions.pingback += `?baqendId=${baqendId}`;
+
+    API.runTest(testScript, testOptions).then(result => {
         db.log.info(`Original test, id: ${result.data.testId} script:\n${testScript}`);
-        return {testId: result.data.testId};
     });
+
+    return {baqendId: baqendId};
 };
