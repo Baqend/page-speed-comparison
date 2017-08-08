@@ -78,8 +78,14 @@ img {
 #main {
   display: flex;
   min-height: 100vh;
-  justify-content: center;
+  justify-content: space-between;
   flex-flow: column;
+  > .content {
+    min-height: 75vh;
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+  }
 }
 
 #speedKit .openButton{
@@ -226,7 +232,7 @@ img {
 }
 
 .challenge {
-  font-size: inherit;
+  font-size: 20px;
 }
 
 .printTeaser {
@@ -330,8 +336,8 @@ img {
   width: 100%;
   max-width: 768px;
   text-align: left;
-  padding-right: 8px;
-  padding-left: 8px;
+  padding-right: 56px;
+  padding-left: 12px;
   position: relative;
   z-index: 1000;
 }
@@ -358,6 +364,25 @@ img {
   font-size: inherit;
   font-weight: bold;
   line-height: 1.4;
+}
+
+.footer {
+  font-size: 16px;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  &, * {
+    color: rgba(0,0,0,.7);
+  }
+  &.dark {
+    background: #0f1d28;
+    border-color: rgba(255,255,255,0.1);
+    margin-bottom: -55px;
+    position: relative;
+    z-index: 12;
+    &, * {
+      color: rgba(255,255,255,.7);
+    }
+  }
 }
 
 .previewBox {
@@ -424,6 +449,8 @@ img {
 
   .infoBox {
     width: 80%;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .service {
