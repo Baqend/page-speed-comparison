@@ -15,6 +15,7 @@ exports.call = function (db, data, req) {
     const testLocation = data.location;
     const isClone = data.isClone;
     const caching = data.caching;
+    const testResult = new db.TestResult();
 
     const testOptions = {
         connectivity: 'Native',
@@ -69,6 +70,9 @@ navigate\t${testUrl}`;
             return API.runTest(testScript, testOptions);
         }).then(result => {
             db.log.info(`Clone test, id: ${result.data.testId} script:\n${testScript}`);
+            testResult.id = baqendId;
+            testResult.testId = result.data.testId;
+            testResult.save();
         });
 
         return {baqendId: baqendId};
@@ -81,6 +85,9 @@ navigate\t${testUrl}`;
 
     API.runTest(testScript, testOptions).then(result => {
         db.log.info(`Original test, id: ${result.data.testId} script:\n${testScript}`);
+        testResult.id = baqendId;
+        testResult.testId = result.data.testId;
+        testResult.save();
     });
 
     return {baqendId: baqendId};

@@ -10,8 +10,8 @@ exports.call = function (db, data, req) {
 
     db.log.info('Pingback received for ' + testId);
 
-    return db.TestResult.find().equal('testId', testId).count().then(exists => {
-        if (exists > 0) {
+    return db.TestResult.load(baqendId).then(testObject => {
+        if (testObject.firstResult) {
             db.log.info('Result already exists for ' + testId);
             return;
         }
@@ -25,7 +25,7 @@ exports.call = function (db, data, req) {
         }).then(result => {
             db.log.info('Saving test result for ' + testId);
 
-            testResult = createTestResult(testId, result.data, ttfb, baqendId, db);
+            testResult = createTestResult(testObject, result.data, ttfb, db);
             return testResult.save();
         }).then(ignored => {
             if(testResult.testDataMissing)
@@ -65,20 +65,17 @@ function constructVideoLink(testId, videoId) {
         videoId.substr(videoId.indexOf('_') + 1, videoId.length) + '/video.mp4';
 }
 
-function createTestResult(testId, testResult, ttfb, baqendId, db) {
-    const result = new db.TestResult();
-    result.id = baqendId;
-    result.testId = testId;
-    result.location = testResult.location;
-    result.url = testResult.testUrl;
-    result.summaryUrl = testResult.summary;
-    result.firstView = createRun(testResult.runs['1'].firstView, ttfb, db);
-    result.testDataMissing = result.firstView.lastVisualChange <= 0;
+function createTestResult(testObject, testResult, ttfb, db) {
+    testObject.location = testResult.location;
+    testObject.url = testResult.testUrl;
+    testObject.summaryUrl = testResult.summary;
+    testObject.firstView = createRun(testResult.runs['1'].firstView, ttfb, db);
+    testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
     if (testResult.runs['1'].repeatView) {
-        result.repeatView = createRun(testResult.runs['1'].repeatView, ttfb, db);
-        result.testDataMissing = result.repeatView.lastVisualChange <= 0;
+        testObject.repeatView = createRun(testResult.runs['1'].repeatView, ttfb, db);
+        testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
     }
-    return result;
+    return testObject;
 }
 
 function createRun(data, ttfb, db) {
