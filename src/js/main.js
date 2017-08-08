@@ -184,12 +184,14 @@ window.initComparison = () => {
                     carousel.carousel(4);
                     interval = setInterval(function () {
                         db.modules.get('getTestStatus', {baqendId: co_baqendId}).then(res => {
-                            if (res.status.statusCode === 101) {
-                                $('#statusQueue').html(res.status.statusText);
-                            } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
-                                $('#statusQueue').html('Test has been started...');
+                            if(!res.error){
+                                if (res.status.statusCode === 101) {
+                                    $('#statusQueue').html(res.status.statusText);
+                                } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
+                                    $('#statusQueue').html('Test has been started...');
+                                }
                             }
-                        }).catch();
+                        });
                     }, 2000);
                 }
             }, 3000);
