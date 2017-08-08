@@ -12,7 +12,7 @@ const RateLimiter = require('limiter').RateLimiter;
 exports.isRateLimited = (req, reqPerMinute = 4) => {
     const ip = req.get('X-Forwarded-For');
     //Do not block Baqend
-    if(ip.contains('134.100.11.49'))
+    if(ip.includes('134.100.11.49'))
         return false;
     let limiter = cache.get(ip);
     if(limiter === undefined) {
