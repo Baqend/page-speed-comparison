@@ -23,7 +23,7 @@ exports.call = function (db, data, req) {
             domains: false,
             pageSpeed: false,
         }).then(result => {
-            db.log.info('Saving test result for ' + testId, result);
+            db.log.info('Saving test result for ' + testId);
 
             testResult = createTestResult(testId, result.data, ttfb, baqendId, db);
             return testResult.save();
@@ -34,7 +34,7 @@ exports.call = function (db, data, req) {
             db.log.info('creating video for ' + testId);
             return Promise.all([API.createVideo(testId + '-r:1-c:0'), API.createVideo(testId + '-r:1-c:1')]);
         }).then(result => {
-            db.log.info('videos created for ' + testId, {data: result});
+            db.log.info('videos created for ' + testId);
 
             testResult.videoIdFirstView = result[0].data.videoId;
             const videoFirstViewPromise = download.toFile(db,

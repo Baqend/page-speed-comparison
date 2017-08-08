@@ -1,10 +1,16 @@
 const API = require('./Pagetest').API;
 const credentials = require('./credentials');
+const Limiter = require('./rateLimiter');
 const activityTimeout = 50;
 const timeout = 30;
 
 
 exports.call = function (db, data, req) {
+    //Check if IP is rate-limited
+    if(Limiter.isRateLimited(req)) {
+        return {error: 'Too many requests!'};
+    }
+
     const testUrl = data.url;
     const testLocation = data.location;
     const isClone = data.isClone;
