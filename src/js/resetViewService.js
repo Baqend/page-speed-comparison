@@ -7,14 +7,14 @@ class ResetVariablesService {
         $('#testStatus').addClass('hidden');
         $('#runningInfo').addClass('hidden');
         $('#configInfo').removeClass('hidden');
-        $('#compareContent').addClass('invisible');
+        $('#compareContent').addClass('hidden');
         $('#wListConfig').removeClass('hidden');
         $('#servedRequestsInfo').addClass('hidden');
         $('#modalButton').click();
     }
 
     resetViewFromSuccess() {
-        $('#compareContent').addClass('invisible');
+        $('#compareContent').addClass('hidden');
         $('.testResults').addClass('invisible');
         $('#info').addClass('hidden');
         $('#runningInfo').addClass('hidden');

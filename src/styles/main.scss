@@ -75,6 +75,13 @@ img {
   width: 100%;
 }
 
+#main {
+  display: flex;
+  min-height: 100vh;
+  justify-content: center;
+  flex-flow: column;
+}
+
 #speedKit .openButton{
   display: none;
   position:absolute;
@@ -125,7 +132,8 @@ img {
 .iconCycle {
   line-height: inherit;
   font-size: 28px;
-  color: #d3d3d3;
+  // color: #d3d3d3;
+  color: transparent;
 }
 
 .iconInner {
@@ -133,7 +141,7 @@ img {
   left: 0;
   top: 0;
   width: 100%;
-  color: #0F202D;
+  color: rgba(0,0,0,.5);
   line-height: inherit;
   font-size: inherit;
 }
@@ -148,7 +156,7 @@ img {
   padding: 0 6px;
   display: block;
   position: absolute;
-  font-size: 22px;
+  // font-size: 22px;
   right: 0;
   top: 0;
   cursor: pointer;
@@ -207,9 +215,9 @@ img {
   color: #5cb85c;
 }
 
-.center-vertical {
-  margin-top: 10.5em;
-}
+// .center-vertical {
+//   margin-top: 10.5em;
+// }
 
 .announce {
   font-size: 18px;
@@ -241,6 +249,10 @@ img {
 
 .font-weight-normal {
   font-weight: normal !important;
+}
+
+.btn {
+  border-radius: 2px;
 }
 
 .btn-orange {
@@ -318,8 +330,8 @@ img {
   width: 100%;
   max-width: 768px;
   text-align: left;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding-right: 8px;
+  padding-left: 8px;
   position: relative;
   z-index: 1000;
 }
@@ -328,11 +340,11 @@ img {
   box-shadow: 0 2px 4px 1px rgba(0,0,0,.05);
 }
 
-.infoBox {
-  width: 100%;
-  margin: auto;
-  padding: 5px;
-}
+// .infoBox {
+//   width: 100%;
+//   margin: auto;
+//   padding: 5px;
+// }
 
 .info {
   border-left: 1px solid #ddd;

@@ -198,7 +198,7 @@ window.initComparison = () => {
 
             setTimeout(() => {
                 if (now === testInstance) {
-                    $('#compareContent').removeClass('invisible');
+                    $('#compareContent').removeClass('hidden');
                     $('#competitor').append(uiElementCreator.createImageElement(results.screenshot),
                         uiElementCreator.createScannerElement());
 

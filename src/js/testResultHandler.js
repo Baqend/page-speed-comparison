@@ -19,7 +19,7 @@ class TestResultHandler {
         $('.numberOfHosts').html(result.psiDomains);
         $('.numberOfRequests').html(result.psiRequests);
         $('.numberOfBytes').html(result.psiResponseSize);
-        $('#compareContent').removeClass('invisible');
+        $('#compareContent').removeClass('hidden');
         $('#printButton').removeClass('hidden');
         $('#wListConfig').removeClass('hidden');
         $('#wListInput').val(result.whitelist);
