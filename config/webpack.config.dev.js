@@ -10,6 +10,7 @@ module.exports = webpackMerge(config, {
 
   devServer: {
     port: 3000,
+    disableHostCheck: true,
     contentBase: path.join(__dirname, 'dist'),
     compress: true
   },

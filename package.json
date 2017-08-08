@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "npm run dev",
-    "dev": "webpack-dev-server --config ./config/webpack.config.dev.js --inline --hot --open",
+    "dev": "webpack-dev-server --config ./config/webpack.config.dev.js --inline --hot --open --host 0.0.0.0",
     "build": "webpack --config ./config/webpack.config.prod.js --optimize-minimize",
     "deploy": "npm run build && baqend deploy --file-dir dist makefast"
   },
