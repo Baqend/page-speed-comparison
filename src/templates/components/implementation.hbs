@@ -61,6 +61,7 @@
                 <ul>
                     <li>By default, all your <strong>subdomains</strong> are handled by Speed Kit. In production, you extend this configuration to all relevant domains, e.g. <em>cdn3.example.com</em>.</li>
                     <li>Speed Kit turns any site into a <strong><a href="https://developers.google.com/web/progressive-web-apps/" target="_blank">Progressive Web App</a> (PWA)</strong>. This implies two things. First, your website will still be browsable, when users are offline. Second, users can install your site to their home screen like a native app.</li>
+                    <li>When testing an unencrypted HTTP URL, Speed Kit will nonetheless use <strong>secure TLS connections</strong> to load content.</li>
                     <li>If you execute the test with a warm browser cache, by default Speed Kit only serves <strong>up-to-date resources</strong> and loads the rest over the network. This is in contrast to most sites, that will also serve stale resources from the cache.</li>
                     <li>When you deploy Speed Kit, you provide rules or hooks for how Baqend <strong>updates cached content</strong> from your site. This is why Speed Kit will always serve up-to-date content.</li>
                 </ul>
