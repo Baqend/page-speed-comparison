@@ -171,4 +171,40 @@
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
+
+  .footer, .infoHeader {
+    display: none !important;
+  }
+
+  .infoBox {
+    width: 65% !important;
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+    > div:first-child {
+      display: none !important;
+    }
+    .info {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-around;
+      border-left: none !important;
+      > div {
+        // margin: 0 16px !important;
+        margin-top: 0;
+        width: initial !important;
+        float: left !important;
+        > div:first-child {
+          text-align: right;
+          padding: 0 8px !important;
+          width: initial !important;
+        }
+        > div:nth-child(2) {
+          text-align: left;
+          padding: 0 8px !important;
+          width: initial !important;
+        }
+      }
+    }
+  }
 }
