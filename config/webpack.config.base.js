@@ -49,7 +49,7 @@ module.exports = {
         test: /\.hbs$/,
         loader: 'handlebars-loader',
         query: {
-          inlineRequires: 'img',
+          inlineRequires: /^\..*img/,
           partialDirs: [
             path.resolve(__dirname, '../src', 'templates', 'components'),
             path.resolve(__dirname, '../src', 'templates', 'layout')
@@ -57,7 +57,7 @@ module.exports = {
         }
       },
       {
-        test: /\.(gif|png|jpe?g|svg|ico)$/i,
+        test: /\.(gif|png|jpe?g|svg|ico)$/ig,
         use: [
           {
             loader: 'file-loader',

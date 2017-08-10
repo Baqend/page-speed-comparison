@@ -12,6 +12,7 @@ exports.call = function (db, data, req) {
 
     return db.TestResult.load(baqendId).then(testObject => {
         if (testObject.firstResult) {
+            //TODO: firstResult need to be set
             db.log.info('Result already exists for ' + testId);
             return;
         }
@@ -70,6 +71,7 @@ function createTestResult(testObject, testResult, ttfb, db) {
     testObject.url = testResult.testUrl;
     testObject.summaryUrl = testResult.summary;
     testObject.firstView = createRun(testResult.runs['1'].firstView, ttfb, db);
+    db.log.info('First view ', [testObject.firstView, testResult.runs['1'].repeatView]);
     testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
     if (testResult.runs['1'].repeatView) {
         testObject.repeatView = createRun(testResult.runs['1'].repeatView, ttfb, db);

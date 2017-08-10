@@ -3,6 +3,7 @@ const credentials = require('./credentials');
 const Limiter = require('./rateLimiter');
 const activityTimeout = 50;
 const timeout = 30;
+const ttl = 86000/2;
 
 
 exports.call = function (db, data, req) {
@@ -51,8 +52,8 @@ exports.call = function (db, data, req) {
 
     // test cloned website
     if (isClone) {
-        //only pre-install SW, if we are interested in the first view
-        const installSW = caching ? "" : `logData\t0
+        //SW always needs to be installed
+        const installSW = caching ? `expireCache\t${ttl}` : `logData\t0
 setTimeout\t${timeout}	
 navigate\t${testUrl}&noCaching=true&blockExternal=true
 navigate\tabout:blank
@@ -80,7 +81,7 @@ navigate\t${testUrl}`;
 
     // test original website
     const baqendId = db.util.uuid();
-    const testScript = `setActivityTimeout\t${activityTimeout}\nsetTimeout\t${timeout}\nnavigate\t${testUrl}`;
+    const testScript = `setActivityTimeout\t${activityTimeout}\nsetTimeout\t${timeout}\nexpireCache\t${ttl}\nnavigate\t${testUrl}`;
     testOptions.pingback += `?baqendId=${baqendId}`;
 
     API.runTest(testScript, testOptions).then(result => {
