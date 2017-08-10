@@ -7,7 +7,7 @@ exports.call = function (db, data, req) {
     db.log.info('Prewarm-Pingback received for ' + testId);
 
     return API.getTestResults(testId, {
-        requests: true,
+        requests: false,
         breakdown: false,
         domains: false,
         pageSpeed: false,

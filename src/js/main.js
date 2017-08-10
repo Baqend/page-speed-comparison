@@ -250,10 +250,10 @@ function resultStreamUpdate(result, subscription, elementId) {
                     const competitorElement = $('#competitor');
                     const speedKitElement = $('#speedKit');
 
-                    const totalRequests = testResult['speedKit'].requests;
-                    const cacheHits = testResult['speedKit'].hits.hit || 0;
-                    const cacheMisses = testResult['speedKit'].hits.miss || 0;
-                    const otherRequests = testResult['speedKit'].hits.other || 0;
+                    const totalRequests = entry['firstView'].requests;
+                    const cacheHits = entry['firstView'].hits.hit || 0;
+                    const cacheMisses = entry['firstView'].hits.miss || 0;
+                    const otherRequests = entry['firstView'].hits.other || 0;
 
                     console.log('hit: ' + cacheHits + ' miss: ' + cacheMisses + ' other: ' +
                         otherRequests + ' total: ' + (totalRequests || 0));

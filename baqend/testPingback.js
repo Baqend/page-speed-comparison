@@ -1,7 +1,7 @@
 const API = require('./Pagetest').API;
 const credentials = require('./credentials');
 const download = require('./download');
-const _ = require('underscore');
+const countHits = require('./countHits').countHits;
 
 exports.call = function (db, data, req) {
     const testId = data.id;
@@ -11,18 +11,33 @@ exports.call = function (db, data, req) {
     db.log.info('Pingback received for ' + testId);
 
     return db.TestResult.load(baqendId).then(testObject => {
-        if (testObject.firstResult) {
-            //TODO: firstResult need to be set
+        if (testObject.firstView) {
             db.log.info('Result already exists for ' + testId);
             return;
         }
 
         let testResult;
-        return API.getTestResults(testId, {
+        const options =  {
             requests: true,
             breakdown: false,
             domains: false,
             pageSpeed: false,
+        };
+
+        return API.getTestResults(testId,options).then(result => {
+            //Retry once if result not yet available
+            const firstMissing = result.data.runs['1'].firstView.lastVisualChange <= 0;
+            const secondMissing = result.data.runs['1'].repeatView ? result.data.runs['1'].repeatView.lastVisualChange <= 0 : false;
+            if(firstMissing || secondMissing) {
+                db.log.info(`Retrying WPT request for ${testId} because firstMissing:${firstMissing}, secondMissing:${secondMissing}`);
+                return new Promise(function(resolve) {
+                    setTimeout(resolve, 500);
+                }).then(() => {
+                    return API.getTestResults(testId,options)
+                });
+            } else {
+                return result;
+            }
         }).then(result => {
             db.log.info('Saving test result for ' + testId);
 
@@ -71,12 +86,12 @@ function createTestResult(testObject, testResult, ttfb, db) {
     testObject.url = testResult.testUrl;
     testObject.summaryUrl = testResult.summary;
     testObject.firstView = createRun(testResult.runs['1'].firstView, ttfb, db);
-    db.log.info('First view ', [testObject.firstView, testResult.runs['1'].repeatView]);
     testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
     if (testResult.runs['1'].repeatView) {
         testObject.repeatView = createRun(testResult.runs['1'].repeatView, ttfb, db);
         testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
     }
+    db.log.info('First and repeat view ', [testObject.firstView, testObject.repeatView]);
     return testObject;
 }
 
@@ -104,15 +119,4 @@ function createRun(data, ttfb, db) {
     completeness.p100 = data.visualComplete;
     run.visualCompleteness = completeness;
     return run;
-}
-
-function countHits(data) {
-    return _.countBy(data.requests, req => {
-        const headers = req.headers.response.join(" ").toLowerCase();
-        if(headers.indexOf("x-cache") != -1) {
-            return headers.indexOf('hit') != -1  ? 'hit': 'miss';
-        } else {
-            return 'other';
-        }
-    });
 }
