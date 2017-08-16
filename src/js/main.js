@@ -115,7 +115,7 @@ window.contactUs = (e) => {
         subject: 'from page speed comparison'
     };
 
-    $.post('https://bbq-bq.global.ssl.fastly.net/v1/code/mailUs', data, (data, status, xhr) => {
+    $.post('https://bbq.app.baqend.com/v1/code/mailUs', data, (data, status, xhr) => {
         let form = $('#contact_form');
         form.find('.modal-body').html("<p>Thanks. We will get in touch shortly. " +
             "Check out our <a href='https://benchmark.baqend.com' target='_blank'>benchmark</a> in the meantime</p>");

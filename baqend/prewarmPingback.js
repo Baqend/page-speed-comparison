@@ -13,7 +13,7 @@ exports.call = function (db, data, req) {
         pageSpeed: false,
     }).then(result => {
         const ttfb = result.data.runs['1'].firstView.TTFB;
-        db.log.info('TTFB of prewarm: ' + ttfb);
+        db.log.info('TTFB of prewarm: ' + ttfb + ' with testId ' + result.data.testId, result.data.runs['1'].firstView);
         return API.resolvePrewarmTest(testId, ttfb);
     });
 };

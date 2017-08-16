@@ -1,7 +1,7 @@
 const API = require('./Pagetest').API;
 const credentials = require('./credentials');
 const Limiter = require('./rateLimiter');
-const activityTimeout = 50;
+const activityTimeout = 100;
 const timeout = 30;
 const ttl = 86000/2;
 
