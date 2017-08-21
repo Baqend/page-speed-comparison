@@ -33,17 +33,28 @@ document.addEventListener("DOMContentLoaded", () => {
     $('[data-toggle="tooltip"]').tooltip();
 
     db.connect('makefast', true).then(() => {
-        const testIdParam = getParameterByName('testId');
-        if (testIdParam) {
-            db.TestOverview.load(testIdParam, {depth: 1}).then((result) => {
-                testOptions.caching = result.caching;
-                testOptions.location = result.competitorTestResult.location;
-                co_url = result.competitorTestResult.url;
-                testResultHandler.displayTestResultsById(testOptions, result);
-            });
-        }
+        initTest();
     });
 });
+
+window.addEventListener("hashchange", () => {
+  initTest();
+});
+
+window.initTest = () => {
+  const testIdParam = getParameterByName('testId');
+  if (testIdParam) {
+    db.TestOverview.load(testIdParam, {depth: 1}).then((result) => {
+        if (result) {
+          testOptions.speedKit = result.speedKit;
+          testOptions.caching = result.caching;
+          testOptions.location = result.competitorTestResult.location;
+          co_url = result.competitorTestResult.url;
+          testResultHandler.displayTestResultsById(testOptions, result);
+        }
+    });
+  }
+};
 
 window.showInfoBox = () => {
     $('.infoBox').fadeIn(1000);

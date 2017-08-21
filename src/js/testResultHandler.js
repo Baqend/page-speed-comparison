@@ -34,11 +34,11 @@ class TestResultHandler {
         $('#caching_left').prop("checked", result.caching);
 
         this.displayTestResults('competitor', result.competitorTestResult[dataView], testOptions);
-        $('#competitor').append(uiElementCreator.createVideoElement('video-competitor',
+        $('#competitor').empty().append(uiElementCreator.createVideoElement('video-competitor',
             result.competitorTestResult[videoView].url));
 
         this.displayTestResults('speedKit', result.speedKitTestResult[dataView], testOptions);
-        $('#speedKit').append(uiElementCreator.createLinkButton(), uiElementCreator.createVideoElement('video-speedKit',
+        $('#speedKit').empty().append(uiElementCreator.createLinkButton(), uiElementCreator.createVideoElement('video-speedKit',
             result.speedKitTestResult[videoView].url));
 
         this.calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);

@@ -1,5 +1,6 @@
 const WebPageTest = require('webpagetest');
 const credentials = require('./credentials');
+const pingBackUrl = 'https://makefast.app.baqend.com/v1/code/testPingback';
 
 class Pagetest {
 
@@ -12,41 +13,27 @@ class Pagetest {
      * Queues a new testrun of the given url with the given options.
      * @param testUrl The url to test.
      * @param options The options of this test (see https://github.com/marcelduran/webpagetest-api).
-     * @returns {Promise} A promise of the queuing result containing the testId under 'data.testId'
+     * @returns {Promise} A promise of the test
      */
     runTest(testUrl, options) {
+        options.pingback = pingBackUrl;
+
         return new Promise((resolve, reject) => {
-            this.wpt.runTest(testUrl, options,
-                (err, result) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(result);
-                    }
-                });
+            this.wpt.runTest(testUrl, options, (err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                this.promises[result.data.testId] = resolve;
+            });
         });
     }
 
-    /**
-     * Queues a new testrun of the given url with the given options.
-     * @param testUrl The url to test.
-     * @param options The options of this test (see https://github.com/marcelduran/webpagetest-api).
-     * @returns {Promise} A promise of the queuing result containing the testId under 'data.testId'
-     */
-    runPrewarmSync(testUrl, options) {
-        return new Promise((resolve, reject) => {
-            this.wpt.runTest(testUrl, options,
-                (err, result) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    this.promises[result.data.testId] = resolve;
-                });
-        });
-    }
-
-    resolvePrewarmTest(testId, ttfb) {
-        this.promises[testId].call(null, ttfb);
+    resolveTest(testId) {
+      if (this.promises[testId]) {
+        this.promises[testId].call(null, testId);
+        delete this.promises[testId];
+      }
     }
 
     /**
@@ -78,6 +65,24 @@ class Pagetest {
      * @returns {Promise} The result of the test.
      */
     getTestResults(testId, options) {
+      //make the result call more reliable
+      return this._getTestResults(testId, options).then(result => {
+        const firstMissing = result.data.runs['1'].firstView.lastVisualChange <= 0;
+        const secondMissing = result.data.runs['1'].repeatView && result.data.runs['1'].repeatView.lastVisualChange <= 0;
+
+        if (!firstMissing && !secondMissing) {
+          return result;
+        }
+
+        return new Promise((resolve) => {
+          setTimeout(resolve, 500);
+        });
+      }).then(() => {
+        return this._getTestResults(testId, options);
+      });
+    }
+
+    _getTestResults(testId, options) {
         options = options || {};
 
         return new Promise((resolve, reject) => {
