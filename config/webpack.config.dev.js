@@ -19,6 +19,9 @@ module.exports = webpackMerge(config, {
     new ExtractTextPlugin({
       filename: "css/[hash].css",
       disable: true
+    }),
+    new webpack.DefinePlugin({
+      APP: '"makefast-dev"'
     })
   ]
 });

@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#main").html(hbs.main(data));
     $('[data-toggle="tooltip"]').tooltip();
 
-    db.connect('makefast', true).then(() => {
+    db.connect(APP, true).then(() => {
         initTest();
     });
 });
@@ -134,17 +134,34 @@ window.contactUs = (e) => {
     });
 };
 
+window.handleURLKeydown = (event) => {
+  $('#currentVendorUrlInvalid').hide();
+
+  if (event.keyCode == 13)
+      window.initComparison();
+};
+
 window.initComparison = () => {
     const now = Date.now();
     testInstance = now;
 
+    const urlInput = $('#currentVendorUrl').val();
+    co_url = /^https?:\/\//.test(urlInput)? urlInput : 'https://' + urlInput;
+
+    try {
+        const url = new URL(co_url);
+        if (co_url.indexOf(url.origin) !== 0)
+            throw new Error('Invalid Origin');
+        co_url = new URL(co_url).href;
+    } catch (e) {
+        $('#currentVendorUrlInvalid').show();
+        return;
+    }
+
     resetComparison();
     showInfoBox();
-    const urlInput = $('#currentVendorUrl').val();
-    co_url = urlInput.indexOf('http://') !== -1 || urlInput.indexOf('https://') !== -1 ? urlInput : 'http://' + urlInput;
 
     if (co_url) {
-        window.location.hash = '';
         $('.center-vertical').animate({'marginTop': '0px'}, 500);
         $('#configInfo').addClass('hidden');
         $('#runningInfo').removeClass('hidden');
@@ -229,7 +246,7 @@ window.initComparison = () => {
                         resultStreamUpdate(result, sk_subscription, 'speedKit'));
                 }
             }, 6000)
-        });
+        }).catch(showComparisonError);
     }
 };
 
@@ -282,15 +299,18 @@ function resultStreamUpdate(result, subscription, elementId) {
                 subscription.unsubscribe();
             }
         } else {
-            clearInterval(interval);
-            subscription.unsubscribe();
-            resetViewService.resetViewFromError();
+            showComparisonError();
         }
 
         testOverview.ready().then(() => {
             testOverview.save().then(() => window.location.hash = '?testId=' + testOverview.key);
         });
     }
+}
+
+function showComparisonError() {
+  resetComparison();
+  resetViewService.showError();
 }
 
 function resetComparison() {
@@ -304,6 +324,7 @@ function resetComparison() {
     testVideo = {};
 
     resetViewService.resetViewFromSuccess();
+    window.location.hash = '';
 }
 
 function getParameterByName(name) {

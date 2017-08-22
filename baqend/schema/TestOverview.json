@@ -1,0 +1,53 @@
+{
+  "class": "/db/TestOverview",
+  "superClass": "/db/Object",
+  "acl": {
+    "schemaAdd": {
+      "/db/Role/1": "allow"
+    },
+    "schemaReplace": {
+      "/db/Role/1": "allow"
+    },
+    "schemaSubclass": {
+      "/db/Role/1": "allow"
+    }
+  },
+  "metadata": {},
+  "fields": {
+    "psiDomains": {
+      "name": "psiDomains",
+      "type": "/db/Integer",
+      "order": 0
+    },
+    "psiRequests": {
+      "name": "psiRequests",
+      "type": "/db/Integer",
+      "order": 1
+    },
+    "psiResponseSize": {
+      "name": "psiResponseSize",
+      "type": "/db/String",
+      "order": 2
+    },
+    "caching": {
+      "name": "caching",
+      "type": "/db/Boolean",
+      "order": 3
+    },
+    "competitorTestResult": {
+      "name": "competitorTestResult",
+      "type": "/db/TestResult",
+      "order": 4
+    },
+    "speedKitTestResult": {
+      "name": "speedKitTestResult",
+      "type": "/db/TestResult",
+      "order": 5
+    },
+    "whitelist": {
+      "name": "whitelist",
+      "type": "/db/String",
+      "order": 6
+    }
+  }
+}

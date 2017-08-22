@@ -10,14 +10,12 @@ class PageSpeedInsightsAPIService {
             'key=' + API_KEY,
         ].join('&');
 
-        return new Promise((resolve, reject) => {
-            fetch(API_URL + query, {
-                method: 'get'
-            }).then((response) => {
-                return resolve(this.calculateResult(response));
-            }).catch((err) => {
-                return reject(err);
-            });
+        return fetch(API_URL + query, {
+            method: 'get'
+        }).then((response) => {
+            if (!response.ok)
+                throw new Error('Page Speed failed with an error.');
+            return this.calculateResult(response);
         });
     }
 

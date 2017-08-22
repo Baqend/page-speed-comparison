@@ -1,6 +1,6 @@
 class ResetVariablesService {
 
-    resetViewFromError() {
+    showError() {
         $('#competitor').empty();
         $('#speedKit').empty();
         $('#info').removeClass('hidden');
@@ -10,7 +10,7 @@ class ResetVariablesService {
         $('#compareContent').addClass('hidden');
         $('#wListConfig').removeClass('hidden');
         $('#servedRequestsInfo').addClass('hidden');
-        $('#modalButton').click();
+        $('#contactModal').modal('show');
     }
 
     resetViewFromSuccess() {

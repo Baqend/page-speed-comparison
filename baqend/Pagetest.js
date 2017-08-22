@@ -1,6 +1,6 @@
 const WebPageTest = require('webpagetest');
 const credentials = require('./credentials');
-const pingBackUrl = 'https://makefast.app.baqend.com/v1/code/testPingback';
+const pingBackUrl = `https://${credentials.app}.app.baqend.com/v1/code/testPingback`;
 
 class Pagetest {
 

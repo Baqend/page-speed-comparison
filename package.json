@@ -10,9 +10,11 @@
   "scripts": {
     "start": "npm run dev",
     "dev": "webpack-dev-server --config ./config/webpack.config.dev.js --inline --hot --open --host 0.0.0.0",
-    "build": "webpack --config ./config/webpack.config.prod.js --optimize-minimize",
-    "deploy": "npm run build && baqend deploy --file-dir dist makefast",
-    "deploy:code": "baqend deploy --code makefast"
+    "build:dev": "webpack --config ./config/webpack.config.dev.js",
+    "build:prod": "webpack --config ./config/webpack.config.prod.js --optimize-minimize",
+    "deploy:prod": "npm run build:prod && baqend deploy --file-dir dist makefast",
+    "deploy:dev": "npm run build:dev && baqend deploy --file-dir dist makefast-dev",
+    "deploy:code": "baqend deploy --code makefast-dev"
   },
   "devDependencies": {
     "babel-core": "^6.24.0",

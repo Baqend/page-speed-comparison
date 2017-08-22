@@ -3,12 +3,13 @@
         <div class="container p-32-0 text-center">
             <h1 class="mb-24">Page Speed Analyzer</h1>
             <div class="urlInput">
-                <input type="text" id="currentVendorUrl" onkeydown="if(event.keyCode == 13)initComparison()"
+                <input type="text" id="currentVendorUrl" onkeydown="handleURLKeydown(event)"
                        onclick="showInfoBox()" placeholder="Enter URL here...">
                 <button type="button" class="search-button btn btn-orange btn-ghost" onclick="initComparison()">
                     Go
                 </button>
             </div>
+            <div id="currentVendorUrlInvalid" style="display: none">Please enter an valid URL</div>
             <div class="row infoBox flex" style="margin-top: 32px;margin-bottom: 0;">
                 <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
                     <div id="info" class="mb-8 text-right">

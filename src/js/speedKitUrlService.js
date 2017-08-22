@@ -1,4 +1,4 @@
-const bq_url = 'https://makefast-staging.app.baqend.com/';
+const bq_url = `https://${APP}.speed-kit.com/`;
 
 class SpeedKitUrlService {
     getBaqendUrl(originalUrl, wlist) {

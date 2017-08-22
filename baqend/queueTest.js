@@ -1,3 +1,4 @@
+const url = require('url');
 const API = require('./Pagetest').API;
 const credentials = require('./credentials');
 const Limiter = require('./rateLimiter');
@@ -77,12 +78,19 @@ exports.call = function (db, data, req) {
 };
 
 function createTestScript(testUrl, options) {
+  let hostname;
+  try {
+    hostname = url.parse(testUrl).hostname;
+  } catch (e) {
+    throw new Abort('Invalid Url specified: ' + e.message);
+  }
+
   if (!options.isClone) {
     return `
       block /sw.js /sw.php
       setActivityTimeout ${activityTimeout}
       setTimeout ${timeout}
-      expireCache ${ttl} 
+      #expireCache ${ttl} 
       navigate ${testUrl}
     `;
   }
@@ -91,8 +99,11 @@ function createTestScript(testUrl, options) {
   const installSW = `
     logData 0
     setTimeout ${timeout}	
+    blockDomainsExcept ${hostname}	
     navigate ${testUrl}&noCaching=true&blockExternal=true
+    blockDomainsExcept
     navigate about:blank
+    clearcache
     logData 1
   `;
 
