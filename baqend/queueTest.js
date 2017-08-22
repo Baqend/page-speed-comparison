@@ -123,7 +123,7 @@ function getPrewarmResult(db, testId) {
     pageSpeed: false,
   }).then(result => {
     const ttfb = result.data.runs['1'].firstView.TTFB;
-    db.log.info('TTFB of prewarm: ' + ttfb + ' with testId ' + result.data.testId, result.data.runs['1'].firstView);
+    db.log.info('TTFB of prewarm: ' + ttfb + ' with testId ' + testId, result.data.runs['1'].firstView);
     return ttfb;
   });
 }

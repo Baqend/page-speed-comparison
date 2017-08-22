@@ -57,7 +57,7 @@ window.initTest = () => {
 };
 
 window.showInfoBox = () => {
-    $('.infoBox').fadeIn(1000);
+    resetViewService.showInfoBox();
 };
 
 window.showImplementation = () => {
@@ -159,12 +159,10 @@ window.initComparison = () => {
     }
 
     resetComparison();
-    showInfoBox();
 
     if (co_url) {
+        resetViewService.startTest();
         $('.center-vertical').animate({'marginTop': '0px'}, 500);
-        $('#configInfo').addClass('hidden');
-        $('#runningInfo').removeClass('hidden');
 
         const carousel = $('.carousel').carousel({interval: false, wrap: false});
         carousel.carousel(0);
@@ -323,7 +321,7 @@ function resetComparison() {
     testResult = {};
     testVideo = {};
 
-    resetViewService.resetViewFromSuccess();
+    resetViewService.resetView();
     window.location.hash = '';
 }
 

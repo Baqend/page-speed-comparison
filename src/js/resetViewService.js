@@ -1,27 +1,30 @@
 class ResetVariablesService {
 
     showError() {
-        $('#competitor').empty();
-        $('#speedKit').empty();
-        $('#info').removeClass('hidden');
-        $('#testStatus').addClass('hidden');
-        $('#runningInfo').addClass('hidden');
-        $('#configInfo').removeClass('hidden');
-        $('#compareContent').addClass('hidden');
-        $('#wListConfig').removeClass('hidden');
-        $('#servedRequestsInfo').addClass('hidden');
         $('#contactModal').modal('show');
     }
 
-    resetViewFromSuccess() {
+    showInfoBox() {
+        $('.infoBox').fadeIn(1000);
+    }
+
+    startTest() {
+        this.showInfoBox();
+        $('#info').addClass('hidden');
+        $('#statusQueue').html('Initializing test');
+        $('#testStatus').removeClass('hidden');
+        $('#configInfo').addClass('hidden');
+        $('#runningInfo').removeClass('hidden');
+    }
+
+    resetView() {
         $('#compareContent').addClass('hidden');
         $('.testResults').addClass('invisible');
-        $('#info').addClass('hidden');
+        $('#info').removeClass('hidden');
         $('#runningInfo').addClass('hidden');
         $('#printButton').addClass('hidden');
-        $('#testStatus').removeClass('hidden');
+        $('#testStatus').addClass('hidden');
         $('#configInfo').removeClass('hidden');
-        $('#statusQueue').html('Initializing test');
         $('#competitor').empty();
         $('#speedKit').empty();
         $('#competitor-speedIndex').html('');
