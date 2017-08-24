@@ -7,7 +7,7 @@ const TestResultHandler = require('./testResultHandler.js');
 import "bootstrap";
 import "../styles/main.scss";
 import * as hbs from "../templates";
-import db from "baqend/realtime";
+import { db } from "baqend/realtime";
 
 const uiElementCreator = new UiElementCreator();
 const pageSpeedInsightsAPIService = new PageSpeedInsightsAPIService();
@@ -27,6 +27,7 @@ let testOverview;
 let co_baqendId;
 let sk_baqendId;
 let interval;
+let title;
 
 document.addEventListener("DOMContentLoaded", () => {
     $("#main").html(hbs.main(data));
@@ -35,15 +36,13 @@ document.addEventListener("DOMContentLoaded", () => {
     db.connect(APP, true).then(() => {
         initTest();
     });
-});
 
-window.addEventListener("hashchange", () => {
-  initTest();
+    title = $('title').text();
 });
 
 window.initTest = () => {
   const testIdParam = getParameterByName('testId');
-  if (testIdParam) {
+  if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
     db.TestOverview.load(testIdParam, {depth: 1}).then((result) => {
         if (result) {
           testOptions.speedKit = result.speedKit;
@@ -53,6 +52,11 @@ window.initTest = () => {
           testResultHandler.displayTestResultsById(testOptions, result);
         }
     });
+  }
+
+  const url = getParameterByName("url");
+  if (url) {
+    window.submitComparison(url);
   }
 };
 
@@ -138,115 +142,126 @@ window.handleURLKeydown = (event) => {
   $('#currentVendorUrlInvalid').hide();
 
   if (event.keyCode == 13)
-      window.initComparison();
+      window.submitComparison();
 };
 
-window.initComparison = () => {
+window.submitComparison = (urlInput) => {
+  urlInput = urlInput || $('#currentVendorUrl').val();
+
+  db.modules.get('normalizeUrl', { url: urlInput }).then((result) => {
+    $('#currentVendorUrl').val(result.url);
+    initComparison(result.url);
+  }, e => {
+    const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
+    $currentVendorUrlInvalid.text(e.message);
+    $currentVendorUrlInvalid.show();
+  });
+};
+
+function initComparison(url) {
+    resetComparison();
+
     const now = Date.now();
     testInstance = now;
 
-    const urlInput = $('#currentVendorUrl').val();
-    co_url = /^https?:\/\//.test(urlInput)? urlInput : 'https://' + urlInput;
+    co_url = url;
+    resetViewService.startTest();
+    $('.center-vertical').animate({'marginTop': '0px'}, 500);
 
-    try {
-        const url = new URL(co_url);
-        if (co_url.indexOf(url.origin) !== 0)
-            throw new Error('Invalid Origin');
-        co_url = new URL(co_url).href;
-    } catch (e) {
-        $('#currentVendorUrlInvalid').show();
-        return;
+    testOverview = new db.TestOverview();
+    testOverview.caching = testOptions.caching;
+    testOverview.whitelist = $('#wListInput').val();
+
+    Promise.all([db.modules.post('queueTest', {
+        url: co_url,
+        location: testOptions.location,
+        isClone: false,
+        caching: testOptions.caching
+    }), db.modules.post('queueTest', {
+        url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
+        location: testOptions.location, isClone: true, caching: testOptions.caching
+    })]).then(results => {
+        co_baqendId = results[0].baqendId;
+        sk_baqendId = results[1].baqendId;
+
+        return sleep(6000);
+    }).then(() => {
+      if (now === testInstance) {
+        const co_query = db.TestResult.find().equal('id', '/db/TestResult/' + co_baqendId);
+        co_subscription = co_query.resultStream(result =>
+          resultStreamUpdate(result, co_subscription, 'competitor'));
+
+        const sk_query = db.TestResult.find().equal('id', '/db/TestResult/' + sk_baqendId);
+        sk_subscription = sk_query.resultStream(result =>
+          resultStreamUpdate(result, sk_subscription, 'speedKit'));
+      }
+    }).catch(showComparisonError);
+
+    callPageSpeed(now).catch(showComparisonError);
+}
+
+function updateTestStatus() {
+  interval = setInterval(function () {
+    if (co_baqendId) {
+      db.modules.get('getTestStatus', {baqendId: co_baqendId}).then(res => {
+        if(!res.error){
+          if (res.status.statusCode === 101) {
+            $('#statusQueue').html(res.status.statusText);
+          } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
+            $('#statusQueue').html('Test has been started...');
+          }
+        }
+      });
     }
+  }, 2000);
+}
 
-    resetComparison();
+function callPageSpeed(now) {
+  const carousel = $('.carousel').carousel({interval: false, wrap: false});
+  carousel.carousel(0);
 
-    if (co_url) {
-        resetViewService.startTest();
-        $('.center-vertical').animate({'marginTop': '0px'}, 500);
+  let screenShot;
 
-        const carousel = $('.carousel').carousel({interval: false, wrap: false});
-        carousel.carousel(0);
+  return pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(co_url)
+    .then((results) => {
+      carousel.carousel(1);
 
-        db.modules.post('queueTest', {
-            url: co_url,
-            location: testOptions.location,
-            isClone: false,
-            caching: testOptions.caching
-        }).then(res => co_baqendId = res.baqendId);
+      testOverview.psiDomains = results.domains;
+      testOverview.psiRequests = results.resources;
+      testOverview.psiResponseSize = results.bytes;
+      screenShot = results.screenshot;
 
-        db.modules.post('queueTest', {
-            url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
-            location: testOptions.location, isClone: true, caching: testOptions.caching
-        }).then(res => sk_baqendId = res.baqendId);
+      return sleep(1000);
+    }).then(() => {
+      if (now === testInstance) {
+        $('.numberOfHosts').html(testOverview.psiDomains);
+        carousel.carousel(2);
+      }
+      return sleep(1000);
+    }).then(() => {
+      if (now === testInstance) {
+        $('.numberOfRequests').html(testOverview.psiRequests);
+        carousel.carousel(3);
+      }
+      return sleep(1000);
+    }).then(() => {
+      if (now === testInstance) {
+        $('.numberOfBytes').html(testOverview.psiResponseSize);
+        carousel.carousel(4);
+        updateTestStatus();
+      }
+      return sleep(1000);
+    }).then(() => {
+      if (now === testInstance) {
+        $('#compareContent').removeClass('hidden');
+        $('#competitor').append(uiElementCreator.createImageElement(screenShot),
+          uiElementCreator.createScannerElement());
 
-        pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(encodeURIComponent(co_url)).then((results) => {
-            testOverview = new db.TestOverview();
-            testOverview.psiDomains = results.domains;
-            testOverview.psiRequests = results.resources;
-            testOverview.psiResponseSize = results.bytes;
-            testOverview.caching = testOptions.caching;
-            testOverview.whitelist = $('#wListInput').val();
-
-            carousel.carousel(1);
-
-            setTimeout(() => {
-                if (now === testInstance) {
-                    $('.numberOfHosts').html(results.domains);
-                    carousel.carousel(2);
-                }
-            }, 1000);
-
-            setTimeout(() => {
-                if (now === testInstance) {
-                    $('.numberOfRequests').html(results.resources);
-                    carousel.carousel(3);
-                }
-            }, 2000);
-
-            setTimeout(() => {
-                if (now === testInstance) {
-                    $('.numberOfBytes').html(results.bytes);
-
-                    carousel.carousel(4);
-                    interval = setInterval(function () {
-                        db.modules.get('getTestStatus', {baqendId: co_baqendId}).then(res => {
-                            if(!res.error){
-                                if (res.status.statusCode === 101) {
-                                    $('#statusQueue').html(res.status.statusText);
-                                } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
-                                    $('#statusQueue').html('Test has been started...');
-                                }
-                            }
-                        });
-                    }, 2000);
-                }
-            }, 3000);
-
-            setTimeout(() => {
-                if (now === testInstance) {
-                    $('#compareContent').removeClass('hidden');
-                    $('#competitor').append(uiElementCreator.createImageElement(results.screenshot),
-                        uiElementCreator.createScannerElement());
-
-                    $('#speedKit').append(uiElementCreator.createImageElement(results.screenshot),
-                        uiElementCreator.createScannerElement());
-                }
-            }, 4000);
-
-            setTimeout(() => {
-                if (now === testInstance) {
-                    const co_query = db.TestResult.find().equal('id', '/db/TestResult/' + co_baqendId);
-                    co_subscription = co_query.resultStream(result =>
-                        resultStreamUpdate(result, co_subscription, 'competitor'));
-
-                    const sk_query = db.TestResult.find().equal('id', '/db/TestResult/' + sk_baqendId);
-                    sk_subscription = sk_query.resultStream(result =>
-                        resultStreamUpdate(result, sk_subscription, 'speedKit'));
-                }
-            }, 6000)
-        }).catch(showComparisonError);
-    }
-};
+        $('#speedKit').append(uiElementCreator.createImageElement(screenShot),
+          uiElementCreator.createScannerElement());
+      }
+    });
+}
 
 function resultStreamUpdate(result, subscription, elementId) {
     const dataView = testOptions.caching ? 'repeatView' : 'firstView';
@@ -301,12 +316,15 @@ function resultStreamUpdate(result, subscription, elementId) {
         }
 
         testOverview.ready().then(() => {
-            testOverview.save().then(() => window.location.hash = '?testId=' + testOverview.key);
+            return testOverview.save();
+        }).then(() => {
+            history.pushState({}, title, '/?testId=' + testOverview.key);
         });
     }
 }
 
-function showComparisonError() {
+function showComparisonError(e) {
+  console.error(e.stack);
   resetComparison();
   resetViewService.showError();
 }
@@ -318,11 +336,12 @@ function resetComparison() {
     if (sk_subscription)
         sk_subscription.unsubscribe();
 
+    co_baqendId = sk_baqendId = null;
     testResult = {};
     testVideo = {};
 
     resetViewService.resetView();
-    window.location.hash = '';
+    history.pushState({}, title, "/");
 }
 
 function getParameterByName(name) {
@@ -333,4 +352,10 @@ function getParameterByName(name) {
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+function sleep(milis) {
+    return new Promise(resolve => {
+        setTimeout(resolve, milis);
+    });
 }

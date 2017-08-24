@@ -4,7 +4,7 @@ const API_URL = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?';
 
 class PageSpeedInsightsAPIService {
     callPageSpeedInsightsAPI(url) {
-        const query = ['url=' + url,
+        const query = ['url=' + encodeURIComponent(url),
             'screenshot=true',
             'strategy=desktop',
             'key=' + API_KEY,

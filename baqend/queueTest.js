@@ -4,7 +4,7 @@ const credentials = require('./credentials');
 const Limiter = require('./rateLimiter');
 const download = require('./download');
 const countHits = require('./countHits').countHits;
-const activityTimeout = 100;
+const activityTimeout = 75;
 const timeout = 30;
 const ttl = 86000/2;
 
@@ -70,7 +70,7 @@ exports.call = function (db, data, req) {
     }).then(() => {
       db.log.info(`Test completed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}`);
     }).catch((e) => {
-      db.log.warn(`Test failed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}`);
+      db.log.warn(`Test failed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}\n\n${e.stack}`);
     });
   });
 
