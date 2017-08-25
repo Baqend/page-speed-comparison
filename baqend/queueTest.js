@@ -56,8 +56,11 @@ exports.call = function (db, data, req) {
   Promise.resolve().then(() => {
     if (requirePrewarm) {
       const prewarmOptions = Object.assign({}, testOptions, {
+        runs: 2,
+        timeline: false,
         video: false,
-        firstViewOnly: true
+        firstViewOnly: true,
+        minimalResults: true
       });
 
       return API.runTest(testUrl, prewarmOptions).then((testId) => {
@@ -88,7 +91,7 @@ function createTestScript(testUrl, options) {
   if (!options.isClone) {
     return `
       block /sw.js /sw.php
-      setActivityTimeout ${activityTimeout}
+      setActivityTimeout ${options.activityTimeout || activityTimeout}
       setTimeout ${timeout}
       #expireCache ${ttl} 
       navigate ${testUrl}
@@ -108,7 +111,7 @@ function createTestScript(testUrl, options) {
   `;
 
   return `
-    setActivityTimeout ${activityTimeout}
+    setActivityTimeout ${options.activityTimeout || activityTimeout}
     ${installSW}
     setTimeout ${timeout}	
     navigate ${testUrl}

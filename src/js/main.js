@@ -40,6 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
     title = $('title').text();
 });
 
+window.addEventListener("popstate", () => {
+  if (db.isReady)
+    initTest();
+});
+
 window.initTest = () => {
   const testIdParam = getParameterByName('testId');
   if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
@@ -167,6 +172,7 @@ function initComparison(url) {
     co_url = url;
     resetViewService.startTest();
     $('.center-vertical').animate({'marginTop': '0px'}, 500);
+    const activityTimeout = parseInt($('.activityTimeout').val()) || undefined;
 
     testOverview = new db.TestOverview();
     testOverview.caching = testOptions.caching;
@@ -174,11 +180,13 @@ function initComparison(url) {
 
     Promise.all([db.modules.post('queueTest', {
         url: co_url,
+        activityTimeout: activityTimeout,
         location: testOptions.location,
         isClone: false,
         caching: testOptions.caching
     }), db.modules.post('queueTest', {
         url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
+        activityTimeout: activityTimeout,
         location: testOptions.location, isClone: true, caching: testOptions.caching
     })]).then(results => {
         co_baqendId = results[0].baqendId;

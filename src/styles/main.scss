@@ -352,6 +352,16 @@ img {
 //   padding: 5px;
 // }
 
+.activityTimeout {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  display: inline;
+  width: 50px;
+  height: 1em;
+  cursor: default;
+}
+
 .info {
   border-left: 1px solid #ddd;
 }
