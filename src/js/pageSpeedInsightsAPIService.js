@@ -20,10 +20,10 @@ class PageSpeedInsightsAPIService {
     }
 
     calculateResult(response) {
-        const results = {domains: null, resources: null, bytes: null, screenshot: null};
+        const results = {domains: null, requests: null, bytes: null, screenshot: null};
         return response.json().then((data) => {
             results.domains = data.pageStats.numberHosts || 0;
-            results.resources = data.pageStats.numberResources || 0;
+            results.requests = data.pageStats.numberResources || 0;
 
             let bytes = parseInt(data.pageStats.htmlResponseBytes) || 0;
             bytes += parseInt(data.pageStats.cssResponseBytes) || 0;
@@ -31,20 +31,11 @@ class PageSpeedInsightsAPIService {
             bytes += parseInt(data.pageStats.javascriptResponseBytes) || 0;
             bytes += parseInt(data.pageStats.otherResponseBytes) || 0;
 
-            results.bytes = this.formatBytes(bytes, 2);
+            results.bytes = bytes;
             results.screenshot = data.screenshot;
 
             return results;
         });
-    }
-
-    formatBytes(bytes, decimals) {
-        if (bytes == 0) return '0 Bytes';
-        let k = 1000,
-            dm = decimals || 2,
-            sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-            i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 }
 module.exports = PageSpeedInsightsAPIService;

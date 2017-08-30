@@ -3,6 +3,7 @@ const PageSpeedInsightsAPIService = require('./pageSpeedInsightsAPIService.js');
 const SpeedKitUrlService = require('./speedKitUrlService.js');
 const ResetVariablesService = require('./resetViewService.js');
 const TestResultHandler = require('./testResultHandler.js');
+const ConvertBytesService = require('./convertBytesService');
 
 import "bootstrap";
 import "../styles/main.scss";
@@ -14,12 +15,15 @@ const pageSpeedInsightsAPIService = new PageSpeedInsightsAPIService();
 const speedKitUrlService = new SpeedKitUrlService();
 const resetViewService = new ResetVariablesService();
 const testResultHandler = new TestResultHandler();
+const convertBytesService = new ConvertBytesService();
 const data = {};
 
 let co_url;
 let testResult = {};
 let testVideo = {};
 let testOptions = {location: 'eu-central-1:Chrome', caching: false};
+let pageSpeedInsightFailed = false;
+let pageSpeedInsightRetries = 0;
 let testInstance;
 let co_subscription;
 let sk_subscription;
@@ -152,11 +156,12 @@ window.handleURLKeydown = (event) => {
 
 window.submitComparison = (urlInput) => {
   urlInput = urlInput || $('#currentVendorUrl').val();
-
-  db.modules.get('normalizeUrl', { url: urlInput }).then((result) => {
-    $('#currentVendorUrl').val(result.url);
-    initComparison(result.url);
-  }, e => {
+  db.modules.get('testRateLimited').then(() => {
+      return db.modules.get('normalizeUrl', { url: urlInput }).then((result) => {
+          $('#currentVendorUrl').val(result.url);
+          initComparison(result.url);
+      });
+  }).catch(e => {
     const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
     $currentVendorUrlInvalid.text(e.message);
     $currentVendorUrlInvalid.show();
@@ -205,7 +210,12 @@ function initComparison(url) {
       }
     }).catch(showComparisonError);
 
-    callPageSpeed(now).catch(showComparisonError);
+    callPageSpeed(now).catch(() => {
+        const carousel = $('.carousel').carousel({interval: false, wrap: false});
+        carousel.carousel(4);
+        pageSpeedInsightFailed = true;
+        updateTestStatus();
+    });
 }
 
 function updateTestStatus() {
@@ -233,28 +243,21 @@ function callPageSpeed(now) {
   return pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(co_url)
     .then((results) => {
       carousel.carousel(1);
-
-      testOverview.psiDomains = results.domains;
-      testOverview.psiRequests = results.resources;
-      testOverview.psiResponseSize = results.bytes;
       screenShot = results.screenshot;
-
+      setPageSpeedMetrics(results);
       return sleep(1000);
     }).then(() => {
       if (now === testInstance) {
-        $('.numberOfHosts').html(testOverview.psiDomains);
         carousel.carousel(2);
       }
       return sleep(1000);
     }).then(() => {
       if (now === testInstance) {
-        $('.numberOfRequests').html(testOverview.psiRequests);
         carousel.carousel(3);
       }
       return sleep(1000);
     }).then(() => {
       if (now === testInstance) {
-        $('.numberOfBytes').html(testOverview.psiResponseSize);
         carousel.carousel(4);
         updateTestStatus();
       }
@@ -284,12 +287,17 @@ function resultStreamUpdate(result, subscription, elementId) {
 
         if (!entry.testDataMissing) {
             if (entry[dataView]) {
-                testResult[elementId] = entry[dataView];
+                testResult[elementId] = entry;
                 if (Object.keys(testResult).length === 2) {
                     clearInterval(interval);
-                    testResultHandler.displayTestResults('competitor', testResult['competitor'], testOptions);
-                    testResultHandler.displayTestResults('speedKit', testResult['speedKit'], testOptions);
-                    testResultHandler.calculateFactors(testResult['competitor'], testResult['speedKit'], testOptions);
+                    testResultHandler.displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
+                    testResultHandler.displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
+                    testResultHandler.calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
+
+                    if(pageSpeedInsightFailed) {
+                        setPageSpeedMetrics(testResult['competitor']['firstView']);
+                        $('#compareContent').removeClass('hidden');
+                    }
                 }
             }
 
@@ -320,7 +328,7 @@ function resultStreamUpdate(result, subscription, elementId) {
                 subscription.unsubscribe();
             }
         } else {
-            showComparisonError();
+            showComparisonError(new Error('test data missing'));
         }
 
         testOverview.ready().then(() => {
@@ -329,6 +337,16 @@ function resultStreamUpdate(result, subscription, elementId) {
             history.pushState({}, title, '/?testId=' + testOverview.key);
         });
     }
+}
+
+function setPageSpeedMetrics(result) {
+    testOverview.psiDomains = result.domains;
+    testOverview.psiRequests = result.requests;
+    testOverview.psiResponseSize = result.bytes;
+
+    $('.numberOfHosts').html(testOverview.psiDomains);
+    $('.numberOfRequests').html(testOverview.psiRequests);
+    $('.numberOfBytes').html(convertBytesService.convertBytes(testOverview.psiResponseSize, 2));
 }
 
 function showComparisonError(e) {
@@ -345,6 +363,7 @@ function resetComparison() {
         sk_subscription.unsubscribe();
 
     co_baqendId = sk_baqendId = null;
+    pageSpeedInsightFailed = false;
     testResult = {};
     testVideo = {};
 

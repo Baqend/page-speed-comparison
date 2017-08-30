@@ -1,5 +1,8 @@
 const UiElementCreator = require('./uiElementCreator.js');
+const ConvertBytesService = require('./convertBytesService');
+
 const uiElementCreator = new UiElementCreator();
+const convertBytesService = new ConvertBytesService();
 
 class TestResultHandler {
     displayTestResultsById(testOptions, result) {
@@ -18,7 +21,14 @@ class TestResultHandler {
         $('.center-vertical').removeClass('center-vertical');
         $('.numberOfHosts').html(result.psiDomains);
         $('.numberOfRequests').html(result.psiRequests);
-        $('.numberOfBytes').html(result.psiResponseSize);
+
+        //test whether the bytes value is a string or an integer (needed because the data type was switched from string to int)
+        if(/^\d+$/.test(result.psiResponseSize)) {
+            $('.numberOfBytes').html(convertBytesService.convertBytes(result.psiResponseSize, 2));
+        } else {
+            $('.numberOfBytes').html(result.psiResponseSize);
+        }
+
         $('#compareContent').removeClass('hidden');
         $('#printButton').removeClass('hidden');
         $('#wListConfig').removeClass('hidden');

@@ -21,6 +21,3 @@ exports.isRateLimited = (req, reqPerMinute = 4) => {
     }
     return !limiter.tryRemoveTokens(1);
 };
-
-
-
