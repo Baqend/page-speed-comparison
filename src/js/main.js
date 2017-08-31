@@ -41,6 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
         initTest();
     });
 
+    //simplified version for report view
+    if(REPORT_PAGE) {
+        $('#testConfiguration').remove();
+        $('#wList').remove();
+    }
+
     title = $('title').text();
 });
 

@@ -2,54 +2,54 @@
     <div>
         <div class="container p-32-0 text-center">
             <h1 class="mb-24">Page Speed Analyzer</h1>
-            <div class="urlInput">
-                <input type="text" id="currentVendorUrl" onkeydown="handleURLKeydown(event)"
-                       onclick="showInfoBox()" placeholder="Enter URL here...">
-                <button type="button" class="search-button btn btn-orange btn-ghost" onclick="submitComparison()">
-                    Go
-                </button>
-            </div>
-            <div id="currentVendorUrlInvalid" style="display: none"></div>
-            <div class="row infoBox flex" style="margin-top: 32px; margin-bottom: 0;">
-                <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-                    <div id="info" class="mb-8 text-right">
-                        <span id="resultInfo" class="challenge">Test the performance of your site!</span>
-                    </div>
-                    <div class="hidden" id="testStatus">
-                        <div class="spinner">
-                            <div class="dot1"></div>
-                            <div class="dot2"></div>
+            <div id="testConfiguration">
+                <div class="urlInput">
+                    <input type="text" id="currentVendorUrl" onkeydown="handleURLKeydown(event)"
+                           onclick="showInfoBox()" placeholder="Enter URL here...">
+                    <button type="button" class="search-button btn btn-orange btn-ghost" onclick="submitComparison()">
+                        Go
+                    </button>
+                </div>
+                <div id="currentVendorUrlInvalid" style="display: none"></div>
+                <div class="row infoBox flex" style="margin-top: 32px; margin-bottom: 0;">
+                    <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+                        <div id="info" class="mb-8 text-right">
+                            <span id="resultInfo" class="challenge">Test the performance of your site!</span>
                         </div>
-                        <div id="statusCarousel" class="carousel slide vertical mt-20">
-                            <!-- Carousel items -->
-                            <div class="carousel-inner">
-                                <div class="active item">
-                                    <span>Requesting website</span>
-                                </div>
-                                <div class="item">
-                                    <span>Analyzing Domains</span>
-                                </div>
-                                <div class="item">
-                                    <span>Analyzing Requests</span>
-                                </div>
-                                <div class="item">
-                                    <span>Analyzing Response</span>
-                                </div>
-                                <div class="item">
-                                    <span id="statusQueue"></span>
+                        <div class="hidden" id="testStatus">
+                            <div class="spinner">
+                                <div class="dot1"></div>
+                                <div class="dot2"></div>
+                            </div>
+                            <div id="statusCarousel" class="carousel slide vertical mt-20">
+                                <div class="carousel-inner">
+                                    <div class="active item">
+                                        <span>Requesting website</span>
+                                    </div>
+                                    <div class="item">
+                                        <span>Analyzing Domains</span>
+                                    </div>
+                                    <div class="item">
+                                        <span>Analyzing Requests</span>
+                                    </div>
+                                    <div class="item">
+                                        <span>Analyzing Response</span>
+                                    </div>
+                                    <div class="item">
+                                        <span id="statusQueue"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left" id="configInfo">
-                    <span class="infoHeader">Choose how to test:</span>
-                    <input name="activityTimeout" type="text" class="activityTimeout">
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding mt-10">
-                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
-                            <span class="align-middle">Region of client</span>
-                        </div>
-                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
+                    <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left" id="configInfo">
+                        <span class="infoHeader">Choose how to test:</span>
+                        <input name="activityTimeout" type="text" class="activityTimeout">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding mt-10">
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
+                                <span class="align-middle">Region of client</span>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="location_left" name="switchLanguage"
                                        onclick="handleLocationChange(this)" value="usa"/>
@@ -58,13 +58,13 @@
                                        onclick="handleLocationChange(this)" value="eu" checked/>
                                 <label for="location_right">EU</label>
                             </span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding">
-                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
-                            <span class="align-middle">Cold cache</span>
-                        </div>
-                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding">
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
+                                <span class="align-middle">Cold cache</span>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="caching_left" name="switchCaching"
                                        onclick="handleCachingChange(this)" value="no"/>
@@ -73,21 +73,22 @@
                                        onclick="handleCachingChange(this)" value="yes" checked/>
                                 <label for="caching_right">YES</label>
                             </span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left hidden" id="runningInfo">
-                    <span class="infoHeader">We are running a series of tests against your site</span><br>
-                    <span>
+                    <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left hidden" id="runningInfo">
+                        <span class="infoHeader">We are running a series of tests against your site</span><br>
+                        <span>
                         See how fast your current backend stack delivers your site to users.
                         We will compare the results to a version of your site using Baqend Speed Kit.
                     </span>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container wrapper border hidden" id="compareContent">
             <div id="warningMessage" class="row hidden">
-                <div class="col-sm-12 alert alert-danger text-center"><strong>Warning:</strong> Your website loads extern resources like ads in a synchronous way. This is bad practice and has a negative effect on the some test metrics.</div>
+                <div class="col-sm-12 alert alert-danger text-center"><strong>Warning:</strong> Your website loads external resources like ads in a synchronous way. This is bad practice and has a negative effect on some metrics.</div>
             </div>
             <div class="row p-16 border-bottom previewBox text-center">
                 <div id="numberOfHostsCol">

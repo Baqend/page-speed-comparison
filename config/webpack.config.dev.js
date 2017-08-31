@@ -21,7 +21,8 @@ module.exports = webpackMerge(config, {
       disable: true
     }),
     new webpack.DefinePlugin({
-      APP: '"makefast-dev"'
+      APP: '"makefast-dev"',
+      REPORT_PAGE: false
     })
   ]
 });

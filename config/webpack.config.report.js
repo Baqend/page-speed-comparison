@@ -14,8 +14,8 @@ module.exports = webpackMerge(config, {
       filename: "css/[hash].css"
     }),
     new webpack.DefinePlugin({
-      APP: '"makefast"',
-      REPORT_PAGE: false
+      APP: '""',
+      REPORT_PAGE: true
     })
   ]
 });
