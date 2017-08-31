@@ -24,6 +24,7 @@ class ResetVariablesService {
         $('#runningInfo').addClass('hidden');
         $('#printButton').addClass('hidden');
         $('#testStatus').addClass('hidden');
+        $('#warningMessage').addClass('hidden');
         $('#configInfo').removeClass('hidden');
         $('#competitor').empty();
         $('#speedKit').empty();

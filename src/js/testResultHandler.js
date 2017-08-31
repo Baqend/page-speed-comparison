@@ -69,6 +69,10 @@ class TestResultHandler {
             $('.' + elementId + '-ttfb').html(data.ttfb + 'ms');
         }
         $('.testResults').removeClass('invisible');
+
+        if(elementId === 'competitor' && data.fullyLoaded >= 10000) {
+            $('#warningMessage').removeClass('hidden');
+        }
     }
 
     calculateFactors(competitorResult, speedKitResult, testOptions) {
