@@ -1,23 +1,15 @@
-import { ConvertBytesService } from './ConvertBytesService';
-import { PageSpeedInsightsAPIService } from './PageSpeedInsightsAPIService';
-import { ResetVariablesService } from './ResetVariablesService';
-import { SpeedKitUrlService } from './SpeedKitUrlService';
-import { TestResultHandler } from './TestResultHandler';
-import { UiElementCreator } from './UiElementCreator';
+import { convertBytes } from './ConvertBytesService';
+import { callPageSpeedInsightsAPI } from './PageSpeedInsightsAPIService';
+import { showError, showInfoBox, startTest, resetView, resetViewAfterTest } from './ResetVariablesService';
+import { getBaqendUrl} from './SpeedKitUrlService';
+import { displayTestResultsById, displayTestResults, calculateFactors } from './TestResultHandler';
+import { createImageElement, createVideoElement, createScannerElement, createLinkButton } from './UiElementCreator';
 
 import "bootstrap";
 import "../styles/main.scss";
 import * as hbs from "../templates";
 import { db } from "baqend/realtime";
 import { Subscription } from 'rxjs';
-
-const uiElementCreator = new UiElementCreator();
-const pageSpeedInsightsAPIService = new PageSpeedInsightsAPIService();
-const speedKitUrlService = new SpeedKitUrlService();
-const resetViewService = new ResetVariablesService();
-const testResultHandler = new TestResultHandler();
-const convertBytesService = new ConvertBytesService();
-const data = {};
 
 /** @type {string} */
 let co_url;
@@ -26,8 +18,6 @@ let testVideo = {};
 let testOptions = {location: 'eu-central-1:Chrome', caching: false};
 /** @type {boolean} */
 let pageSpeedInsightFailed = false;
-let pageSpeedInsightRetries = 0;
-/** @type {number} */
 let testInstance;
 /** @type {Subscription} */
 let co_subscription;
@@ -45,7 +35,7 @@ let interval;
 let title;
 
 document.addEventListener("DOMContentLoaded", () => {
-    $("#main").html(hbs.main(data));
+    $("#main").html(hbs.main({}));
     $('[data-toggle="tooltip"]').tooltip();
 
     db.connect(APP, true).then(() => {
@@ -75,7 +65,7 @@ window.initTest = () => {
           testOptions.caching = result.caching;
           testOptions.location = result.competitorTestResult.location;
           co_url = result.competitorTestResult.url;
-          testResultHandler.displayTestResultsById(testOptions, result);
+          displayTestResultsById(testOptions, result);
         }
     });
   }
@@ -87,7 +77,7 @@ window.initTest = () => {
 };
 
 window.showInfoBox = () => {
-    resetViewService.showInfoBox();
+    showInfoBox();
 };
 
 window.showImplementation = () => {
@@ -97,7 +87,7 @@ window.showImplementation = () => {
 };
 
 window.openBaqendFrame = () => {
-    const win = window.open(speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()), '_blank');
+    const win = window.open(getBaqendUrl(co_url, $('#wListInput').val()), '_blank');
     win.focus();
 };
 
@@ -211,7 +201,7 @@ function initComparison(url) {
     testInstance = now;
 
     co_url = url;
-    resetViewService.startTest();
+    startTest();
     $('.center-vertical').animate({'marginTop': '0px'}, 500);
     const activityTimeout = parseInt($('.activityTimeout').val()) || undefined;
 
@@ -226,7 +216,7 @@ function initComparison(url) {
         isClone: false,
         caching: testOptions.caching
     }), db.modules.post('queueTest', {
-        url: speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()),
+        url: getBaqendUrl(co_url, $('#wListInput').val()),
         activityTimeout: activityTimeout,
         location: testOptions.location, isClone: true, caching: testOptions.caching
     })]).then(results => {
@@ -280,7 +270,7 @@ function callPageSpeed(now) {
 
   let screenShot;
 
-  return pageSpeedInsightsAPIService.callPageSpeedInsightsAPI(co_url)
+  return callPageSpeedInsightsAPI(co_url)
     .then((results) => {
       carousel.carousel(1);
       screenShot = results.screenshot;
@@ -305,11 +295,11 @@ function callPageSpeed(now) {
     }).then(() => {
       if (now === testInstance) {
         $('#compareContent').removeClass('hidden');
-        $('#competitor').append(uiElementCreator.createImageElement(screenShot),
-          uiElementCreator.createScannerElement());
+        $('#competitor').append(createImageElement(screenShot),
+          createScannerElement());
 
-        $('#speedKit').append(uiElementCreator.createImageElement(screenShot),
-          uiElementCreator.createScannerElement());
+        $('#speedKit').append(createImageElement(screenShot),
+          createScannerElement());
       }
     });
 }
@@ -335,9 +325,9 @@ function resultStreamUpdate(result, subscription, elementId) {
                 testResult[elementId] = entry;
                 if (Object.keys(testResult).length === 2) {
                     clearInterval(interval);
-                    testResultHandler.displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
-                    testResultHandler.displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
-                    testResultHandler.calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
+                    displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
+                    displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
+                    calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
 
                     if(pageSpeedInsightFailed) {
                         setPageSpeedMetrics(testResult['competitor']['firstView']);
@@ -364,11 +354,11 @@ function resultStreamUpdate(result, subscription, elementId) {
 
                     competitorElement.empty();
                     speedKitElement.empty();
-                    competitorElement.append(uiElementCreator.createVideoElement('video-competitor', testVideo['competitor']));
-                    speedKitElement.append(uiElementCreator.createVideoElement('video-speedKit', testVideo['speedKit']));
-                    speedKitElement.append(uiElementCreator.createLinkButton());
+                    competitorElement.append(createVideoElement('video-competitor', testVideo['competitor']));
+                    speedKitElement.append(createVideoElement('video-speedKit', testVideo['speedKit']));
+                    speedKitElement.append(createLinkButton());
 
-                    resetViewService.resetViewAfterTest();
+                    resetViewAfterTest();
                 }
                 subscription.unsubscribe();
             }
@@ -394,7 +384,7 @@ function setPageSpeedMetrics(result) {
 
     $('.numberOfHosts').html(testOverview.psiDomains);
     $('.numberOfRequests').html(testOverview.psiRequests);
-    $('.numberOfBytes').html(convertBytesService.convertBytes(testOverview.psiResponseSize, 2));
+    $('.numberOfBytes').html(convertBytes(testOverview.psiResponseSize, 2));
 }
 
 /**
@@ -403,7 +393,7 @@ function setPageSpeedMetrics(result) {
 function showComparisonError(e) {
   console.error(e.stack);
   resetComparison();
-  resetViewService.showError();
+  showError();
 }
 
 function resetComparison() {
@@ -418,7 +408,7 @@ function resetComparison() {
     testResult = {};
     testVideo = {};
 
-    resetViewService.resetView();
+    resetView();
     history.pushState({}, title, "/");
 }
 
