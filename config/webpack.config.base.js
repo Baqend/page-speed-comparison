@@ -25,10 +25,8 @@ module.exports = (config) => webpackMerge({
       {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
-        use: {
-          loader: 'babel-loader',
-          options: { presets: ['es2015'] },
-        },
+        loader: 'babel-loader',
+        options: { presets: ['es2015'] },
       },
       {
         test: /\.scss$/,
@@ -59,14 +57,10 @@ module.exports = (config) => webpackMerge({
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico)$/ig,
-        use: [
-          {
-            loader: 'file-loader',
-            query: {
-              name: 'img/[name].[ext]',
-            },
-          },
-        ],
+        loader: 'file-loader',
+        query: {
+          name: 'img/[name].[ext]',
+        },
       },
     ],
   },
