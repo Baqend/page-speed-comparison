@@ -4,6 +4,30 @@ import { ConvertBytesService } from './ConvertBytesService';
 const uiElementCreator = new UiElementCreator();
 const convertBytesService = new ConvertBytesService();
 
+/**
+ * Rounds a floating point number to tenth.
+ *
+ * E.g.: 4.555435345345 -> 4.6
+ *
+ * @param {number} num The number to round.
+ * @return {number} The rounded number.
+ */
+export function roundToTenths(num) {
+    return Math.round(num * 10) / 10;
+}
+
+/**
+ * Rounds a floating point number to hundredth.
+ *
+ * E.g.: 4.555435345345 -> 4.56
+ *
+ * @param {number} num The number to round.
+ * @return {number} The rounded number.
+ */
+export function roundToHundredths(num) {
+    return Math.round(num * 100) / 100;
+}
+
 export class TestResultHandler {
     displayTestResultsById(testOptions, result) {
         const dataView = testOptions.caching ? 'repeatView' : 'firstView';
@@ -57,7 +81,7 @@ export class TestResultHandler {
     }
 
     displayTestResults(elementId, data, testOptions) {
-        const lastVisualChange = ((data.lastVisualChange / 1000) % 60).toFixed(1);
+        const lastVisualChange = roundToTenths((data.lastVisualChange / 1000) % 60);
         $('.' + elementId + '-speedIndex').html(data.speedIndex + 'ms');
         $('.' + elementId + '-dom').html(data.domLoaded + 'ms');
         $('.' + elementId + '-fullyLoaded').html(data.fullyLoaded + 'ms');
@@ -76,20 +100,20 @@ export class TestResultHandler {
     }
 
     calculateFactors(competitorResult, speedKitResult, testOptions) {
-        const speedIndexFactor = (competitorResult.speedIndex / (speedKitResult.speedIndex > 0 ? speedKitResult.speedIndex : 1)).toFixed(2);
+        const speedIndexFactor = roundToHundredths(competitorResult.speedIndex / (speedKitResult.speedIndex > 0 ? speedKitResult.speedIndex : 1));
         $('.speedIndex-factor').html(speedIndexFactor + 'x ' + (speedIndexFactor > 1 ? 'Faster' : ''));
 
-        const domFactor = (competitorResult.domLoaded / (speedKitResult.domLoaded > 0 ? speedKitResult.domLoaded : 1)).toFixed(2);
+        const domFactor = roundToHundredths(competitorResult.domLoaded / (speedKitResult.domLoaded > 0 ? speedKitResult.domLoaded : 1));
         $('.dom-factor').html(domFactor + 'x ' + (domFactor > 1 ? 'Faster' : ''));
 
-        const fullyLoadedFactor = (competitorResult.fullyLoaded / (speedKitResult.fullyLoaded > 0 ? speedKitResult.fullyLoaded : 1)).toFixed(2);
+        const fullyLoadedFactor = roundToHundredths(competitorResult.fullyLoaded / (speedKitResult.fullyLoaded > 0 ? speedKitResult.fullyLoaded : 1));
         $('.fullyLoaded-factor').html(fullyLoadedFactor + 'x ' + (fullyLoadedFactor > 1 ? 'Faster' : ''));
 
-        const lastVisualChangeFactor = (competitorResult.lastVisualChange / (speedKitResult.lastVisualChange > 0 ? speedKitResult.lastVisualChange : 1)).toFixed(2);
+        const lastVisualChangeFactor = roundToHundredths(competitorResult.lastVisualChange / (speedKitResult.lastVisualChange > 0 ? speedKitResult.lastVisualChange : 1));
         $('.lastVisualChange-factor').html(lastVisualChangeFactor + 'x ' + (lastVisualChangeFactor > 1 ? 'Faster' : ''));
 
         if (!testOptions.caching) {
-            const ttfbFactor = (competitorResult.ttfb / (speedKitResult.ttfb > 0 ? speedKitResult.ttfb : 1)).toFixed(2);
+            const ttfbFactor = roundToHundredths(competitorResult.ttfb / (speedKitResult.ttfb > 0 ? speedKitResult.ttfb : 1));
             $('.ttfb-factor').html(ttfbFactor + 'x ' + (ttfbFactor > 1 ? 'Faster' : ''));
         } else {
             $('.ttfb-factor').html('');
