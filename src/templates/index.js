@@ -1,1 +1,1 @@
-export { default as main } from './pages/main.hbs';
+export const main = require('./pages/main.hbs');
