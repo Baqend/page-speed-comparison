@@ -1,28 +1,62 @@
-const bq_url = `https://${APP}.speed-kit.com/`;
+const BAQEND_URL = `https://${APP}.speed-kit.com/`;
 
 class SpeedKitUrlService {
-    getBaqendUrl(originalUrl, wlist) {
-        return bq_url + '#url=' + encodeURIComponent(originalUrl) + '&wlist=' + this.generateWhiteList(originalUrl, wlist);
+
+    /**
+     * Returns the URL to send to Speed Kit.
+     *
+     * @param {string} originalUrl The URL to make fast. ;-)
+     * @param {string} whitelist The whitelist string with comma-separated values.
+     * @return {string}
+     */
+    getBaqendUrl(originalUrl, whitelist) {
+        return `${BAQEND_URL}#url=${originalUrl}&wlist=${this.generateWhitelist(originalUrl, whitelist)}`;
     }
 
-    generateWhiteList(originalUrl, wlist) {
+    /**
+     * Generates a reg exp representing the whitelist.
+     *
+     * @param {string} originalUrl The original URL to the site.
+     * @param {string} whitelist A comma-separated string.
+     * @return {string} A string representing the whitelist as a RegExp.
+     */
+    generateWhitelist(originalUrl, whitelist) {
+        let hostname = this.getHostnameOfURL(originalUrl);
+        // Remove "www" in the beginning
+        if (hostname.includes('www.')) {
+            hostname = hostname.substr(hostname.indexOf('www.') + 4);
+        }
+
+        // Replace TLD with a wildcard
+        let whitelistRegExp = `${hostname.substr(0, hostname.indexOf('.'))}\\.`;
+
+        // Create an array out of the whitelist string
+        const whitelistArray = whitelist.split(',').filter((item) => !!item);
+
+        // Create parts for the regexp
+        if (whitelistArray.length) {
+            whitelistArray.forEach((item) => {
+                whitelistRegExp += '|';
+                whitelistRegExp += item.replace(/\s+/, '') + '\\.';
+            });
+        }
+
+        // Create the final exp
+        return `^(?:https?:\\/\\/)?(?:[\\w-]*\\.){0,3}(?:${whitelistRegExp}).*$`;
+    }
+
+    /**
+     * Extracts the hostname of a URL.
+     *
+     * @param {string} url The URL to extract the hostname of.
+     * @return {string} The extracted hostname.
+     */
+    getHostnameOfURL(url) {
         const dummyElement = document.createElement('a');
-        dummyElement.href = originalUrl;
+        dummyElement.href = url;
 
-        let wListString = dummyElement.hostname;
-        if (wListString.indexOf('www') !== -1) {
-            wListString = wListString.substr(wListString.indexOf('.') + 1);
-        }
-        wListString = '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListString.substr(0, wListString.indexOf('.') + 1) + '.*$"';
-
-        let wListInputArray = wlist.split(',');
-        if (wListInputArray[0] !== '') {
-            for (let i = 0; i < wListInputArray.length; i++) {
-                wListString += ',';
-                wListString += '"^(https?:\\/\\/)?([\\w-]*\.){0,3}' + wListInputArray[i].replace(/\s+/, "") + '..*$"';
-            }
-        }
-        return encodeURIComponent(wListString);
+        return dummyElement.hostname;
     }
 }
+
 module.exports = SpeedKitUrlService;
