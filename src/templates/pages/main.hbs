@@ -2,12 +2,10 @@
     <div>
         <div class="container p-32-0 text-center">
             <h1 class="mb-24">Page Speed Analyzer</h1>
-            <div id="testConfiguration">
+            <form id="formConfiguration">
                 <div class="urlInput">
                     <input type="text" id="currentVendorUrl" onclick="showInfoBox()" placeholder="Enter URL here...">
-                    <button type="button" class="search-button btn btn-orange btn-ghost" onclick="submitComparison()">
-                        Go
-                    </button>
+                    <button type="submit" class="search-button btn btn-orange btn-ghost">Go</button>
                 </div>
                 <div id="currentVendorUrlInvalid" style="display: none"></div>
                 <div class="row infoBox flex" style="margin-top: 32px; margin-bottom: 0;">
@@ -83,7 +81,7 @@
                     </span>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
         <div class="container wrapper border hidden" id="compareContent">
             <div id="warningMessage" class="row hidden">

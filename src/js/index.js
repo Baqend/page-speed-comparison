@@ -42,13 +42,23 @@ document.addEventListener("DOMContentLoaded", () => {
         initTest();
     });
 
-    //simplified version for report view
-    if(REPORT_PAGE) {
+    // Simplified version for report view
+    if (REPORT_PAGE) {
         $('#testConfiguration').remove();
         $('#wList').remove();
     }
 
     title = $('title').text();
+
+    $('#currentVendorUrl').on('keydown', () => {
+        $('#currentVendorUrlInvalid').hide();
+    });
+
+    $('#formWhitelist, #formConfiguration').on('submit', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        submitComparison();
+    });
 });
 
 window.addEventListener("popstate", () => {
@@ -72,7 +82,7 @@ window.initTest = () => {
 
   const url = getParameterByName("url");
   if (url) {
-    window.submitComparison(url);
+    submitComparison(url);
   }
 };
 
@@ -170,26 +180,22 @@ window.contactUs = (e) => {
     });
 };
 
-$('#currentVendorUrl').on('keydown', (event) => {
-  $('#currentVendorUrlInvalid').hide();
-
-  if (event.keyCode == 13)
-      window.submitComparison();
-});
-
-window.submitComparison = (urlInput) => {
-  urlInput = urlInput || $('#currentVendorUrl').val();
-  db.modules.get('testRateLimited').then(() => {
-      return db.modules.get('normalizeUrl', { url: urlInput }).then((result) => {
-          $('#currentVendorUrl').val(result.url);
-          initComparison(result.url);
-      });
-  }).catch(e => {
-    const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
-    $currentVendorUrlInvalid.text(e.message);
-    $currentVendorUrlInvalid.show();
-  });
-};
+/**
+ * @param {string} [urlInput]
+ */
+function submitComparison(urlInput) {
+    urlInput = urlInput || $('#currentVendorUrl').val();
+    db.modules.get('testRateLimited').then(() => {
+        return db.modules.get('normalizeUrl', { url: urlInput }).then((result) => {
+            $('#currentVendorUrl').val(result.url);
+            initComparison(result.url);
+        });
+    }).catch(e => {
+        const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
+        $currentVendorUrlInvalid.text(e.message);
+        $currentVendorUrlInvalid.show();
+    });
+}
 
 /**
  * @param {string} url
