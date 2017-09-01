@@ -9,6 +9,7 @@ import "bootstrap";
 import "../styles/main.scss";
 import * as hbs from "../templates";
 import { db } from "baqend/realtime";
+import { Subscription } from 'rxjs';
 
 const uiElementCreator = new UiElementCreator();
 const pageSpeedInsightsAPIService = new PageSpeedInsightsAPIService();
@@ -18,19 +19,29 @@ const testResultHandler = new TestResultHandler();
 const convertBytesService = new ConvertBytesService();
 const data = {};
 
+/** @type {string} */
 let co_url;
 let testResult = {};
 let testVideo = {};
 let testOptions = {location: 'eu-central-1:Chrome', caching: false};
+/** @type {boolean} */
 let pageSpeedInsightFailed = false;
 let pageSpeedInsightRetries = 0;
+/** @type {number} */
 let testInstance;
+/** @type {Subscription} */
 let co_subscription;
+/** @type {Subscription} */
 let sk_subscription;
+/** @type {db.TestOverview} */
 let testOverview;
+/** @type {string | null} */
 let co_baqendId;
+/** @type {string | null} */
 let sk_baqendId;
+/** @type {Object} */
 let interval;
+/** @type {string} */
 let title;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -86,10 +97,13 @@ window.showImplementation = () => {
 };
 
 window.openBaqendFrame = () => {
-    const win = window.open(speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val(), '_blank'));
+    const win = window.open(speedKitUrlService.getBaqendUrl(co_url, $('#wListInput').val()), '_blank');
     win.focus();
 };
 
+/**
+ * @param {HTMLInputElement} radioButton
+ */
 window.handleLocationChange = (radioButton) => {
     if (radioButton.value === 'usa') {
         testOptions.location = 'us-east-1:Chrome';
@@ -98,6 +112,9 @@ window.handleLocationChange = (radioButton) => {
     }
 };
 
+/**
+ * @param {HTMLInputElement} radioButton
+ */
 window.handleCachingChange = (radioButton) => {
     testOptions.caching = radioButton.value;
     if (radioButton.value === 'yes') {
@@ -107,14 +124,19 @@ window.handleCachingChange = (radioButton) => {
     }
 };
 
+/**
+ * @param {HTMLVideoElement} videoElement
+ */
 window.playVideos = (videoElement) => {
     if (videoElement.id === 'video-competitor') {
+        /** @type {HTMLVideoElement} */
         const videoSpeedKit = document.getElementById('video-speedKit');
         if (videoSpeedKit) {
             videoSpeedKit.currentTime = videoElement.currentTime;
             videoSpeedKit.play();
         }
     } else {
+        /** @type {HTMLVideoElement} */
         const videoCompetitor = document.getElementById('video-competitor');
         if (videoCompetitor) {
             videoCompetitor.currentTime = videoElement.currentTime;
@@ -124,7 +146,9 @@ window.playVideos = (videoElement) => {
 };
 
 window.printReport = () => {
+    /** @type {HTMLVideoElement} */
     const competitorVideo = document.getElementById('video-competitor');
+    /** @type {HTMLVideoElement} */
     const speedKitVideo = document.getElementById('video-speedKit');
     competitorVideo.currentTime = competitorVideo.duration;
     speedKitVideo.currentTime = speedKitVideo.duration;
@@ -134,6 +158,9 @@ window.printReport = () => {
     }, 100);
 };
 
+/**
+ * @param {Event} e
+ */
 window.contactUs = (e) => {
     e.preventDefault();
 
@@ -153,12 +180,12 @@ window.contactUs = (e) => {
     });
 };
 
-window.handleURLKeydown = (event) => {
+$('#currentVendorUrl').on('keydown', (event) => {
   $('#currentVendorUrlInvalid').hide();
 
   if (event.keyCode == 13)
       window.submitComparison();
-};
+});
 
 window.submitComparison = (urlInput) => {
   urlInput = urlInput || $('#currentVendorUrl').val();
@@ -174,6 +201,9 @@ window.submitComparison = (urlInput) => {
   });
 };
 
+/**
+ * @param {string} url
+ */
 function initComparison(url) {
     resetComparison();
 
@@ -240,8 +270,12 @@ function updateTestStatus() {
   }, 2000);
 }
 
+/**
+ * @param {number} now Current timestamp.
+ * @return {Promise<void>}
+ */
 function callPageSpeed(now) {
-  const carousel = $('.carousel').carousel({interval: false, wrap: false});
+  const carousel = $('.carousel').carousel({ interval: false, wrap: false });
   carousel.carousel(0);
 
   let screenShot;
@@ -280,6 +314,11 @@ function callPageSpeed(now) {
     });
 }
 
+/**
+ * @param {*} result
+ * @param {Subscription} subscription
+ * @param {string} elementId
+ */
 function resultStreamUpdate(result, subscription, elementId) {
     const dataView = testOptions.caching ? 'repeatView' : 'firstView';
     const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
@@ -345,6 +384,9 @@ function resultStreamUpdate(result, subscription, elementId) {
     }
 }
 
+/**
+ * @param {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} result
+ */
 function setPageSpeedMetrics(result) {
     testOverview.psiDomains = result.domains;
     testOverview.psiRequests = result.requests;
@@ -355,6 +397,9 @@ function setPageSpeedMetrics(result) {
     $('.numberOfBytes').html(convertBytesService.convertBytes(testOverview.psiResponseSize, 2));
 }
 
+/**
+ * @param {Error} e
+ */
 function showComparisonError(e) {
   console.error(e.stack);
   resetComparison();
@@ -377,18 +422,26 @@ function resetComparison() {
     history.pushState({}, title, "/");
 }
 
+/**
+ * @param {string} name
+ * @return {null|string}
+ */
 function getParameterByName(name) {
-    let url = window.location.href;
+    const url = window.location.href;
     name = name.replace(/[\[\]]/g, "\\$&");
-    let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
+    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
+          results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-function sleep(milis) {
-    return new Promise(resolve => {
-        setTimeout(resolve, milis);
+/**
+ * @param {number} millis
+ * @return {Promise}
+ */
+function sleep(millis) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, millis);
     });
 }

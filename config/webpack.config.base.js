@@ -25,8 +25,10 @@ module.exports = (config) => webpackMerge({
       {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
-        loader: 'babel-loader',
-        options: { presets: ['es2015'] },
+        loader: 'awesome-typescript-loader',
+        options: {
+          transpileOnly: true,
+        },
       },
       {
         test: /\.scss$/,

@@ -1,6 +1,11 @@
 export class UiElementCreator {
+
+    /**
+     * @param {*} screenshotData
+     * @return {HTMLImageElement}
+     */
     createImageElement(screenshotData) {
-        const img = document.createElement('IMG');
+        const img = document.createElement('img');
         img.setAttribute('src', 'data:' + screenshotData.mime_type + ';base64,' +
             screenshotData.data.replace(/_/g, '/').replace(/-/g, '+'));
         img.setAttribute('alt', 'preview of website screen');
@@ -9,6 +14,11 @@ export class UiElementCreator {
         return img;
     }
 
+    /**
+     * @param {string} elementId
+     * @param {string} videoSrc
+     * @return {HTMLVideoElement}
+     */
     createVideoElement(elementId, videoSrc) {
         const video = document.createElement('video');
         video.setAttribute('controls', 'controls');
@@ -21,12 +31,18 @@ export class UiElementCreator {
         return video;
     }
 
+    /**
+     * @return {HTMLDivElement}
+     */
     createScannerElement() {
         const scanner = document.createElement('div');
         scanner.setAttribute('class', 'laser');
         return scanner;
     }
 
+    /**
+     * @return {HTMLButtonElement}
+     */
     createLinkButton() {
         const button = document.createElement('button');
         button.setAttribute('class', 'btn openButton');

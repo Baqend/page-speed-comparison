@@ -1,1 +1,1 @@
-export {default as main} from './pages/main.hbs'
+export { default as main } from './pages/main.hbs';

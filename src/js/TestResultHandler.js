@@ -29,6 +29,11 @@ export function roundToHundredths(num) {
 }
 
 export class TestResultHandler {
+
+    /**
+     * @param {{ caching: boolean }} testOptions
+     * @param {*} result
+     */
     displayTestResultsById(testOptions, result) {
         const dataView = testOptions.caching ? 'repeatView' : 'firstView';
         const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
@@ -80,6 +85,11 @@ export class TestResultHandler {
         $('#servedRequests').text((100 / totalRequests * ((totalRequests || 0) - otherRequests)).toFixed(0));
     }
 
+    /**
+     * @param {string} elementId
+     * @param {*} data
+     * @param {{ caching: boolean }} testOptions
+     */
     displayTestResults(elementId, data, testOptions) {
         const lastVisualChange = roundToTenths((data.lastVisualChange / 1000) % 60);
         $('.' + elementId + '-speedIndex').html(data.speedIndex + 'ms');
@@ -99,6 +109,11 @@ export class TestResultHandler {
         }
     }
 
+    /**
+     * @param {*} competitorResult
+     * @param {*} speedKitResult
+     * @param {{ caching: boolean }} testOptions
+     */
     calculateFactors(competitorResult, speedKitResult, testOptions) {
         const speedIndexFactor = roundToHundredths(competitorResult.speedIndex / (speedKitResult.speedIndex > 0 ? speedKitResult.speedIndex : 1));
         $('.speedIndex-factor').html(speedIndexFactor + 'x ' + (speedIndexFactor > 1 ? 'Faster' : ''));

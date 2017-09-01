@@ -1,4 +1,10 @@
 export class ConvertBytesService {
+
+    /**
+     * @param {number} bytes
+     * @param {number} [decimals]
+     * @return {string}
+     */
     convertBytes(bytes, decimals) {
         if (bytes == 0) return '0 Bytes';
         let k = 1000,
