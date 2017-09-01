@@ -1,9 +1,9 @@
-const UiElementCreator = require('./uiElementCreator.js');
-const PageSpeedInsightsAPIService = require('./pageSpeedInsightsAPIService.js');
-const SpeedKitUrlService = require('./speedKitUrlService.js');
-const ResetVariablesService = require('./resetViewService.js');
-const TestResultHandler = require('./testResultHandler.js');
-const ConvertBytesService = require('./convertBytesService');
+import { ConvertBytesService } from './ConvertBytesService';
+import { PageSpeedInsightsAPIService } from './PageSpeedInsightsAPIService';
+import { ResetVariablesService } from './ResetVariablesService';
+import { SpeedKitUrlService } from './SpeedKitUrlService';
+import { TestResultHandler } from './TestResultHandler';
+import { UiElementCreator } from './UiElementCreator';
 
 import "bootstrap";
 import "../styles/main.scss";

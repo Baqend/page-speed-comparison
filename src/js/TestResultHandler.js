@@ -1,10 +1,10 @@
-const UiElementCreator = require('./uiElementCreator.js');
-const ConvertBytesService = require('./convertBytesService');
+import { UiElementCreator } from './UiElementCreator';
+import { ConvertBytesService } from './ConvertBytesService';
 
 const uiElementCreator = new UiElementCreator();
 const convertBytesService = new ConvertBytesService();
 
-class TestResultHandler {
+export class TestResultHandler {
     displayTestResultsById(testOptions, result) {
         const dataView = testOptions.caching ? 'repeatView' : 'firstView';
         const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
@@ -96,4 +96,3 @@ class TestResultHandler {
         }
     }
 }
-module.exports = TestResultHandler;

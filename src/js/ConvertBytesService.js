@@ -1,4 +1,4 @@
-class ConvertBytesService {
+export class ConvertBytesService {
     convertBytes(bytes, decimals) {
         if (bytes == 0) return '0 Bytes';
         let k = 1000,
@@ -8,4 +8,3 @@ class ConvertBytesService {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 }
-module.exports = ConvertBytesService;

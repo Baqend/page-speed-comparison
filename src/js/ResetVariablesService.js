@@ -1,4 +1,4 @@
-class ResetVariablesService {
+export class ResetVariablesService {
 
     showError() {
         $('#contactModal').modal('show');
@@ -58,4 +58,3 @@ class ResetVariablesService {
         $('#servedRequestsInfo').removeClass('hidden');
     }
 }
-module.exports = ResetVariablesService;

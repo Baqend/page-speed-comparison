@@ -1,6 +1,6 @@
 const BAQEND_URL = `https://${APP}.speed-kit.com/`;
 
-class SpeedKitUrlService {
+export class SpeedKitUrlService {
 
     /**
      * Returns the URL to send to Speed Kit.
@@ -21,7 +21,7 @@ class SpeedKitUrlService {
      * @return {string} A string representing the whitelist as a RegExp.
      */
     generateWhitelist(originalUrl, whitelist) {
-        let hostname = this.getHostnameOfURL(originalUrl);
+        let hostname = this.getHostnameOfUrl(originalUrl);
         // Remove "www" in the beginning
         if (hostname.includes('www.')) {
             hostname = hostname.substr(hostname.indexOf('www.') + 4);
@@ -51,12 +51,10 @@ class SpeedKitUrlService {
      * @param {string} url The URL to extract the hostname of.
      * @return {string} The extracted hostname.
      */
-    getHostnameOfURL(url) {
+    getHostnameOfUrl(url) {
         const dummyElement = document.createElement('a');
         dummyElement.href = url;
 
         return dummyElement.hostname;
     }
 }
-
-module.exports = SpeedKitUrlService;

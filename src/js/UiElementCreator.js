@@ -1,4 +1,4 @@
-class UiElementCreator {
+export class UiElementCreator {
     createImageElement(screenshotData) {
         const img = document.createElement('IMG');
         img.setAttribute('src', 'data:' + screenshotData.mime_type + ';base64,' +
@@ -35,5 +35,3 @@ class UiElementCreator {
         return button;
     }
 }
-
-module.exports = UiElementCreator;
