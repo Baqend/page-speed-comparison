@@ -17,3 +17,8 @@ indent_size = 4
 [{package.json}]
 indent_style = space
 indent_size = 2
+
+# Matches Webpack configs
+[webpack.config.*.js]
+indent_style = space
+indent_size = 2

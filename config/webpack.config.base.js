@@ -1,16 +1,23 @@
-var webpack = require('webpack');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var path = require("path");
+const { ProvidePlugin, optimize: { CommonsChunkPlugin } } = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const webpackMerge = require('webpack-merge');
+const path = require('path');
 
-module.exports = {
+const rootDir = path.resolve(__dirname, '..');
+const srcDir = path.resolve(rootDir, 'src');
+const tmplDir = path.resolve(srcDir, 'templates');
+const distDir = path.resolve(rootDir, 'dist');
+
+module.exports = (config) => webpackMerge({
   entry: {
-    main: path.resolve(__dirname, "../src/js/main.js")
+    vendor: ['jquery', 'bootstrap', 'whatwg-fetch', 'baqend/realtime'],
+    app: path.resolve(srcDir, 'js'),
   },
 
   output: {
-    path: path.resolve(__dirname, "../dist"),
-    filename: "js/[name].[hash].js"
+    path: distDir,
+    filename: 'js/[name].[hash].js',
   },
 
   module: {
@@ -20,30 +27,24 @@ module.exports = {
         exclude: /(node_modules|bower_components)/,
         use: {
           loader: 'babel-loader',
-          options: {
-            presets: ['es2015']
-          }
-        }
+          options: { presets: ['es2015'] },
+        },
       },
       {
         test: /\.scss$/,
         use: ExtractTextPlugin.extract({
           use: [
             {
-              loader: "css-loader",
-              options: {
-                sourceMap: true
-              }
+              loader: 'css-loader',
+              options: { sourceMap: true },
             },
             {
-              loader: "sass-loader",
-              options: {
-                sourceMap: true
-              }
-            }
+              loader: 'sass-loader',
+              options: { sourceMap: true },
+            },
           ],
-          fallback: "style-loader"
-        })
+          fallback: 'style-loader',
+        }),
       },
       {
         test: /\.hbs$/,
@@ -51,10 +52,10 @@ module.exports = {
         query: {
           inlineRequires: /^\..*img/,
           partialDirs: [
-            path.resolve(__dirname, '../src', 'templates', 'components'),
-            path.resolve(__dirname, '../src', 'templates', 'layout')
-          ]
-        }
+            path.resolve(tmplDir, 'components'),
+            path.resolve(tmplDir, 'layout'),
+          ],
+        },
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico)$/ig,
@@ -62,31 +63,33 @@ module.exports = {
           {
             loader: 'file-loader',
             query: {
-              name: 'img/[name].[ext]'
-            }
-          }
-        ]
-      }
-    ]
+              name: 'img/[name].[ext]',
+            },
+          },
+        ],
+      },
+    ],
   },
 
   plugins: [
-    new webpack.ProvidePlugin({
+    new ProvidePlugin({
       $: 'jquery',
-      jQuery: 'jquery'
+      jQuery: 'jquery',
     }),
     new ExtractTextPlugin({
-      filename: "css/[hash].css",
-      disable: true
+      filename: 'css/[name].[hash].css',
+      disable: true,
     }),
     new HtmlWebpackPlugin({
       title: 'Page Speed Analyzer',
       filename: 'index.html',
-      template: 'src/templates/layout/default.hbs',
-      chunks: ['vendor', 'main']
+      template: path.resolve(tmplDir, 'layout', 'default.hbs'),
+      chunks: ['vendor', 'app'],
     }),
-    new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor']
-    })
-  ]
-};
+    new CommonsChunkPlugin({
+      name: 'vendor',
+      minChunks: Infinity,
+      filename: 'js/[name].js',
+    }),
+  ],
+}, config({ rootDir, srcDir, distDir, tmplDir }));

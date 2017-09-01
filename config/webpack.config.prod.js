@@ -1,21 +1,20 @@
-var webpack = require('webpack');
-var webpackMerge = require('webpack-merge');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var CleanWebpackPlugin = require('clean-webpack-plugin');
+const { DefinePlugin } = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const config = require('./webpack.config.base.js');
 
-var config = require('./webpack.config.base.js');
-
-module.exports = webpackMerge(config, {
+module.exports = config(({ rootDir, distDir }) => ({
   plugins: [
-    new CleanWebpackPlugin(['dist'], {
-      verbose: true
+    new CleanWebpackPlugin([distDir], {
+      root: rootDir,
+      verbose: true,
     }),
     new ExtractTextPlugin({
-      filename: "css/[hash].css"
+      filename: 'css/[name].[hash].css',
     }),
-    new webpack.DefinePlugin({
+    new DefinePlugin({
       APP: '"makefast"',
-      REPORT_PAGE: false
-    })
-  ]
-});
+      REPORT_PAGE: false,
+    }),
+  ],
+}));

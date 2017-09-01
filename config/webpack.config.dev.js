@@ -1,28 +1,20 @@
-var webpack = require('webpack');
-var webpackMerge = require('webpack-merge');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var path = require("path");
+const { DefinePlugin } = require('webpack');
+const config = require('./webpack.config.base.js');
 
-var config = require('./webpack.config.base.js');
-
-module.exports = webpackMerge(config, {
-  devtool: "#inline-source-map",
+module.exports = config(({ distDir }) => ({
+  devtool: '#inline-source-map',
 
   devServer: {
     port: 3000,
     disableHostCheck: true,
-    contentBase: path.join(__dirname, 'dist'),
-    compress: true
+    contentBase: distDir,
+    compress: true,
   },
 
   plugins: [
-    new ExtractTextPlugin({
-      filename: "css/[hash].css",
-      disable: true
-    }),
-    new webpack.DefinePlugin({
+    new DefinePlugin({
       APP: '"makefast-dev"',
-      REPORT_PAGE: false
-    })
-  ]
-});
+      REPORT_PAGE: false,
+    }),
+  ],
+}));
