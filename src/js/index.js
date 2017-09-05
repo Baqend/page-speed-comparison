@@ -1,9 +1,9 @@
 import { convertBytes } from './ConvertBytesService';
 import { callPageSpeedInsightsAPI } from './PageSpeedInsightsAPIService';
-import { showError, showInfoBox, startTest, resetView, resetViewAfterTest } from './ResetVariablesService';
-import { getBaqendUrl} from './SpeedKitUrlService';
-import { displayTestResultsById, displayTestResults, calculateFactors } from './TestResultHandler';
-import { createImageElement, createVideoElement, createScannerElement, createLinkButton } from './UiElementCreator';
+import { resetView, resetViewAfterTest, showError, showInfoBox, startTest } from './ResetVariablesService';
+import { getBaqendUrl } from './SpeedKitUrlService';
+import { calculateFactors, displayTestResults, displayTestResultsById } from './TestResultHandler';
+import { createImageElement, createLinkButton, createScannerElement, createVideoElement } from './UiElementCreator';
 
 import "bootstrap";
 import "../styles/main.scss";
@@ -59,6 +59,10 @@ document.addEventListener("DOMContentLoaded", () => {
         event.stopPropagation();
         submitComparison();
     });
+
+    $('#wListInput, #currentVendorUrl').on('click', () => {
+        showInfoBox();
+    });
 });
 
 window.addEventListener("popstate", () => {
@@ -86,11 +90,8 @@ window.initTest = () => {
   }
 };
 
-window.showInfoBox = () => {
-    showInfoBox();
-};
-
-window.showImplementation = () => {
+window.showImplementation = (event) => {
+    event.preventDefault();
     $('#implementation-toggle').hide();
     $('#implementation-dots').hide();
     $('.implementation-hidden').show("medium");
@@ -251,19 +252,19 @@ function initComparison(url) {
 }
 
 function updateTestStatus() {
-  interval = setInterval(function () {
-    if (co_baqendId) {
-      db.modules.get('getTestStatus', {baqendId: co_baqendId}).then(res => {
-        if(!res.error){
-          if (res.status.statusCode === 101) {
-            $('#statusQueue').html(res.status.statusText);
-          } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
-            $('#statusQueue').html('Test has been started...');
-          }
+    interval = setInterval(function () {
+        if (co_baqendId) {
+            db.modules.get('getTestStatus', { baqendId: co_baqendId }).then(res => {
+                if (!res.error) {
+                    if (res.status.statusCode === 101) {
+                        $('#statusQueue').html(res.status.statusText);
+                    } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
+                        $('#statusQueue').html('Test has been started...');
+                    }
+                }
+            });
         }
-      });
-    }
-  }, 2000);
+    }, 2000);
 }
 
 /**
