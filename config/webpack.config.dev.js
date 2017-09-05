@@ -2,7 +2,7 @@ const { DefinePlugin } = require('webpack');
 const config = require('./webpack.config.base.js');
 
 module.exports = config(({ distDir }) => ({
-  devtool: '#inline-source-map',
+  devtool: 'inline-source-map',
 
   devServer: {
     port: 3000,
