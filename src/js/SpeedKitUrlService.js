@@ -4,22 +4,29 @@ const BAQEND_URL = `https://${APP}.speed-kit.com/`;
  * Returns the URL to send to Speed Kit.
  *
  * @param {string} originalUrl The URL to make fast. ;-)
- * @param {string} whitelist The whitelist string with comma-separated values.
- * @return {string}
+ * @param {string} whitelistStr The whitelist string with comma-separated values.
+ * @return {string} A URL to send to Speed Kit.
  */
-export function getBaqendUrl(originalUrl, whitelist) {
-    return `${BAQEND_URL}#url=${originalUrl}&wlist=${this.generateWhitelist(originalUrl, whitelist)}`;
+export function getBaqendUrl(originalUrl, whitelistStr) {
+    const whitelist = whitelistStr
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => !!item);
+
+    const rules = generateRules(originalUrl, whitelist);
+
+    return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&rules=${encodeURIComponent(rules)}`;
 }
 
 /**
  * Generates a reg exp representing the whitelist.
  *
  * @param {string} originalUrl The original URL to the site.
- * @param {string} whitelist A comma-separated string.
- * @return {string} A string representing the whitelist as a RegExp.
+ * @param {string[]} whitelist An array of whitelist domains.
+ * @return {string} A string representing the rules.
  */
-export function generateWhitelist(originalUrl, whitelist) {
-    let hostname = this.getHostnameOfUrl(originalUrl);
+export function generateRules(originalUrl, whitelist) {
+    let hostname = getHostnameOfUrl(originalUrl);
     // Remove "www" in the beginning
     if (hostname.includes('www.')) {
         hostname = hostname.substr(hostname.indexOf('www.') + 4);
@@ -28,19 +35,15 @@ export function generateWhitelist(originalUrl, whitelist) {
     // Replace TLD with a wildcard
     let whitelistRegExp = `${hostname.substr(0, hostname.indexOf('.'))}\\.`;
 
-    // Create an array out of the whitelist string
-    const whitelistArray = whitelist.split(',').filter((item) => !!item);
-
     // Create parts for the regexp
-    if (whitelistArray.length) {
-        whitelistArray.forEach((item) => {
-            whitelistRegExp += '|';
-            whitelistRegExp += item.replace(/\s+/, '') + '\\.';
+    if (whitelist.length) {
+        whitelist.forEach((item) => {
+            whitelistRegExp += '|' + item + '\\.';
         });
     }
 
     // Create the final exp
-    return `^(?:https?:\\/\\/)?(?:[\\w-]*\\.){0,3}(?:${whitelistRegExp}).*$`;
+    return JSON.stringify([{ whitelist: `^(?:https?:\\/\\/)?(?:[\\w-]*\\.){0,3}(?:${whitelistRegExp}).*$` }]);
 }
 
 /**
