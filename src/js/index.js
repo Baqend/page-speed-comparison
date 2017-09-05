@@ -1,5 +1,5 @@
-import { convertBytes } from './ConvertBytesService';
-import { callPageSpeedInsightsAPI } from './PageSpeedInsightsAPIService';
+import { formatFileSize, sleep } from './utils';
+import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showError, showInfoBox, startTest } from './ResetVariablesService';
 import { getBaqendUrl } from './SpeedKitUrlService';
 import { calculateFactors, displayTestResults, displayTestResultsById } from './TestResultHandler';
@@ -12,23 +12,23 @@ import { db } from "baqend/realtime";
 import { Subscription } from 'rxjs';
 
 /** @type {string} */
-let co_url;
+let competitorUrl;
 let testResult = {};
 let testVideo = {};
-let testOptions = {location: 'eu-central-1:Chrome', caching: false};
+let testOptions = { location: 'eu-central-1:Chrome', caching: false };
 /** @type {boolean} */
 let pageSpeedInsightFailed = false;
 let testInstance;
 /** @type {Subscription} */
-let co_subscription;
+let competitorSubscription;
 /** @type {Subscription} */
-let sk_subscription;
+let speedKitSubscription;
 /** @type {db.TestOverview} */
 let testOverview;
 /** @type {string | null} */
-let co_baqendId;
+let competitorBaqendId;
 /** @type {string | null} */
-let sk_baqendId;
+let speedKitBaqendId;
 /** @type {Object} */
 let interval;
 /** @type {string} */
@@ -66,28 +66,28 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("popstate", () => {
-  if (db.isReady)
-    initTest();
+    if (db.isReady)
+        initTest();
 });
 
 window.initTest = () => {
-  const testIdParam = getParameterByName('testId');
-  if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
-    db.TestOverview.load(testIdParam, {depth: 1}).then((result) => {
-        if (result) {
-          testOptions.speedKit = result.speedKit;
-          testOptions.caching = result.caching;
-          testOptions.location = result.competitorTestResult.location;
-          co_url = result.competitorTestResult.url;
-          displayTestResultsById(testOptions, result);
-        }
-    });
-  }
+    const testIdParam = getParameterByName('testId');
+    if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
+        db.TestOverview.load(testIdParam, { depth: 1 }).then((result) => {
+            if (result) {
+                testOptions.speedKit = result.speedKit;
+                testOptions.caching = result.caching;
+                testOptions.location = result.competitorTestResult.location;
+                competitorUrl = result.competitorTestResult.url;
+                displayTestResultsById(testOptions, result);
+            }
+        });
+    }
 
-  const url = getParameterByName("url");
-  if (url) {
-    submitComparison(url);
-  }
+    const url = getParameterByName("url");
+    if (url) {
+        submitComparison(url);
+    }
 };
 
 window.showImplementation = (event) => {
@@ -98,7 +98,7 @@ window.showImplementation = (event) => {
 };
 
 window.openBaqendFrame = () => {
-    const win = window.open(getBaqendUrl(co_url, $('#wListInput').val()), '_blank');
+    const win = window.open(getBaqendUrl(competitorUrl, $('#wListInput').val()), '_blank');
     win.focus();
 };
 
@@ -168,9 +168,9 @@ window.contactUs = (e) => {
     let data = {
         name: $('#c_name').val(),
         email: $('#c_email').val(),
-        url: co_url,
+        url: competitorUrl,
         testOverviewId: testOverview.id,
-        subject: 'from page speed comparison'
+        subject: 'from page speed comparison',
     };
 
     $.post('https://bbq.app.baqend.com/v1/code/mailUs', data, (data, status, xhr) => {
@@ -182,79 +182,106 @@ window.contactUs = (e) => {
 };
 
 /**
- * @param {string} [urlInput]
+ * @param {string} [url]
+ * @return {Promise<void>}
  */
-function submitComparison(urlInput) {
-    urlInput = urlInput || $('#currentVendorUrl').val();
-    db.modules.get('testRateLimited').then(() => {
-        return db.modules.get('normalizeUrl', { url: urlInput }).then((result) => {
-            $('#currentVendorUrl').val(result.url);
-            initComparison(result.url);
-        });
-    }).catch(e => {
+async function submitComparison(url) {
+    url = url || $('#currentVendorUrl').val();
+    try {
+        await db.modules.get('testRateLimited');
+        const newUrl = await normalizeUrl(url);
+        $('#currentVendorUrl').val(newUrl);
+        return initComparison(newUrl);
+    } catch (e) {
         const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
         $currentVendorUrlInvalid.text(e.message);
         $currentVendorUrlInvalid.show();
-    });
+    }
 }
 
 /**
  * @param {string} url
+ * @return {Promise<string>}
  */
-function initComparison(url) {
+async function normalizeUrl(url) {
+    const result = await db.modules.get('normalizeUrl', { url });
+    return result.url;
+}
+
+/**
+ * @param {string} url
+ * @return {Promise<void>}
+ */
+async function initComparison(url) {
+    // Reset the view
     resetComparison();
 
     const now = Date.now();
     testInstance = now;
 
-    co_url = url;
+    competitorUrl = url;
+
+    // Show testing UI
     startTest();
-    $('.center-vertical').animate({'marginTop': '0px'}, 500);
+    $('.center-vertical').animate({ 'marginTop': '0px' }, 500);
     const activityTimeout = parseInt($('.activityTimeout').val()) || undefined;
 
+    const $wListInput = $('#wListInput');
     testOverview = new db.TestOverview();
     testOverview.caching = testOptions.caching;
-    testOverview.whitelist = $('#wListInput').val();
+    testOverview.whitelist = $wListInput.val();
 
-    Promise.all([db.modules.post('queueTest', {
-        url: co_url,
-        activityTimeout: activityTimeout,
-        location: testOptions.location,
-        isClone: false,
-        caching: testOptions.caching
-    }), db.modules.post('queueTest', {
-        url: getBaqendUrl(co_url, $('#wListInput').val()),
-        activityTimeout: activityTimeout,
-        location: testOptions.location, isClone: true, caching: testOptions.caching
-    })]).then(results => {
-        co_baqendId = results[0].baqendId;
-        sk_baqendId = results[1].baqendId;
-
-        return sleep(6000);
-    }).then(() => {
-      if (now === testInstance) {
-        const co_query = db.TestResult.find().equal('id', '/db/TestResult/' + co_baqendId);
-        co_subscription = co_query.resultStream(result =>
-          resultStreamUpdate(result, co_subscription, 'competitor'));
-
-        const sk_query = db.TestResult.find().equal('id', '/db/TestResult/' + sk_baqendId);
-        sk_subscription = sk_query.resultStream(result =>
-          resultStreamUpdate(result, sk_subscription, 'speedKit'));
-      }
-    }).catch(showComparisonError);
-
+    // Start Google Page speed
     callPageSpeed(now).catch(() => {
-        const carousel = $('.carousel').carousel({interval: false, wrap: false});
+        const carousel = $('.carousel').carousel({ interval: false, wrap: false });
         carousel.carousel(4);
         pageSpeedInsightFailed = true;
         updateTestStatus();
     });
+
+    try {
+        const speedKitUrl = getBaqendUrl(competitorUrl, $wListInput.val());
+        const [competitorResult, speedKitResult] = await Promise.all([
+            // Test the competitor's site
+            db.modules.post('queueTest', {
+                url: competitorUrl,
+                activityTimeout,
+                location: testOptions.location,
+                isClone: false,
+                caching: testOptions.caching,
+            }),
+            // Test the Makefast's site
+            db.modules.post('queueTest', {
+                url: speedKitUrl,
+                activityTimeout,
+                location: testOptions.location,
+                isClone: true,
+                caching: testOptions.caching,
+            }),
+        ]);
+
+        competitorBaqendId = competitorResult.baqendId;
+        speedKitBaqendId = speedKitResult.baqendId;
+
+        // Sleep for 6 seconds
+        await sleep(6000);
+
+        if (now === testInstance) {
+            competitorSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + competitorBaqendId)
+                .resultStream(result => resultStreamUpdate(result, competitorSubscription, 'competitor'));
+
+            speedKitSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + speedKitBaqendId)
+                .resultStream(result => resultStreamUpdate(result, speedKitSubscription, 'speedKit'));
+        }
+    } catch (error) {
+        showComparisonError(error);
+    }
 }
 
 function updateTestStatus() {
     interval = setInterval(function () {
-        if (co_baqendId) {
-            db.modules.get('getTestStatus', { baqendId: co_baqendId }).then(res => {
+        if (competitorBaqendId) {
+            db.modules.get('getTestStatus', { baqendId: competitorBaqendId }).then(res => {
                 if (!res.error) {
                     if (res.status.statusCode === 101) {
                         $('#statusQueue').html(res.status.statusText);
@@ -271,44 +298,41 @@ function updateTestStatus() {
  * @param {number} now Current timestamp.
  * @return {Promise<void>}
  */
-function callPageSpeed(now) {
-  const carousel = $('.carousel').carousel({ interval: false, wrap: false });
-  carousel.carousel(0);
+export async function callPageSpeed(now) {
+    // Enable the status text
+    const statusText = $('.carousel').carousel({ interval: false, wrap: false });
+    statusText.carousel(0);
 
-  let screenShot;
+    const results = await callPageSpeedInsightsAPI(competitorUrl);
+    statusText.carousel(1);
+    const screenShot = results.screenshot;
+    setPageSpeedMetrics(results);
+    await sleep(1000);
 
-  return callPageSpeedInsightsAPI(co_url)
-    .then((results) => {
-      carousel.carousel(1);
-      screenShot = results.screenshot;
-      setPageSpeedMetrics(results);
-      return sleep(1000);
-    }).then(() => {
-      if (now === testInstance) {
-        carousel.carousel(2);
-      }
-      return sleep(1000);
-    }).then(() => {
-      if (now === testInstance) {
-        carousel.carousel(3);
-      }
-      return sleep(1000);
-    }).then(() => {
-      if (now === testInstance) {
-        carousel.carousel(4);
+    if (now === testInstance) {
+        statusText.carousel(2);
+    }
+    await sleep(1000);
+
+    if (now === testInstance) {
+        statusText.carousel(3);
+    }
+    await sleep(1000);
+
+    if (now === testInstance) {
+        statusText.carousel(4);
         updateTestStatus();
-      }
-      return sleep(1000);
-    }).then(() => {
-      if (now === testInstance) {
+    }
+    await sleep(1000);
+
+    if (now === testInstance) {
         $('#compareContent').removeClass('hidden');
         $('#competitor').append(createImageElement(screenShot),
-          createScannerElement());
+            createScannerElement());
 
         $('#speedKit').append(createImageElement(screenShot),
-          createScannerElement());
-      }
-    });
+            createScannerElement());
+    }
 }
 
 /**
@@ -336,7 +360,7 @@ function resultStreamUpdate(result, subscription, elementId) {
                     displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
                     calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
 
-                    if(pageSpeedInsightFailed) {
+                    if (pageSpeedInsightFailed) {
                         setPageSpeedMetrics(testResult['competitor']['firstView']);
                         $('#compareContent').removeClass('hidden');
                     }
@@ -384,33 +408,33 @@ function resultStreamUpdate(result, subscription, elementId) {
 /**
  * @param {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} result
  */
-function setPageSpeedMetrics(result) {
+export function setPageSpeedMetrics(result) {
     testOverview.psiDomains = result.domains;
     testOverview.psiRequests = result.requests;
     testOverview.psiResponseSize = result.bytes;
 
     $('.numberOfHosts').html(testOverview.psiDomains);
     $('.numberOfRequests').html(testOverview.psiRequests);
-    $('.numberOfBytes').html(convertBytes(testOverview.psiResponseSize, 2));
+    $('.numberOfBytes').html(formatFileSize(testOverview.psiResponseSize, 2));
 }
 
 /**
  * @param {Error} e
  */
 function showComparisonError(e) {
-  console.error(e.stack);
-  resetComparison();
-  showError();
+    console.error(e.stack);
+    resetComparison();
+    showError();
 }
 
 function resetComparison() {
-    if (co_subscription)
-        co_subscription.unsubscribe();
+    if (competitorSubscription)
+        competitorSubscription.unsubscribe();
 
-    if (sk_subscription)
-        sk_subscription.unsubscribe();
+    if (speedKitSubscription)
+        speedKitSubscription.unsubscribe();
 
-    co_baqendId = sk_baqendId = null;
+    competitorBaqendId = speedKitBaqendId = null;
     pageSpeedInsightFailed = false;
     testResult = {};
     testVideo = {};
@@ -427,18 +451,8 @@ function getParameterByName(name) {
     const url = window.location.href;
     name = name.replace(/[\[\]]/g, "\\$&");
     const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
-          results = regex.exec(url);
+        results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
-
-/**
- * @param {number} millis
- * @return {Promise}
- */
-function sleep(millis) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, millis);
-    });
 }

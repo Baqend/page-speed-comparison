@@ -20,6 +20,8 @@ exports.call = function (db, data, req) {
     const isClone = data.isClone;
     const caching = data.caching;
     const speedKit = data.speedKit;
+
+    // Create a new test result
     const testResult = new db.TestResult();
     testResult.id = db.util.uuid();
 

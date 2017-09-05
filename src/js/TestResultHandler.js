@@ -1,5 +1,5 @@
 import { createVideoElement, createLinkButton } from './UiElementCreator';
-import { convertBytes } from './ConvertBytesService';
+import { formatFileSize } from './utils';
 import { roundToTenths, roundToHundredths } from './maths';
 
 /**
@@ -25,7 +25,7 @@ export function displayTestResultsById(testOptions, result) {
 
     //test whether the bytes value is a string or an integer (needed because the data type was switched from string to int)
     if (/^\d+$/.test(result.psiResponseSize)) {
-        $('.numberOfBytes').html(convertBytes(result.psiResponseSize, 2));
+        $('.numberOfBytes').html(formatFileSize(result.psiResponseSize, 2));
     } else {
         $('.numberOfBytes').html(result.psiResponseSize);
     }
