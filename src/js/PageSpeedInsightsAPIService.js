@@ -19,7 +19,7 @@ export function callPageSpeedInsightsAPI(url) {
     }).then((response) => {
         if (!response.ok)
             throw new Error('Page Speed failed with an error.');
-        return this.calculateResult(response);
+        return calculateResult(response);
     });
 }
 

@@ -44,15 +44,15 @@ export function displayTestResultsById(testOptions, result) {
 
     $('#caching_left').prop('checked', result.caching);
 
-    this.displayTestResults('competitor', result.competitorTestResult[dataView], testOptions);
+    displayTestResults('competitor', result.competitorTestResult[dataView], testOptions);
     $('#competitor').empty().append(createVideoElement('video-competitor',
         result.competitorTestResult[videoView].url));
 
-    this.displayTestResults('speedKit', result.speedKitTestResult[dataView], testOptions);
+    displayTestResults('speedKit', result.speedKitTestResult[dataView], testOptions);
     $('#speedKit').empty().append(createLinkButton(), createVideoElement('video-speedKit',
         result.speedKitTestResult[videoView].url));
 
-    this.calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
+    calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
 
     $('#servedRequests').text((100 / totalRequests * ((totalRequests || 0) - otherRequests)).toFixed(0));
 }

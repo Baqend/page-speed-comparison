@@ -7,7 +7,7 @@ export function showInfoBox() {
 }
 
 export function startTest() {
-    this.showInfoBox();
+    showInfoBox();
     $('#info').addClass('hidden');
     $('#statusQueue').html('Initializing test');
     $('#testStatus').removeClass('hidden');
