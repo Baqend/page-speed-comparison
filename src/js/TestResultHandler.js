@@ -10,14 +10,6 @@ export function displayTestResultsById(testOptions, result) {
     const dataView = testOptions.caching ? 'repeatView' : 'firstView';
     const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
 
-    const totalRequests = result.speedKitTestResult[dataView].requests;
-    const cacheHits = result.speedKitTestResult[dataView].hits.hit || 0;
-    const cacheMisses = result.speedKitTestResult[dataView].hits.miss || 0;
-    const otherRequests = result.speedKitTestResult[dataView].hits.other || 0;
-
-    console.log('hit: ' + cacheHits + ' miss: ' + cacheMisses + ' other: ' +
-        otherRequests + ' total: ' + (totalRequests || 0));
-
     $('#currentVendorUrl').val(result.competitorTestResult.url);
     $('.center-vertical').removeClass('center-vertical');
     $('.numberOfHosts').html(result.psiDomains);
@@ -53,8 +45,9 @@ export function displayTestResultsById(testOptions, result) {
         result.speedKitTestResult[videoView].url));
 
     calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
+    $('#servedRequests').text(calculateServedRequests(result.speedKitTestResult.firstView));
 
-    $('#servedRequests').text((100 / totalRequests * ((totalRequests || 0) - otherRequests)).toFixed(0));
+    verifyWarningMessage(result.competitorTestResult[dataView], result.speedKitTestResult[dataView]);
 }
 
 /**
@@ -75,10 +68,35 @@ export function displayTestResults(elementId, data, testOptions) {
         $('.' + elementId + '-ttfb').html(data.ttfb + 'ms');
     }
     $('.testResults').removeClass('invisible');
+}
 
-    if (elementId === 'competitor' && data.fullyLoaded >= 10000) {
-        $('#warningMessage').removeClass('hidden');
+/**
+ * @param {*} competitorData
+ *  * @param {*} SpeedKitData
+ */
+export function verifyWarningMessage(competitorData, SpeedKitData) {
+    if(competitorData.fullyLoaded >= 10000) {
+        $('#warningMessage').text('Your website loads external resources like ads in a synchronous way. This is bad practice and has a negative effect on some metrics.');
+        $('#warningAlert').removeClass('hidden');
+    } else if(calculateServedRequests(SpeedKitData) < 20) {
+        $('#warningMessage').text('The number of resources served by Speed Kit is quite small. Tell Speed Kit a comma-separated list of domains below for improvement.');
+        $('#warningAlert').removeClass('hidden');
     }
+}
+
+/**
+ * @param {*} data
+ */
+export function calculateServedRequests(data) {
+    const totalRequests = data.requests;
+    const cacheHits = data.hits.hit || 0;
+    const cacheMisses = data.hits.miss || 0;
+    const otherRequests = data.hits.other || 0;
+
+    console.log('hit: ' + cacheHits + ' miss: ' + cacheMisses + ' other: ' +
+        otherRequests + ' total: ' + (totalRequests || 0));
+
+    return (100 / totalRequests * ((totalRequests || 0) - otherRequests)).toFixed(0);
 }
 
 /**

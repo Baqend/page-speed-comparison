@@ -84,8 +84,10 @@
             </form>
         </div>
         <div class="container wrapper border hidden" id="compareContent">
-            <div id="warningMessage" class="row hidden">
-                <div class="col-sm-12 alert alert-danger text-center"><strong>Warning:</strong> Your website loads external resources like ads in a synchronous way. This is bad practice and has a negative effect on some metrics.</div>
+            <div id="warningAlert" class="row hidden">
+                <div class="col-sm-12 alert alert-danger text-center"><strong>Warning:</strong>
+                    <span id="warningMessage"></span>
+                </div>
             </div>
             <div class="row p-16 border-bottom previewBox text-center">
                 <div id="numberOfHostsCol">

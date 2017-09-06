@@ -2,7 +2,7 @@ import { formatFileSize, sleep } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showError, showInfoBox, startTest } from './ResetVariablesService';
 import { getBaqendUrl } from './SpeedKitUrlService';
-import { calculateFactors, displayTestResults, displayTestResultsById } from './TestResultHandler';
+import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, verifyWarningMessage } from './TestResultHandler';
 import { createImageElement, createLinkButton, createScannerElement, createVideoElement } from './UiElementCreator';
 
 import "bootstrap";
@@ -359,6 +359,8 @@ function resultStreamUpdate(result, subscription, elementId) {
                     displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
                     displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
                     calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
+                    verifyWarningMessage(testResult['competitor'][dataView], testResult['speedKit'][dataView]);
+                    $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
 
                     if (pageSpeedInsightFailed) {
                         setPageSpeedMetrics(testResult['competitor']['firstView']);
@@ -372,16 +374,6 @@ function resultStreamUpdate(result, subscription, elementId) {
                 if (Object.keys(testVideo).length === 2) {
                     const competitorElement = $('#competitor');
                     const speedKitElement = $('#speedKit');
-
-                    const totalRequests = entry['firstView'].requests;
-                    const cacheHits = entry['firstView'].hits.hit || 0;
-                    const cacheMisses = entry['firstView'].hits.miss || 0;
-                    const otherRequests = entry['firstView'].hits.other || 0;
-
-                    console.log('hit: ' + cacheHits + ' miss: ' + cacheMisses + ' other: ' +
-                        otherRequests + ' total: ' + (totalRequests || 0));
-
-                    $('#servedRequests').text((100 / totalRequests * ((totalRequests || 0) - otherRequests)).toFixed(0));
 
                     competitorElement.empty();
                     speedKitElement.empty();
