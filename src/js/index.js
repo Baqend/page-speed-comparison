@@ -209,25 +209,27 @@ async function normalizeUrl(url) {
 }
 
 /**
- * @param {string} url
- * @return {Promise<void>}
+ * Initializes the comparison of a website.
+ *
+ * @param {string} normalizedUrl The normalized URL to compare.
+ * @return {Promise<void>} A promise which resolves when the test is done.
  */
-async function initComparison(normalizedUrlResult) {
+async function initComparison(normalizedUrl) {
     // Reset the view
     resetComparison();
 
     const now = Date.now();
     testInstance = now;
 
-    competitorUrl = normalizedUrlResult.url;
-    speedKitUrl = normalizedUrlResult.speedkit? normalizedUrlResult.url: getBaqendUrl(normalizedUrlResult.url, $wListInput.val());
+    const $wListInput = $('#wListInput');
+    competitorUrl = normalizedUrl.url;
+    speedKitUrl = normalizedUrl.speedkit? normalizedUrl.url: getBaqendUrl(normalizedUrl.url, $wListInput.val());
 
     // Show testing UI
     startTest();
     $('.center-vertical').animate({ 'marginTop': '0px' }, 500);
     const activityTimeout = parseInt($('.activityTimeout').val()) || undefined;
 
-    const $wListInput = $('#wListInput');
     testOverview = new db.TestOverview();
     testOverview.caching = testOptions.caching;
     testOverview.whitelist = $wListInput.val();
