@@ -1,6 +1,7 @@
 const { ProvidePlugin, optimize: { CommonsChunkPlugin } } = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const WebpackMd5Hash = require('webpack-md5-hash');
 const webpackMerge = require('webpack-merge');
 const path = require('path');
 
@@ -17,7 +18,7 @@ module.exports = (config) => webpackMerge({
 
   output: {
     path: distDir,
-    filename: 'js/[name].[hash].js',
+    filename: 'js/[name].[chunkhash].js',
   },
 
   module: {
@@ -68,6 +69,7 @@ module.exports = (config) => webpackMerge({
   },
 
   plugins: [
+    new WebpackMd5Hash(),
     new ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery',
@@ -85,7 +87,6 @@ module.exports = (config) => webpackMerge({
     new CommonsChunkPlugin({
       name: 'vendor',
       minChunks: Infinity,
-      filename: 'js/[name].[hash].js',
     }),
   ],
 }, config({ rootDir, srcDir, distDir, tmplDir }));
