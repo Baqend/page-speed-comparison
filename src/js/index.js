@@ -202,7 +202,7 @@ async function submitComparison(url) {
 
 /**
  * @param {string} url
- * @return {Promise<string>}
+ * @return {Promise<{ url: string, speedkit: boolean }>}
  */
 async function normalizeUrl(url) {
     return await db.modules.get('normalizeUrl', { url });
@@ -211,7 +211,7 @@ async function normalizeUrl(url) {
 /**
  * Initializes the comparison of a website.
  *
- * @param {string} normalizedUrl The normalized URL to compare.
+ * @param {{ url: string, speedkit: boolean }} normalizedUrl The normalized URL to compare.
  * @return {Promise<void>} A promise which resolves when the test is done.
  */
 async function initComparison(normalizedUrl) {
