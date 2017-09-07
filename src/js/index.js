@@ -12,7 +12,7 @@ import { db } from "baqend/realtime";
 import { Subscription } from 'rxjs';
 
 /** @type {string} */
-let competitorUrl;
+let competitorUrl, speedKitUrl;
 let testResult = {};
 let testVideo = {};
 let testOptions = { location: 'eu-central-1:Chrome', caching: false };
@@ -79,6 +79,7 @@ window.initTest = () => {
                 testOptions.caching = result.caching;
                 testOptions.location = result.competitorTestResult.location;
                 competitorUrl = result.competitorTestResult.url;
+                speedKitUrl = result.speedKitTestResult.url;
                 displayTestResultsById(testOptions, result);
             }
         });
@@ -189,9 +190,9 @@ async function submitComparison(url) {
     url = url || $('#currentVendorUrl').val();
     try {
         await db.modules.get('testRateLimited');
-        const newUrl = await normalizeUrl(url);
-        $('#currentVendorUrl').val(newUrl);
-        return initComparison(newUrl);
+        const normalizedResult = await normalizeUrl(url);
+        $('#currentVendorUrl').val(normalizedResult.url);
+        return initComparison(normalizedResult);
     } catch (e) {
         const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
         $currentVendorUrlInvalid.text(e.message);
@@ -204,22 +205,22 @@ async function submitComparison(url) {
  * @return {Promise<string>}
  */
 async function normalizeUrl(url) {
-    const result = await db.modules.get('normalizeUrl', { url });
-    return result.url;
+    return await db.modules.get('normalizeUrl', { url });
 }
 
 /**
  * @param {string} url
  * @return {Promise<void>}
  */
-async function initComparison(url) {
+async function initComparison(normalizedUrlResult) {
     // Reset the view
     resetComparison();
 
     const now = Date.now();
     testInstance = now;
 
-    competitorUrl = url;
+    competitorUrl = normalizedUrlResult.url;
+    speedKitUrl = normalizedUrlResult.speedkit? normalizedUrlResult.url: getBaqendUrl(normalizedUrlResult.url, $wListInput.val());
 
     // Show testing UI
     startTest();
@@ -240,7 +241,6 @@ async function initComparison(url) {
     });
 
     try {
-        const speedKitUrl = getBaqendUrl(competitorUrl, $wListInput.val());
         const [competitorResult, speedKitResult] = await Promise.all([
             // Test the competitor's site
             db.modules.post('queueTest', {

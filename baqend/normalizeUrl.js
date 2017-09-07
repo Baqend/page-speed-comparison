@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const url = require("url");
+const urlModule = require('url');
 
 exports.call = function(db, data, req) {
   let urlInput = data.url;
@@ -8,7 +8,19 @@ exports.call = function(db, data, req) {
   urlInput = hasProtocol? urlInput : 'http://' + urlInput;
 
   return fetchUrl(urlInput).then(url => {
-    return { url };
+    const parsedUrl = urlModule.parse(url);
+    const swUrl = urlModule.format(Object.assign({}, parsedUrl, {pathname: '/sw.js'}));
+
+    return fetch(swUrl).then(res => {
+      if (!res.ok)
+        return false;
+
+      return res.text().then(text => {
+        return text.indexOf('speed-kit') != -1;
+      });
+    }).then((speedkit) => {
+      return { url, speedkit };
+    });
   });
 };
 

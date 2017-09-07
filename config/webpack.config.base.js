@@ -85,7 +85,7 @@ module.exports = (config) => webpackMerge({
     new CommonsChunkPlugin({
       name: 'vendor',
       minChunks: Infinity,
-      filename: 'js/[name].js',
+      filename: 'js/[name].[hash].js',
     }),
   ],
 }, config({ rootDir, srcDir, distDir, tmplDir }));
