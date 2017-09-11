@@ -2,7 +2,7 @@ import { formatFileSize, sleep } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult } from './ResetVariablesService';
 import { getBaqendUrl } from './SpeedKitUrlService';
-import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, verifyWarningMessage, isBadTestResult} from './TestResultHandler';
+import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isBadTestResult} from './TestResultHandler';
 import { createImageElement, createLinkButton, createScannerElement, createVideoElement } from './UiElementCreator';
 
 import "bootstrap";
@@ -387,7 +387,6 @@ function resultStreamUpdate(result, subscription, elementId) {
                     displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
                     displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
                     calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
-                    verifyWarningMessage(testResult['competitor'][dataView], testResult['speedKit'][dataView]);
                     $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
 
                     if (pageSpeedInsightFailed) {

@@ -29,6 +29,7 @@ export function displayTestResultsById(testOptions, result) {
     $('#informationContent').removeClass('hidden');
     $('.infoBox').fadeOut(0);
     $('.hideOnDefault').addClass('hidden');
+    $('#warningMessage').addClass('hidden');
 
     if (result.competitorTestResult.location.indexOf('us') !== -1) {
         $('#location_left').prop('checked', true);
@@ -46,8 +47,6 @@ export function displayTestResultsById(testOptions, result) {
 
     calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
     $('#servedRequests').text(calculateServedRequests(result.speedKitTestResult.firstView));
-
-    verifyWarningMessage(result.competitorTestResult[dataView], result.speedKitTestResult[dataView]);
 }
 
 /**
@@ -70,16 +69,6 @@ export function displayTestResults(elementId, data, testOptions) {
     $('.testResults').removeClass('invisible');
 }
 
-/**
- * @param {*} competitorData
- */
-export function verifyWarningMessage(competitorData) {
-    if(competitorData.fullyLoaded >= 10000) {
-        $('#warningMessage').removeClass('hidden');
-    } else {
-        $('#warningMessage').addClass('hidden');
-    }
-}
 
 /**
  * @param {*} competitorData
