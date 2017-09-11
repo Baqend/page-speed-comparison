@@ -113,7 +113,7 @@ function createTestScript(testUrl, options, db) {
     navigate ${installNavigation}
     blockDomainsExcept
     navigate about:blank
-    clearcache
+    ${options.caching? '': 'clearcache'}
     logData 1
   `;
 
