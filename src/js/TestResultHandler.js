@@ -10,7 +10,6 @@ export function displayTestResultsById(testOptions, result) {
     const dataView = testOptions.caching ? 'repeatView' : 'firstView';
     const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
 
-    $('#currentVendorUrl').val(result.competitorTestResult.url);
     $('.center-vertical').removeClass('center-vertical');
     $('.numberOfHosts').html(result.psiDomains);
     $('.numberOfRequests').html(result.psiRequests);
@@ -29,6 +28,7 @@ export function displayTestResultsById(testOptions, result) {
     $('#servedRequestsInfo').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
     $('.infoBox').fadeOut(0);
+    $('.hideOnDefault').addClass('hidden');
 
     if (result.competitorTestResult.location.indexOf('us') !== -1) {
         $('#location_left').prop('checked', true);
@@ -72,16 +72,22 @@ export function displayTestResults(elementId, data, testOptions) {
 
 /**
  * @param {*} competitorData
+ */
+export function verifyWarningMessage(competitorData) {
+    if(competitorData.fullyLoaded >= 10000) {
+        $('#warningMessage').removeClass('hidden');
+    } else {
+        $('#warningMessage').addClass('hidden');
+    }
+}
+
+/**
+ * @param {*} competitorData
  *  * @param {*} SpeedKitData
  */
-export function verifyWarningMessage(competitorData, SpeedKitData) {
-    if(competitorData.fullyLoaded >= 10000) {
-        $('#warningMessage').text('Your website loads external resources like ads in a synchronous way. This is bad practice and has a negative effect on some metrics.');
-        $('#warningAlert').removeClass('hidden');
-    } else if(calculateServedRequests(SpeedKitData) < 20) {
-        $('#warningMessage').text('The number of resources served by Speed Kit is quite small. Tell Speed Kit a comma-separated list of domains below for improvement.');
-        $('#warningAlert').removeClass('hidden');
-    }
+export function isBadTestResult(competitorData, SpeedKitData) {
+    const speedIndexFactor = roundToHundredths(competitorData.speedIndex / (SpeedKitData.speedIndex > 0 ? SpeedKitData.speedIndex : 1));
+    return speedIndexFactor < 1.2 || calculateServedRequests(SpeedKitData) < 20;
 }
 
 /**
@@ -89,6 +95,7 @@ export function verifyWarningMessage(competitorData, SpeedKitData) {
  */
 export function calculateServedRequests(data) {
     const totalRequests = data.requests;
+
     const cacheHits = data.hits.hit || 0;
     const cacheMisses = data.hits.miss || 0;
     const otherRequests = data.hits.other || 0;

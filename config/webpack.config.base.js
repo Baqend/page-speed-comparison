@@ -18,7 +18,7 @@ module.exports = (config) => webpackMerge({
 
   output: {
     path: distDir,
-    filename: 'js/[name].[chunkhash].js',
+    filename: 'js/[name].[hash].js',
   },
 
   module: {
@@ -59,7 +59,7 @@ module.exports = (config) => webpackMerge({
         },
       },
       {
-        test: /\.(gif|png|jpe?g|svg|ico)$/ig,
+        test: /\.(gif|png|jpe?g|svg|ico)$/i,
         loader: 'file-loader',
         query: {
           name: 'img/[name].[ext]',

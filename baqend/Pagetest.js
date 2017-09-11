@@ -6,7 +6,8 @@ class Pagetest {
 
     constructor(url, apiKey) {
         this.wpt = new WebPageTest(url, apiKey);
-        this.promises = {};
+        this.testResolver = {};
+        this.waitPromises = {};
     }
 
     /**
@@ -16,6 +17,12 @@ class Pagetest {
      * @returns {Promise} A promise of the test
      */
     runTest(testUrl, options) {
+        return this.runTestWithoutWait(testUrl, options).then(testId => {
+            return this.waitOnTest(testId);
+        });
+    }
+
+    runTestWithoutWait(testUrl, options) {
         options.pingback = pingBackUrl;
 
         return new Promise((resolve, reject) => {
@@ -24,15 +31,26 @@ class Pagetest {
                     return reject(err);
                 }
 
-                this.promises[result.data.testId] = resolve;
+                const testId = result.data.testId;
+                this.waitPromises[testId] = new Promise(resolve => {
+                    this.testResolver[testId] = resolve;
+                });
+
+                resolve(testId);
             });
         });
     }
 
+    waitOnTest(testId) {
+        const result = this.waitPromises[testId];
+        delete this.waitPromises[testId];
+        return result;
+    }
+
     resolveTest(testId) {
-      if (this.promises[testId]) {
-        this.promises[testId].call(null, testId);
-        delete this.promises[testId];
+      if (this.testResolver[testId]) {
+        this.testResolver[testId].call(null, testId);
+        delete this.testResolver[testId];
       }
     }
 

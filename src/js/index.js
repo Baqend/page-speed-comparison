@@ -1,8 +1,8 @@
 import { formatFileSize, sleep } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
-import { resetView, resetViewAfterTest, showError, showInfoBox, startTest } from './ResetVariablesService';
+import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult } from './ResetVariablesService';
 import { getBaqendUrl } from './SpeedKitUrlService';
-import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, verifyWarningMessage } from './TestResultHandler';
+import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, verifyWarningMessage, isBadTestResult} from './TestResultHandler';
 import { createImageElement, createLinkButton, createScannerElement, createVideoElement } from './UiElementCreator';
 
 import "bootstrap";
@@ -75,12 +75,20 @@ window.initTest = () => {
     if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
         db.TestOverview.load(testIdParam, { depth: 1 }).then((result) => {
             if (result) {
-                testOptions.speedKit = result.speedKit;
-                testOptions.caching = result.caching;
-                testOptions.location = result.competitorTestResult.location;
-                competitorUrl = result.competitorTestResult.url;
-                speedKitUrl = result.speedKitTestResult.url;
-                displayTestResultsById(testOptions, result);
+                const dataView = result.caching ? 'repeatView' : 'firstView';
+                $('#currentVendorUrl').val(result.competitorTestResult.url);
+
+                if(result.speedKitTestResult && !isBadTestResult(result.competitorTestResult[dataView],
+                        result.speedKitTestResult[dataView])) {
+                    testOptions.speedKit = result.speedKit;
+                    testOptions.caching = result.caching;
+                    testOptions.location = result.competitorTestResult.location;
+                    competitorUrl = result.competitorTestResult.url;
+                    speedKitUrl = result.speedKitTestResult.url;
+                    displayTestResultsById(testOptions, result);
+                } else {
+                    showComparisonError(new Error('This is a bad result'));
+                }
             }
         });
     }
@@ -182,16 +190,25 @@ window.contactUs = (e) => {
     });
 };
 
+window.handleTestExampleClick = (testId) => {
+    history.pushState({}, title, '/?testId=' + testId);
+    $('.hideContact').removeClass('hidden');
+    $('.hideOnError').removeClass('hidden');
+    $('.hideOnDefault').addClass('hidden');
+    window.initTest();
+};
+
 /**
  * @param {string} [url]
  * @return {Promise<void>}
  */
 async function submitComparison(url) {
-    url = url || $('#currentVendorUrl').val();
+    const $currentVendorUrl = $('#currentVendorUrl');
+    url = url || $currentVendorUrl.val();
     try {
         await db.modules.get('testRateLimited');
         const normalizedResult = await normalizeUrl(url);
-        $('#currentVendorUrl').val(normalizedResult.url);
+        $currentVendorUrl.val(normalizedResult.url);
         return initComparison(normalizedResult);
     } catch (e) {
         const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
@@ -217,11 +234,12 @@ async function normalizeUrl(url) {
 async function initComparison(normalizedUrl) {
     // Reset the view
     resetComparison();
+    resetView();
 
+    const $wListInput = $('#wListInput');
     const now = Date.now();
     testInstance = now;
 
-    const $wListInput = $('#wListInput');
     competitorUrl = normalizedUrl.url;
     speedKitUrl = normalizedUrl.speedkit? normalizedUrl.url: getBaqendUrl(normalizedUrl.url, $wListInput.val());
 
@@ -300,12 +318,13 @@ function updateTestStatus() {
  * @param {number} now Current timestamp.
  * @return {Promise<void>}
  */
-export async function callPageSpeed(now) {
+async function callPageSpeed(now) {
     // Enable the status text
     const statusText = $('.carousel').carousel({ interval: false, wrap: false });
     statusText.carousel(0);
 
     const results = await callPageSpeedInsightsAPI(competitorUrl);
+
     statusText.carousel(1);
     const screenShot = results.screenshot;
     setPageSpeedMetrics(results);
@@ -358,6 +377,13 @@ function resultStreamUpdate(result, subscription, elementId) {
                 testResult[elementId] = entry;
                 if (Object.keys(testResult).length === 2) {
                     clearInterval(interval);
+
+                    //check if the result is unsatisfactory ==> show information view instead of test result
+                    if(isBadTestResult(testResult['competitor'][dataView], testResult['speedKit'][dataView])) {
+                        showComparisonError(new Error('This is a bad result'));
+                        return;
+                    }
+
                     displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
                     displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
                     calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
@@ -381,7 +407,11 @@ function resultStreamUpdate(result, subscription, elementId) {
                     speedKitElement.empty();
                     competitorElement.append(createVideoElement('video-competitor', testVideo['competitor']));
                     speedKitElement.append(createVideoElement('video-speedKit', testVideo['speedKit']));
-                    speedKitElement.append(createLinkButton());
+
+                    //create "open in new tab" button only if the original website has SSL
+                    if(/^https/.test(competitorUrl)) {
+                        speedKitElement.append(createLinkButton());
+                    }
 
                     resetViewAfterTest();
                 }
@@ -402,7 +432,7 @@ function resultStreamUpdate(result, subscription, elementId) {
 /**
  * @param {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} result
  */
-export function setPageSpeedMetrics(result) {
+function setPageSpeedMetrics(result) {
     testOverview.psiDomains = result.domains;
     testOverview.psiRequests = result.requests;
     testOverview.psiResponseSize = result.bytes;
@@ -418,7 +448,7 @@ export function setPageSpeedMetrics(result) {
 function showComparisonError(e) {
     console.error(e.stack);
     resetComparison();
-    showError();
+    resetViewAfterBadTestResult();
 }
 
 function resetComparison() {
@@ -433,7 +463,6 @@ function resetComparison() {
     testResult = {};
     testVideo = {};
 
-    resetView();
     history.pushState({}, title, "/");
 }
 

@@ -1,13 +1,13 @@
-export function showError() {
-    $('#contactModal').modal('show');
-}
-
 export function showInfoBox() {
     $('.infoBox').fadeIn(1000);
 }
 
 export function startTest() {
     showInfoBox();
+    $('.hideOnError').removeClass('hidden');
+    $('.hideOnDefault').addClass('hidden');
+    $('.hideContact').addClass('hidden');
+    $('#currentVendorUrlInvalid').addClass('hidden');
     $('#info').addClass('hidden');
     $('#statusQueue').html('Initializing test');
     $('#testStatus').removeClass('hidden');
@@ -22,7 +22,7 @@ export function resetView() {
     $('#runningInfo').addClass('hidden');
     $('#printButton').addClass('hidden');
     $('#testStatus').addClass('hidden');
-    $('#warningAlert').addClass('hidden');
+    $('#warningMessage').addClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#competitor').empty();
     $('#speedKit').empty();
@@ -54,4 +54,22 @@ export function resetViewAfterTest() {
     $('#printButton').removeClass('hidden');
     $('#wListConfig').removeClass('hidden');
     $('#servedRequestsInfo').removeClass('hidden');
+}
+
+export function resetViewAfterBadTestResult() {
+    $('#compareContent').removeClass('hidden');
+    $('.infoBox').fadeOut(1000);
+    $('.hideOnError').addClass('hidden');
+    $('.hideOnDefault').removeClass('hidden');
+    $('.hideContact').removeClass('hidden');
+    $('#warningMessage').removeClass('hidden');
+    $('#info').removeClass('hidden');
+    $('#informationContent').removeClass('hidden');
+    $('#testStatus').addClass('hidden');
+    $('#runningInfo').addClass('hidden');
+    $('#configInfo').removeClass('hidden');
+    $('#competitor').empty();
+    $('#speedKit').empty();
+    $('#printButton').addClass('hidden');
+    $('#wListConfig').addClass('hidden');
 }

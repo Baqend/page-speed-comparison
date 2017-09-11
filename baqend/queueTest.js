@@ -19,7 +19,6 @@ exports.call = function (db, data, req) {
     const testLocation = data.location;
     const isClone = data.isClone;
     const caching = data.caching;
-    const speedKit = data.speedKit;
 
     // Create a new test result
     const testResult = new db.TestResult();
@@ -70,7 +69,11 @@ exports.call = function (db, data, req) {
             });
         }
     }).then(ttfb => {
-        return API.runTest(testScript, testOptions).then(testId => {
+        return API.runTestWithoutWait(testScript, testOptions).then(testId => {
+            testResult.testId = testId;
+            testResult.save();
+            return API.waitOnTest(testId);
+        }).then(testId => {
             return getTestResult(db, testResult, testId, ttfb);
         }).then(() => {
             db.log.info(`Test completed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}`);

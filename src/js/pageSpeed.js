@@ -29,7 +29,7 @@ export async function callPageSpeedInsightsAPI(url) {
 export async function calculateResult(response) {
     /** @type {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} */
     const results = { domains: null, requests: null, bytes: null, screenshot: null };
-    const data = response.json();
+    const data = await response.json();
     results.domains = data.pageStats.numberHosts || 0;
     results.requests = data.pageStats.numberResources || 0;
 
