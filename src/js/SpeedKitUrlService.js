@@ -8,14 +8,14 @@ const BAQEND_URL = `https://${APP}.speed-kit.com/`;
  * @return {string} A URL to send to Speed Kit.
  */
 export function getBaqendUrl(originalUrl, whitelistStr) {
-    const whitelist = whitelistStr
+    const whitelistDomains = whitelistStr
         .split(',')
         .map(item => item.trim())
         .filter(item => !!item);
 
-    const rules = generateRules(originalUrl, whitelist);
+    const whitelist = generateRules(originalUrl, whitelistDomains);
 
-    return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&rules=${encodeURIComponent(rules)}`;
+    return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&whitelist=${encodeURIComponent(whitelist)}`;
 }
 
 /**
@@ -33,17 +33,17 @@ export function generateRules(originalUrl, whitelist) {
     }
 
     // Replace TLD with a wildcard
-    let whitelistRegExp = `${hostname.substr(0, hostname.indexOf('.'))}\\.`;
+    const host = [`regexp:/^(?:[\\w-]*\\.){0,3}${hostname.substr(0, hostname.indexOf('.'))}\\./`];
 
     // Create parts for the regexp
     if (whitelist.length) {
         whitelist.forEach((item) => {
-            whitelistRegExp += '|' + item + '\\.';
+            host.push(item);
         });
     }
 
     // Create the final exp
-    return JSON.stringify([{ whitelist: `^(?:https?:\\/\\/)?(?:[\\w-]*\\.){0,3}(?:${whitelistRegExp}).*$` }]);
+    return JSON.stringify([{ host }]);
 }
 
 /**
