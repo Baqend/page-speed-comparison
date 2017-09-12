@@ -33,6 +33,8 @@ let speedKitBaqendId;
 let interval;
 /** @type {string} */
 let title;
+/** @type {boolean} */
+let isSpeedKitComparison;
 
 document.addEventListener("DOMContentLoaded", () => {
     $("#main").html(hbs.main({}));
@@ -85,7 +87,12 @@ window.initTest = () => {
                     testOptions.location = result.competitorTestResult.location;
                     competitorUrl = result.competitorTestResult.url;
                     speedKitUrl = result.speedKitTestResult.url;
-                    displayTestResultsById(testOptions, result);
+
+                    try {
+                        displayTestResultsById(testOptions, result);
+                    } catch(e) {
+                        showComparisonError(e);
+                    }
                 } else {
                     showComparisonError(new Error('This is a bad result'));
                 }
@@ -208,6 +215,7 @@ async function submitComparison(url) {
     try {
         await db.modules.get('testRateLimited');
         const normalizedResult = await normalizeUrl(url);
+
         $currentVendorUrl.val(normalizedResult.url);
         return initComparison(normalizedResult);
     } catch (e) {
@@ -240,8 +248,9 @@ async function initComparison(normalizedUrl) {
     const now = Date.now();
     testInstance = now;
 
+    isSpeedKitComparison = normalizedUrl.speedkit;
     competitorUrl = normalizedUrl.url;
-    speedKitUrl = normalizedUrl.speedkit? normalizedUrl.url: getBaqendUrl(normalizedUrl.url, $wListInput.val());
+    speedKitUrl = isSpeedKitComparison? competitorUrl: getBaqendUrl(competitorUrl, $wListInput.val());
 
     // Show testing UI
     startTest();
@@ -266,6 +275,7 @@ async function initComparison(normalizedUrl) {
             db.modules.post('queueTest', {
                 url: competitorUrl,
                 activityTimeout,
+                isSpeedKitComparison,
                 location: testOptions.location,
                 isClone: false,
                 caching: testOptions.caching,
@@ -274,6 +284,7 @@ async function initComparison(normalizedUrl) {
             db.modules.post('queueTest', {
                 url: speedKitUrl,
                 activityTimeout,
+                isSpeedKitComparison,
                 location: testOptions.location,
                 isClone: true,
                 caching: testOptions.caching,
@@ -445,7 +456,6 @@ function setPageSpeedMetrics(result) {
  * @param {Error} e
  */
 function showComparisonError(e) {
-    console.error(e.stack);
     resetComparison();
     resetViewAfterBadTestResult();
 }

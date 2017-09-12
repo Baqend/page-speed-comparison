@@ -112,9 +112,9 @@ function createTestScript(testUrl, options, db) {
     const installSW = `
     logData 0
     setTimeout ${timeout}	
-    blockDomainsExcept ${hostname}	
+    ${options.isSpeedKitComparison ? 'blockDomainsExcept ' + hostname : ''}
     navigate ${installNavigation}
-    blockDomainsExcept
+    ${options.isSpeedKitComparison ? 'blockDomainsExcept' : ''}
     navigate about:blank
     ${options.caching? '': 'clearcache'}
     logData 1

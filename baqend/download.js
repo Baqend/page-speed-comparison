@@ -24,7 +24,7 @@ function toFile(db, url, target, maxRetries = 10) {
                 if(maxRetries <= 0) {
                     reject(new Error("Maximum number of retries reached without success"));
                 } else {
-                    setTimeout(() => resolve(toFile(db, url, target, maxRetries - 1)), 300);
+                    setTimeout(() => resolve(toFile(db, url, target, maxRetries - 1)), 500);
                 }
                 return;
             }
