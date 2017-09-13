@@ -19,10 +19,10 @@ export function createImageElement(screenshotData) {
  */
 export function createVideoElement(elementId, videoSrc) {
     const video = document.createElement('video');
-    video.setAttribute('controls', 'controls');
+    video.setAttribute('playsinline', 'playsinline');
     video.setAttribute('type', 'video/mp4');
     video.setAttribute('autoplay', 'autoplay');
-    video.setAttribute('onplay', 'playVideos(this)');
+    video.setAttribute('onclick', 'playVideos(this)');
     video.setAttribute('id', elementId);
     video.setAttribute('src', videoSrc);
     video.setAttribute('class', 'embedVideo');

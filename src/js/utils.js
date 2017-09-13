@@ -24,3 +24,10 @@ export function sleep(millis) {
         setTimeout(resolve, millis);
     });
 }
+
+/**
+ * Verify whether the device is IOS or not
+ */
+export function isDeviceIOS() {
+    return navigator.userAgent.match(/iPhone|iPod/i);
+}

@@ -1,4 +1,4 @@
-import { formatFileSize, sleep } from './utils';
+import { formatFileSize, sleep, isDeviceIOS } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult } from './ResetVariablesService';
 import { getBaqendUrl } from './SpeedKitUrlService';
@@ -145,21 +145,16 @@ window.handleCachingChange = (radioButton) => {
  * @param {HTMLVideoElement} videoElement
  */
 window.playVideos = (videoElement) => {
-    if (videoElement.id === 'video-competitor') {
+    if(!isDeviceIOS()) {
         /** @type {HTMLVideoElement} */
-        const videoSpeedKit = document.getElementById('video-speedKit');
-        if (videoSpeedKit) {
-            videoSpeedKit.currentTime = videoElement.currentTime;
-            videoSpeedKit.play();
-        }
-    } else {
-        /** @type {HTMLVideoElement} */
-        const videoCompetitor = document.getElementById('video-competitor');
-        if (videoCompetitor) {
-            videoCompetitor.currentTime = videoElement.currentTime;
-            videoCompetitor.play();
-        }
+        const secondVideo = document.getElementById(videoElement.id === 'video-speedKit' ? 'video-competitor' : 'video-speedKit');
+
+        secondVideo.currentTime = 0;
+        secondVideo.play();
     }
+
+    videoElement.currentTime = 0;
+    videoElement.play();
 };
 
 window.printReport = () => {
@@ -332,6 +327,8 @@ function updateTestStatus() {
 async function callPageSpeed(now) {
     // Enable the status text
     const statusText = $('.carousel').carousel({ interval: false, wrap: false });
+    const $competitor = $('#competitor');
+    const $speedKit = $('#speedKit');
     statusText.carousel(0);
 
     const results = await callPageSpeedInsightsAPI(competitorUrl);
@@ -359,11 +356,14 @@ async function callPageSpeed(now) {
 
     if (now === testInstance) {
         $('#compareContent').removeClass('hidden');
-        $('#competitor').append(createImageElement(screenShot),
-            createScannerElement());
+        //check whether it container elements don´t have any content (e.g. video already created)
+        if($competitor.children().length < 1 && $speedKit.children().length < 1) {
+            $competitor.append(createImageElement(screenShot),
+                createScannerElement());
 
-        $('#speedKit').append(createImageElement(screenShot),
-            createScannerElement());
+            $speedKit.append(createImageElement(screenShot),
+                createScannerElement());
+        }
     }
 }
 
@@ -415,6 +415,7 @@ function resultStreamUpdate(result, subscription, elementId) {
 
                     competitorElement.empty();
                     speedKitElement.empty();
+
                     competitorElement.append(createVideoElement('video-competitor', testVideo['competitor']));
                     speedKitElement.append(createVideoElement('video-speedKit', testVideo['speedKit']));
 
