@@ -38,7 +38,7 @@ export function generateRules(originalUrl, whitelist) {
     // Create parts for the regexp
     if (whitelist.length) {
         whitelist.forEach((item) => {
-            host.push(`regexp:/^(?:[\\w-]*\\.){0,3}${item}\\./`);
+            host.push(`regexp:/^(?:[\\w-]*\\.){0,3}${item}/`);
         });
     }
 
