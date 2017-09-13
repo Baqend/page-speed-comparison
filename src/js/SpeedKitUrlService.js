@@ -37,9 +37,7 @@ export function generateRules(originalUrl, whitelist) {
 
     // Create parts for the regexp
     if (whitelist.length) {
-        whitelist.forEach((item) => {
-            host.push(`regexp:/^(?:[\\w-]*\\.){0,3}${item}/`);
-        });
+        host.push(`regexp:/^(?:[\\w-]*\\.){0,3}(?:${whitelist.map(item => escapeRegExp(item)).join('|')})/`);
     }
 
     // Create the final exp
@@ -57,4 +55,14 @@ export function getHostnameOfUrl(url) {
     dummyElement.href = url;
 
     return dummyElement.hostname;
+}
+
+/**
+ * Escapes a regular expression.
+ *
+ * @param {string} str
+ * @return {string}
+ */
+export function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
