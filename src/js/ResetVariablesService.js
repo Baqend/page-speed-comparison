@@ -16,6 +16,7 @@ export function startTest() {
 }
 
 export function resetView() {
+    $('#confirmContact').addClass('hidden');
     $('#compareContent').addClass('hidden');
     $('.testResults').addClass('invisible');
     $('#info').removeClass('hidden');

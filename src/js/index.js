@@ -175,20 +175,21 @@ window.printReport = () => {
  */
 window.contactUs = (e) => {
     e.preventDefault();
-
+    const $confirmContact = $('#confirmContact');
+    const $name = $('#c_name');
+    const $email = $('#c_email');
     let data = {
-        name: $('#c_name').val(),
-        email: $('#c_email').val(),
+        name: $name.val(),
+        email: $email.val(),
         url: competitorUrl,
-        testOverviewId: testOverview.id,
-        subject: 'from page speed comparison',
+        testOverviewId: testOverview.id || 'not existing',
+        subject: 'from page speed analyzer',
     };
 
     $.post('https://bbq.app.baqend.com/v1/code/mailUs', data, (data, status, xhr) => {
-        let form = $('#contact_form');
-        form.find('.modal-body').html("<p>Thanks. We will get in touch shortly. " +
-            "Check out our <a href='https://benchmark.baqend.com' target='_blank'>benchmark</a> in the meantime</p>");
-        form.find('.c_submit').remove();
+        $name.val('');
+        $email.val('');
+        $confirmContact.removeClass('hidden');
     });
 };
 
