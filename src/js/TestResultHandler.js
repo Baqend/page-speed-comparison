@@ -42,8 +42,8 @@ export function displayTestResultsById(testOptions, result) {
         result.competitorTestResult[videoView].url));
 
     displayTestResults('speedKit', result.speedKitTestResult[dataView], testOptions);
-    $('#speedKit').empty().append(createLinkButton(), createVideoElement('video-speedKit',
-        result.speedKitTestResult[videoView].url));
+    $('#speedKit').empty().append(/^https/.test(result.competitorTestResult.url) ? createLinkButton() : '',
+        createVideoElement('video-speedKit', result.speedKitTestResult[videoView].url));
 
     calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
     $('#servedRequests').text(calculateServedRequests(result.speedKitTestResult.firstView));
