@@ -43,8 +43,8 @@ export function createScannerElement() {
  */
 export function createLinkButton() {
     const button = document.createElement('button');
+    button.setAttribute('id', 'openSpeedKitWebsite');
     button.setAttribute('class', 'btn openButton');
-    button.setAttribute('onclick', 'openBaqendFrame()');
     button.innerHTML = 'open in new tab';
     return button;
 }

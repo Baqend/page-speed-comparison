@@ -12,7 +12,7 @@ import { db } from "baqend/realtime";
 import { Subscription } from 'rxjs';
 
 /** @type {string} */
-let competitorUrl, speedKitUrl;
+let competitorUrl;
 let testResult = {};
 let testVideo = {};
 let testOptions = { location: 'eu-central-1:Chrome', caching: false };
@@ -25,12 +25,6 @@ let competitorSubscription;
 let speedKitSubscription;
 /** @type {db.TestOverview} */
 let testOverview;
-/** @type {string | null} */
-let competitorBaqendId;
-/** @type {string | null} */
-let speedKitBaqendId;
-/** @type {Object} */
-let interval;
 /** @type {string} */
 let title;
 /** @type {boolean} */
@@ -65,58 +59,63 @@ document.addEventListener("DOMContentLoaded", () => {
     $('#wListInput, #currentVendorUrl').on('click', () => {
         showInfoBox();
     });
+
+    /**
+     * @param {Event} event
+     */
+    $('#implementation-toggle').on('click', (event) => {
+        event.preventDefault();
+        $('#implementation-toggle').hide();
+        $('#implementation-dots').hide();
+        $('.implementation-hidden').show("medium");
+    });
+
+    $('#openSpeedKitWebsite').on('click', () => {
+        const win = window.open(getBaqendUrl(competitorUrl, $('#wListInput').val()), '_blank');
+        win.focus();
+    });
+
+    $('#printReport').on('click', () => {
+        /** @type {HTMLVideoElement} */
+        const competitorVideo = document.getElementById('video-competitor');
+        /** @type {HTMLVideoElement} */
+        const speedKitVideo = document.getElementById('video-speedKit');
+        competitorVideo.currentTime = competitorVideo.duration;
+        speedKitVideo.currentTime = speedKitVideo.duration;
+
+        setTimeout(function () {
+            window.print();
+        }, 100);
+    });
+
+    /**
+     * @param {Event} event
+     */
+    $('#contact_form').on('submit', (event) => {
+        event.preventDefault();
+        const $confirmContact = $('#confirmContact');
+        const $name = $('#c_name');
+        const $email = $('#c_email');
+        let data = {
+            name: $name.val(),
+            email: $email.val(),
+            url: competitorUrl,
+            testOverviewId: testOverview.id || 'not existing',
+            subject: 'from page speed analyzer',
+        };
+
+        $.post('https://bbq.app.baqend.com/v1/code/mailUs', data, (data, status, xhr) => {
+            $name.val('');
+            $email.val('');
+            $confirmContact.removeClass('hidden');
+        });
+    })
 });
 
 window.addEventListener("popstate", () => {
     if (db.isReady)
         initTest();
 });
-
-window.initTest = () => {
-    const testIdParam = getParameterByName('testId');
-    if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
-        db.TestOverview.load(testIdParam, { depth: 1 }).then((result) => {
-            if (result) {
-                const dataView = result.caching ? 'repeatView' : 'firstView';
-                $('#currentVendorUrl').val(result.competitorTestResult.url);
-
-                if(result.speedKitTestResult && !isBadTestResult(result.competitorTestResult[dataView],
-                        result.speedKitTestResult[dataView])) {
-                    testOptions.speedKit = result.speedKit;
-                    testOptions.caching = result.caching;
-                    testOptions.location = result.competitorTestResult.location;
-                    competitorUrl = result.competitorTestResult.url;
-                    speedKitUrl = result.speedKitTestResult.url;
-
-                    try {
-                        displayTestResultsById(testOptions, result);
-                    } catch(e) {
-                        showComparisonError(e);
-                    }
-                } else {
-                    showComparisonError(new Error('This is a bad result'));
-                }
-            }
-        });
-    }
-
-    const url = getParameterByName("url");
-    if (url) {
-        submitComparison(url);
-    }
-};
-
-window.showImplementation = (event) => {
-    event.preventDefault();
-    $('#implementation-toggle').hide();
-    $('#implementation-dots').hide();
-    $('.implementation-hidden').show("medium");
-};
-
-window.openBaqendFrame = () => {
-    const win = window.open(getBaqendUrl(competitorUrl, $('#wListInput').val()), '_blank');
-    win.focus();
-};
 
 /**
  * @param {HTMLInputElement} radioButton
@@ -157,41 +156,6 @@ window.playVideos = (videoElement) => {
     videoElement.play();
 };
 
-window.printReport = () => {
-    /** @type {HTMLVideoElement} */
-    const competitorVideo = document.getElementById('video-competitor');
-    /** @type {HTMLVideoElement} */
-    const speedKitVideo = document.getElementById('video-speedKit');
-    competitorVideo.currentTime = competitorVideo.duration;
-    speedKitVideo.currentTime = speedKitVideo.duration;
-
-    setTimeout(function () {
-        window.print();
-    }, 100);
-};
-
-/**
- * @param {Event} e
- */
-window.contactUs = (e) => {
-    e.preventDefault();
-    const $confirmContact = $('#confirmContact');
-    const $name = $('#c_name');
-    const $email = $('#c_email');
-    let data = {
-        name: $name.val(),
-        email: $email.val(),
-        url: competitorUrl,
-        testOverviewId: testOverview.id || 'not existing',
-        subject: 'from page speed analyzer',
-    };
-
-    $.post('https://bbq.app.baqend.com/v1/code/mailUs', data, (data, status, xhr) => {
-        $name.val('');
-        $email.val('');
-        $confirmContact.removeClass('hidden');
-    });
-};
 
 window.handleTestExampleClick = (testId) => {
     history.pushState({}, title, '/?testId=' + testId);
@@ -200,6 +164,38 @@ window.handleTestExampleClick = (testId) => {
     $('.hideOnDefault').addClass('hidden');
     window.initTest();
 };
+
+function initTest() {
+    const testIdParam = getParameterByName('testId');
+    if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
+        db.TestOverview.load(testIdParam, { depth: 1 }).then((result) => {
+            if (result) {
+                const dataView = result.caching ? 'repeatView' : 'firstView';
+                $('#currentVendorUrl').val(result.competitorTestResult.url);
+
+                if(result.speedKitTestResult && !isBadTestResult(result.competitorTestResult[dataView],
+                        result.speedKitTestResult[dataView])) {
+                    testOptions.speedKit = result.speedKit;
+                    testOptions.caching = result.caching;
+                    testOptions.location = result.competitorTestResult.location;
+
+                    try {
+                        displayTestResultsById(testOptions, result);
+                    } catch(e) {
+                        showComparisonError(e);
+                    }
+                } else {
+                    showComparisonError(new Error('This is a bad result'));
+                }
+            }
+        });
+    }
+
+    const url = getParameterByName("url");
+    if (url) {
+        submitComparison(url);
+    }
+}
 
 /**
  * @param {string} [url]
@@ -240,13 +236,19 @@ async function initComparison(normalizedUrl) {
     resetComparison();
     resetView();
 
+    // Enable the status text
+    const statusText = $('.carousel').carousel({ interval: false, wrap: false });
+    const $competitor = $('#competitor');
+    const $speedKit = $('#speedKit');
     const $wListInput = $('#wListInput');
     const now = Date.now();
+
+    statusText.carousel(0);
     testInstance = now;
 
     isSpeedKitComparison = normalizedUrl.speedkit;
     competitorUrl = normalizedUrl.url;
-    speedKitUrl = isSpeedKitComparison? competitorUrl: getBaqendUrl(competitorUrl, $wListInput.val());
+    const speedKitUrl = isSpeedKitComparison? competitorUrl: getBaqendUrl(competitorUrl, $wListInput.val());
 
     // Show testing UI
     startTest();
@@ -257,16 +259,15 @@ async function initComparison(normalizedUrl) {
     testOverview.caching = testOptions.caching;
     testOverview.whitelist = $wListInput.val();
 
-    // Start Google Page speed
-    callPageSpeed(now).catch(() => {
-        const carousel = $('.carousel').carousel({ interval: false, wrap: false });
-        carousel.carousel(4);
-        pageSpeedInsightFailed = true;
-        updateTestStatus();
-    });
-
     try {
-        const [competitorResult, speedKitResult] = await Promise.all([
+        const [pageSpeedResult, competitorResult, speedKitResult] = await Promise.all([
+            //Call Page Speed Insights
+            callPageSpeedInsightsAPI(competitorUrl).catch(() => {
+                const carousel = $('.carousel').carousel({ interval: false, wrap: false });
+                carousel.carousel(4);
+                pageSpeedInsightFailed = true;
+                updateTestStatus();
+            }),
             // Test the competitor's site
             db.modules.post('queueTest', {
                 url: competitorUrl,
@@ -287,85 +288,83 @@ async function initComparison(normalizedUrl) {
             }),
         ]);
 
-        competitorBaqendId = competitorResult.baqendId;
-        speedKitBaqendId = speedKitResult.baqendId;
-
-        // Sleep for 6 seconds
-        await sleep(6000);
+        statusText.carousel(1);
+        const screenShot = pageSpeedResult.screenshot;
+        setPageSpeedMetrics(pageSpeedResult);
+        await sleep(1000);
 
         if (now === testInstance) {
-            competitorSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + competitorBaqendId)
-                .resultStream(result => resultStreamUpdate(result, competitorSubscription, 'competitor'));
+            statusText.carousel(2);
+        }
+        await sleep(1000);
 
-            speedKitSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + speedKitBaqendId)
-                .resultStream(result => resultStreamUpdate(result, speedKitSubscription, 'speedKit'));
+        if (now === testInstance) {
+            statusText.carousel(3);
+        }
+        await sleep(1000);
+
+        if (now === testInstance) {
+            statusText.carousel(4);
+            updateTestStatus(competitorResult.baqendId);
+        }
+        await sleep(1000);
+
+        if (now === testInstance) {
+            $('#compareContent').removeClass('hidden');
+            //check whether the container elements don´t have any content (e.g. video already created)
+            if($competitor.children().length < 1 && $speedKit.children().length < 1) {
+                $competitor.append(createImageElement(screenShot),
+                    createScannerElement());
+
+                $speedKit.append(createImageElement(screenShot),
+                    createScannerElement());
+            }
+
+            await sleep(2000);
+            //subscribe on the test results
+            subscribeOnResult(competitorResult.baqendId, speedKitResult.baqendId)
         }
     } catch (error) {
         showComparisonError(error);
     }
 }
 
-function updateTestStatus() {
-    interval = setInterval(function () {
-        if (competitorBaqendId) {
-            db.modules.get('getTestStatus', { baqendId: competitorBaqendId }).then(res => {
-                if (!res.error) {
-                    if (res.status.statusCode === 101) {
-                        $('#statusQueue').html(res.status.statusText);
-                    } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
-                        $('#statusQueue').html('Test has been started...');
-                    }
-                }
-            });
-        }
-    }, 2000);
+/**
+ * @param {string} competitorBaqendId
+ * @param {string} speedKitBaqendId
+ */
+function subscribeOnResult(competitorBaqendId, speedKitBaqendId) {
+    competitorSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + competitorBaqendId)
+        .resultStream(result => resultStreamUpdate(result, competitorSubscription, 'competitor'),
+            showComparisonError(new Error('Real time error occured')));
+
+    speedKitSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + speedKitBaqendId)
+        .resultStream(result => resultStreamUpdate(result, speedKitSubscription, 'speedKit'),
+            showComparisonError(new Error('Real time error occured')));
 }
 
 /**
- * @param {number} now Current timestamp.
- * @return {Promise<void>}
+ * @param {string} competitorBaqendId
  */
-async function callPageSpeed(now) {
-    // Enable the status text
-    const statusText = $('.carousel').carousel({ interval: false, wrap: false });
-    const $competitor = $('#competitor');
-    const $speedKit = $('#speedKit');
-    statusText.carousel(0);
-
-    const results = await callPageSpeedInsightsAPI(competitorUrl);
-
-    statusText.carousel(1);
-    const screenShot = results.screenshot;
-    setPageSpeedMetrics(results);
-    await sleep(1000);
-
-    if (now === testInstance) {
-        statusText.carousel(2);
-    }
-    await sleep(1000);
-
-    if (now === testInstance) {
-        statusText.carousel(3);
-    }
-    await sleep(1000);
-
-    if (now === testInstance) {
-        statusText.carousel(4);
-        updateTestStatus();
-    }
-    await sleep(1000);
-
-    if (now === testInstance) {
-        $('#compareContent').removeClass('hidden');
-        //check whether it container elements don´t have any content (e.g. video already created)
-        if($competitor.children().length < 1 && $speedKit.children().length < 1) {
-            $competitor.append(createImageElement(screenShot),
-                createScannerElement());
-
-            $speedKit.append(createImageElement(screenShot),
-                createScannerElement());
+function updateTestStatus(competitorBaqendId) {
+    const interval = setInterval(function () {
+        if (competitorBaqendId) {
+            try {
+                db.modules.get('getTestStatus', { baqendId: competitorBaqendId }).then(res => {
+                    if (!res.error) {
+                        if (res.status.statusCode === 101) {
+                            $('#statusQueue').html(res.status.statusText);
+                        } else if (res.status.statusCode === 100 || res.status.statusCode === 200) {
+                            $('#statusQueue').html('Test has been started...');
+                            clearInterval(interval);
+                        }
+                    }
+                });
+            } catch(e) {
+                clearInterval(interval);
+            }
         }
-    }
+    }, 2000);
 }
 
 /**
@@ -388,8 +387,6 @@ function resultStreamUpdate(result, subscription, elementId) {
             if (entry[dataView]) {
                 testResult[elementId] = entry;
                 if (Object.keys(testResult).length === 2) {
-                    clearInterval(interval);
-
                     //check if the result is unsatisfactory ==> show information view instead of test result
                     if(isBadTestResult(testResult['competitor'][dataView], testResult['speedKit'][dataView])) {
                         showComparisonError(new Error('This is a bad result'));
@@ -469,7 +466,6 @@ function resetComparison() {
     if (speedKitSubscription)
         speedKitSubscription.unsubscribe();
 
-    competitorBaqendId = speedKitBaqendId = null;
     pageSpeedInsightFailed = false;
     testResult = {};
     testVideo = {};

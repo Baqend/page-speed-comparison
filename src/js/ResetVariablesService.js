@@ -72,5 +72,5 @@ export function resetViewAfterBadTestResult() {
     $('#competitor').empty();
     $('#speedKit').empty();
     $('#printButton').addClass('hidden');
-    $('#wListConfig').addClass('hidden');
+    $('#wListConfig').removeClass('hidden');
 }
