@@ -23,7 +23,7 @@ export function resetView() {
     $('#runningInfo').addClass('hidden');
     $('#printButton').addClass('hidden');
     $('#testStatus').addClass('hidden');
-    $('#warningMessage').addClass('hidden');
+    $('#warningAlert').addClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#competitor').empty();
     $('#speedKit').empty();
@@ -63,7 +63,7 @@ export function resetViewAfterBadTestResult() {
     $('.hideOnError').addClass('hidden');
     $('.hideOnDefault').removeClass('hidden');
     $('.hideContact').removeClass('hidden');
-    $('#warningMessage').removeClass('hidden');
+    $('#warningAlert').removeClass('hidden');
     $('#info').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
     $('#testStatus').addClass('hidden');

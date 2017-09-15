@@ -12,7 +12,7 @@ const ttl = 86000/2;
 exports.call = function (db, data, req) {
     //Check if IP is rate-limited
     if (Limiter.isRateLimited(req)) {
-        return {error: 'Too many requests!'};
+        throw new Abort({message: 'Too many requests', status: 429});
     }
 
     const testUrl = data.url;

@@ -29,7 +29,6 @@ export function displayTestResultsById(testOptions, result) {
     $('#informationContent').removeClass('hidden');
     $('.infoBox').fadeOut(0);
     $('.hideOnDefault').addClass('hidden');
-    $('#warningMessage').addClass('hidden');
 
     if (result.competitorTestResult.location.indexOf('us') !== -1) {
         $('#location_left').prop('checked', true);
@@ -47,6 +46,8 @@ export function displayTestResultsById(testOptions, result) {
 
     calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
     $('#servedRequests').text(calculateServedRequests(result.speedKitTestResult.firstView));
+
+    verifyWarningMessage();
 }
 
 /**
@@ -69,6 +70,20 @@ export function displayTestResults(elementId, data, testOptions) {
     $('.testResults').removeClass('invisible');
 }
 
+/**
+ * @param {Error} error
+ */
+export function verifyWarningMessage(error) {
+    if(error && error.message.status === 429) {
+        $('#warningMessage').text('You reached the maximum number of running tests. Please wait at least one ' +
+            'minute until you start further tests!');
+    } else {
+        $('#warningMessage').text('While running the test some error occurred. Please retry the test or contact our ' +
+            'Web Performance Experts for further Information and Assistance!');
+    }
+
+    $('#warningAlert').addClass('hidden');
+}
 
 /**
  * @param {*} competitorData

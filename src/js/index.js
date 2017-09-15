@@ -2,7 +2,7 @@ import { formatFileSize, sleep, isDeviceIOS } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult } from './ResetVariablesService';
 import { getBaqendUrl } from './SpeedKitUrlService';
-import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isBadTestResult} from './TestResultHandler';
+import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isBadTestResult, verifyWarningMessage} from './TestResultHandler';
 import { createImageElement, createLinkButton, createScannerElement, createVideoElement } from './UiElementCreator';
 
 import "bootstrap";
@@ -162,7 +162,7 @@ window.handleTestExampleClick = (testId) => {
     $('.hideContact').removeClass('hidden');
     $('.hideOnError').removeClass('hidden');
     $('.hideOnDefault').addClass('hidden');
-    window.initTest();
+    initTest();
 };
 
 function initTest() {
@@ -211,9 +211,7 @@ async function submitComparison(url) {
         $currentVendorUrl.val(normalizedResult.url);
         return initComparison(normalizedResult);
     } catch (e) {
-        const $currentVendorUrlInvalid = $('#currentVendorUrlInvalid');
-        $currentVendorUrlInvalid.text(e.message);
-        $currentVendorUrlInvalid.show();
+        showComparisonError(e);
     }
 }
 
@@ -335,12 +333,10 @@ async function initComparison(normalizedUrl) {
  */
 function subscribeOnResult(competitorBaqendId, speedKitBaqendId) {
     competitorSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + competitorBaqendId)
-        .resultStream(result => resultStreamUpdate(result, competitorSubscription, 'competitor'),
-            showComparisonError(new Error('Real time error occured')));
+        .resultStream(result => resultStreamUpdate(result, competitorSubscription, 'competitor'));
 
     speedKitSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + speedKitBaqendId)
-        .resultStream(result => resultStreamUpdate(result, speedKitSubscription, 'speedKit'),
-            showComparisonError(new Error('Real time error occured')));
+        .resultStream(result => resultStreamUpdate(result, speedKitSubscription, 'speedKit'));
 }
 
 /**
@@ -455,6 +451,7 @@ function setPageSpeedMetrics(result) {
  * @param {Error} e
  */
 function showComparisonError(e) {
+    verifyWarningMessage(e);
     resetComparison();
     resetViewAfterBadTestResult();
 }
