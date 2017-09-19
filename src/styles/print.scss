@@ -25,8 +25,12 @@
     display: none !important;
   }
 
-  #wListConfig {
+  #wList {
     display: none !important;
+  }
+
+  #boostWorthiness {
+    display: none;
   }
 
   .wrapper {
@@ -59,6 +63,10 @@
   }
 
   .hideContact {
+    display: none !important;
+  }
+
+  .hideOnDefault {
     display: none !important;
   }
 

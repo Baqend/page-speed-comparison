@@ -19,8 +19,7 @@ exports.call = function(db, data, req) {
         return text.indexOf('speed-kit') != -1;
       });
     }).then((speedkit) => {
-        //disable speedkit detection temporary
-      return { url, speedkit: false };
+      return { url, speedkit };
     });
   });
 };

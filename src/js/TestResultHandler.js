@@ -27,6 +27,7 @@ export function displayTestResultsById(testOptions, result) {
     $('#wListInput').val(result.whitelist);
     $('#servedRequestsInfo').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
+    $('#boostWorthiness').removeClass('hidden');
     $('.infoBox').fadeOut(0);
     $('.hideOnDefault').addClass('hidden');
 
@@ -46,6 +47,8 @@ export function displayTestResultsById(testOptions, result) {
 
     calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
     $('#servedRequests').text(calculateServedRequests(result.speedKitTestResult.firstView));
+
+    calculateRevenueBoost(result.competitorTestResult[dataView], result.speedKitTestResult[dataView]);
 
     verifyWarningMessage();
 }
@@ -78,7 +81,7 @@ export function verifyWarningMessage(error) {
         $('#warningMessage').text('You reached the maximum number of running tests. Please wait at least one ' +
             'minute until you start further tests!');
     } else {
-        $('#warningMessage').text('While running the test some error occurred. Please retry the test or contact our ' +
+        $('#warningMessage').text('While running the test an error occurred. Please retry the test or contact our ' +
             'Web Performance Experts for further Information and Assistance!');
     }
 
@@ -87,11 +90,11 @@ export function verifyWarningMessage(error) {
 
 /**
  * @param {*} competitorData
- *  * @param {*} SpeedKitData
+ *  * @param {*} speedKitData
  */
-export function isBadTestResult(competitorData, SpeedKitData) {
-    const speedIndexFactor = roundToHundredths(competitorData.speedIndex / (SpeedKitData.speedIndex > 0 ? SpeedKitData.speedIndex : 1));
-    return speedIndexFactor < 1.2 || calculateServedRequests(SpeedKitData) < 20;
+export function isBadTestResult(competitorData, speedKitData) {
+    const speedIndexFactor = roundToHundredths(competitorData.speedIndex / (speedKitData.speedIndex > 0 ? speedKitData.speedIndex : 1));
+    return speedIndexFactor < 1.2;
 }
 
 /**
@@ -116,7 +119,7 @@ export function calculateServedRequests(data) {
  * @param {{ caching: boolean }} testOptions
  */
 export function calculateFactors(competitorResult, speedKitResult, testOptions) {
-    const speedIndexFactor = roundToHundredths(competitorResult.speedIndex / (speedKitResult.speedIndex > 0 ? speedKitResult.speedIndex : 1));
+    const speedIndexFactor = calculateSpeedIndexFactor(competitorResult.speedIndex, speedKitResult.speedIndex);
     $('.speedIndex-factor').html(speedIndexFactor + 'x ' + (speedIndexFactor > 1 ? 'Faster' : ''));
 
     const domFactor = roundToHundredths(competitorResult.domLoaded / (speedKitResult.domLoaded > 0 ? speedKitResult.domLoaded : 1));
@@ -134,4 +137,27 @@ export function calculateFactors(competitorResult, speedKitResult, testOptions) 
     } else {
         $('.ttfb-factor').html('');
     }
+}
+
+/**
+ * @param {number} competitorSpeedIndex
+ * @param {number} speedKitSpeedIndex
+ */
+export function calculateSpeedIndexFactor(competitorSpeedIndex, speedKitSpeedIndex) {
+    return roundToHundredths(competitorSpeedIndex / (speedKitSpeedIndex > 0 ? speedKitSpeedIndex : 1));
+}
+
+/**
+ * @param {*} competitorData
+ * @param {*} speedKitData
+ */
+export function calculateRevenueBoost(competitorData, speedKitData) {
+    const speedIndexFactor = calculateSpeedIndexFactor(competitorData.speedIndex, speedKitData.speedIndex);
+    $('#boostValue').text(speedIndexFactor);
+
+    const publisherRevenue = roundToHundredths(1/((19/5) - 1)*(speedIndexFactor - 1) + 1) * 100 - 100;
+    $('#publisherRevenue').text(publisherRevenue + '%');
+
+    const eCommerceRevenue = Math.round((competitorData.speedIndex - speedKitData.speedIndex) * 0.01);
+    $('#eCommerceRevenue').text(eCommerceRevenue + '%');
 }

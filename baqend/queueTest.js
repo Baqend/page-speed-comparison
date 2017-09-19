@@ -70,6 +70,7 @@ exports.call = function (db, data, req) {
         }
     }).then(ttfb => {
         return API.runTestWithoutWait(testScript, testOptions).then(testId => {
+            db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
             testResult.testId = testId;
             testResult.save();
             return API.waitOnTest(testId);

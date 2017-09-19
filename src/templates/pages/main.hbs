@@ -107,6 +107,7 @@
 
                 </div>
                 <button type="submit" class="c_submit btn btn-orange m-8 contactButton">Contact Baqend</button>
+                <button id="showTestPool" type="button" class="button btn btn-orange btn-ghost hidden">Show test pool</button>
             </form>
             <p id="confirmContact" class="mb-0 hidden">Thanks. We will get in touch shortly. Check out our
                 <a href='https://benchmark.baqend.com' target='_blank'>benchmark</a> in the meantime.
@@ -147,10 +148,9 @@
         <div class="row p-16 hideOnDefault">
             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                 <h4>
-                    In the following, we provide a pool of web performance tests to give you an impression
-                    of Speed Kit´s potential.
+                    Here are a few performance tests to illustrate Speed Kit's potential.
                 </h4>
-                <p>Get detailed information by clicking the particular test.</p>
+                <p class="font-weight-normal subhead">Click a test to learn more.</p>
             </div>
         </div>
         <div class="row p-16 pt-32 pb-0 text-center hideOnDefault">
@@ -167,16 +167,16 @@
                 <h4 class="pt-8">2.88 x Faster</h4>
             </div>
             <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('b4c4b68c-6588-460d-939b-f9a7c23ca13f');">
+                    <img class="img-company" src="../../img/walmart.png" alt="Logo Walmart">
+                </div>
+                <h4 class="pt-8">2.83 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
                 <div class="img-container" onclick="handleTestExampleClick('5659a7c0-f912-44ec-8966-18c4b12ddb72');">
                     <img class="img-company" src="../../img/espn.png" alt="Logo ESPN">
                 </div>
                 <h4 class="pt-8">2.69 x Faster</h4>
-            </div>
-            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                <div class="img-container" onclick="handleTestExampleClick('45d10159-4149-499f-9fd1-5c9c27df81e5');">
-                    <img class="img-company" src="../../img/walmart.png" alt="Logo Walmart">
-                </div>
-                <h4 class="pt-8">2.64 x Faster</h4>
             </div>
         </div>
         <div class="row p-16 pt-32 pb-0 text-center hideOnDefault">
@@ -274,6 +274,7 @@
                 Learn more at <a href="https://www.baqend.com">baqend.com</a> or contact sales@baqend.com.
             </div>
         </div>
+        {{> boostWorthiness }}
         {{> wlist }}
     </div>
 </div>

@@ -19,11 +19,14 @@ export function resetView() {
     $('#confirmContact').addClass('hidden');
     $('#compareContent').addClass('hidden');
     $('.testResults').addClass('invisible');
-    $('#info').removeClass('hidden');
     $('#runningInfo').addClass('hidden');
     $('#printButton').addClass('hidden');
     $('#testStatus').addClass('hidden');
     $('#warningAlert').addClass('hidden');
+    $('#showTestPool').addClass('hidden');
+    $('#servedRequestsInfo').addClass('hidden');
+    $('#boostWorthiness').addClass('hidden');
+    $('#info').removeClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#competitor').empty();
     $('#speedKit').empty();
@@ -42,19 +45,19 @@ export function resetView() {
     $('#dom-factor').html('');
     $('#lastVisualChange-factor').html('');
     $('#fullyLoaded-factor').html('');
-    $('#servedRequestsInfo').addClass('hidden');
 }
 
 export function resetViewAfterTest() {
     $('.infoBox').fadeOut(1000);
     $('#info').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
-    $('#testStatus').addClass('hidden');
-    $('#runningInfo').addClass('hidden');
+    $('#boostWorthiness').removeClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#printButton').removeClass('hidden');
     $('#wListConfig').removeClass('hidden');
     $('#servedRequestsInfo').removeClass('hidden');
+    $('#testStatus').addClass('hidden');
+    $('#runningInfo').addClass('hidden');
 }
 
 export function resetViewAfterBadTestResult() {

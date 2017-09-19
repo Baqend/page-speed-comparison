@@ -2,7 +2,7 @@ import { formatFileSize, sleep, isDeviceIOS } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult } from './ResetVariablesService';
 import { getBaqendUrl } from './SpeedKitUrlService';
-import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isBadTestResult, verifyWarningMessage} from './TestResultHandler';
+import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isBadTestResult, calculateRevenueBoost, verifyWarningMessage} from './TestResultHandler';
 import { createImageElement, createLinkButton, createScannerElement, createVideoElement } from './UiElementCreator';
 
 import "bootstrap";
@@ -70,11 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
         $('.implementation-hidden').show("medium");
     });
 
-    $('#openSpeedKitWebsite').on('click', () => {
-        const win = window.open(getBaqendUrl(competitorUrl, $('#wListInput').val()), '_blank');
-        win.focus();
-    });
-
     $('#printReport').on('click', () => {
         /** @type {HTMLVideoElement} */
         const competitorVideo = document.getElementById('video-competitor');
@@ -109,7 +104,13 @@ document.addEventListener("DOMContentLoaded", () => {
             $email.val('');
             $confirmContact.removeClass('hidden');
         });
-    })
+    });
+
+    $('#showTestPool').on('click', () => {
+        $('#showTestPool').addClass('hidden');
+        $('.hideOnError').addClass('hidden');
+        $('.hideOnDefault').removeClass('hidden');
+    });
 });
 
 window.addEventListener("popstate", () => {
@@ -156,9 +157,14 @@ window.playVideos = (videoElement) => {
     videoElement.play();
 };
 
+window.openSpeedKitLink = () => {
+    const win = window.open(getBaqendUrl(competitorUrl, $('#wListInput').val()), '_blank');
+    win.focus();
+};
 
 window.handleTestExampleClick = (testId) => {
     history.pushState({}, title, '/?testId=' + testId);
+    $('#showTestPool').removeClass('hidden');
     $('.hideContact').removeClass('hidden');
     $('.hideOnError').removeClass('hidden');
     $('.hideOnDefault').addClass('hidden');
@@ -171,7 +177,8 @@ function initTest() {
         db.TestOverview.load(testIdParam, { depth: 1 }).then((result) => {
             if (result) {
                 const dataView = result.caching ? 'repeatView' : 'firstView';
-                $('#currentVendorUrl').val(result.competitorTestResult.url);
+                competitorUrl = result.competitorTestResult.url;
+                $('#currentVendorUrl').val(competitorUrl);
 
                 if(result.speedKitTestResult && !isBadTestResult(result.competitorTestResult[dataView],
                         result.speedKitTestResult[dataView])) {
@@ -246,6 +253,7 @@ async function initComparison(normalizedUrl) {
 
     isSpeedKitComparison = normalizedUrl.speedkit;
     competitorUrl = normalizedUrl.url;
+
     const speedKitUrl = isSpeedKitComparison? competitorUrl: getBaqendUrl(competitorUrl, $wListInput.val());
 
     // Show testing UI
@@ -332,11 +340,15 @@ async function initComparison(normalizedUrl) {
  * @param {string} speedKitBaqendId
  */
 function subscribeOnResult(competitorBaqendId, speedKitBaqendId) {
+    const competitorOnNext = result => resultStreamUpdate(result, competitorSubscription, 'competitor');
+    const speedKitOnNext = result => resultStreamUpdate(result, speedKitSubscription, 'speedKit');
+    const onError = err => showComparisonError(err);
+
     competitorSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + competitorBaqendId)
-        .resultStream(result => resultStreamUpdate(result, competitorSubscription, 'competitor'));
+        .resultStream(competitorOnNext, onError);
 
     speedKitSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + speedKitBaqendId)
-        .resultStream(result => resultStreamUpdate(result, speedKitSubscription, 'speedKit'));
+        .resultStream(speedKitOnNext, onError);
 }
 
 /**
@@ -392,6 +404,7 @@ function resultStreamUpdate(result, subscription, elementId) {
                     displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
                     displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
                     calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
+                    calculateRevenueBoost(testResult['competitor'][dataView], testResult['speedKit'][dataView]);
                     $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
 
                     if (pageSpeedInsightFailed) {
