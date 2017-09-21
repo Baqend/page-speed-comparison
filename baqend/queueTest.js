@@ -64,7 +64,7 @@ exports.call = function (db, data, req) {
                 minimalResults: true
             });
 
-            return API.runTest(testUrl, prewarmOptions).then((testId) => {
+            return API.runTest(testUrl, prewarmOptions, db).then((testId) => {
                 return getPrewarmResult(db, testId);
             });
         }
@@ -73,13 +73,17 @@ exports.call = function (db, data, req) {
             db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
             testResult.testId = testId;
             testResult.save();
-            return API.waitOnTest(testId);
+            return API.waitOnTest(testId, db);
         }).then(testId => {
             return getTestResult(db, testResult, testId, ttfb);
         }).then(() => {
             db.log.info(`Test completed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}`);
         }).catch((e) => {
             db.log.warn(`Test failed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}\n\n${e.stack}`);
+            testResult.ready().then(() => {
+                testResult.testDataMissing = true;
+                testResult.save();
+            });
         });
     });
 

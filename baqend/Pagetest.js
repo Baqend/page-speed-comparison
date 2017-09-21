@@ -14,11 +14,12 @@ class Pagetest {
      * Queues a new testrun of the given url with the given options.
      * @param testUrl The url to test.
      * @param options The options of this test (see https://github.com/marcelduran/webpagetest-api).
+     * @param db Baqend database instance
      * @returns {Promise} A promise of the test
      */
-    runTest(testUrl, options) {
+    runTest(testUrl, options, db) {
         return this.runTestWithoutWait(testUrl, options).then(testId => {
-            return this.waitOnTest(testId);
+            return this.waitOnTest(testId, db);
         });
     }
 
@@ -41,7 +42,18 @@ class Pagetest {
         });
     }
 
-    waitOnTest(testId) {
+    waitOnTest(testId, db) {
+        //wait for 2 minutes and check if the pingback was already called
+        Promise.resolve().then(() => {
+            setTimeout(() => {
+                db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
+                    if(!testResult || !testResult.firstView) {
+                     this.resolveTest(testId);
+                    }
+                })
+            }, 120000)
+        });
+
         const result = this.waitPromises[testId];
         delete this.waitPromises[testId];
         return result;
