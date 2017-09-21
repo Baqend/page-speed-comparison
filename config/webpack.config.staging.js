@@ -17,6 +17,6 @@ module.exports = config(({ rootDir, distDir }) => ({
       APP: '"makefast-staging"',
       REPORT_PAGE: false,
     }),
-    new BaqendPlugin({ app: 'makefast-staging' }),
+    new BaqendPlugin({ app: 'makefast-staging', codeDir: 'baqend' }),
   ],
 }));

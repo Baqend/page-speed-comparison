@@ -17,6 +17,6 @@ module.exports = config(({ rootDir, distDir }) => ({
       APP: '""',
       REPORT_PAGE: true,
     }),
-    new BaqendPlugin({ app: 'makefast', bucket: 'report' }),
+    new BaqendPlugin({ app: 'makefast', bucket: 'report', codeDir: 'baqend' }),
   ],
 }));

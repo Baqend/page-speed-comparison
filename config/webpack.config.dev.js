@@ -18,6 +18,6 @@ module.exports = config(({ distDir }) => ({
       REPORT_PAGE: false,
     }),
 
-    new BaqendPlugin({ app: 'makefast-dev' }),
+    new BaqendPlugin({ app: 'makefast-dev', codeDir: 'baqend' }),
   ],
 }));
