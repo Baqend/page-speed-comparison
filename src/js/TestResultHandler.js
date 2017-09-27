@@ -94,7 +94,7 @@ export function verifyWarningMessage(error) {
  */
 export function isBadTestResult(competitorData, speedKitData) {
     const speedIndexFactor = roundToHundredths(competitorData.speedIndex / (speedKitData.speedIndex > 0 ? speedKitData.speedIndex : 1));
-    return speedIndexFactor < 1.2;
+    return speedIndexFactor < 1.2 || calculateServedRequests(speedKitData) < 20;
 }
 
 /**
@@ -153,11 +153,11 @@ export function calculateSpeedIndexFactor(competitorSpeedIndex, speedKitSpeedInd
  */
 export function calculateRevenueBoost(competitorData, speedKitData) {
     const speedIndexFactor = calculateSpeedIndexFactor(competitorData.speedIndex, speedKitData.speedIndex);
-    $('#boostValue').text(speedIndexFactor);
+    $('.boostValue').text(speedIndexFactor);
 
     const publisherRevenue = Math.round((1/((19/5) - 1)*(speedIndexFactor - 1) + 1) * 100 - 100);
-    $('#publisherRevenue').text(publisherRevenue + '%');
+    $('.publisherRevenue').text(publisherRevenue + '%');
 
     const eCommerceRevenue = Math.round((competitorData.speedIndex - speedKitData.speedIndex) * 0.01);
-    $('#eCommerceRevenue').text(eCommerceRevenue + '%');
+    $('.eCommerceRevenue').text(eCommerceRevenue + '%');
 }

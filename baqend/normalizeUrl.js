@@ -18,8 +18,8 @@ exports.call = function(db, data, req) {
       return res.text().then(text => {
         return text.indexOf('speed-kit') != -1;
       });
-    }).then((speedkit) => {
-      return { url, speedkit };
+    }).catch(e => false).then((speedkit) => {
+        return { url, speedkit };
     });
   });
 };

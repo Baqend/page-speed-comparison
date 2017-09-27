@@ -1,9 +1,9 @@
-import { formatFileSize, sleep, isDeviceIOS } from './utils';
+import { formatFileSize, sleep, isDeviceIOS, sortArray, getParameterByName } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult } from './ResetVariablesService';
-import { getBaqendUrl } from './SpeedKitUrlService';
+import { getBaqendUrl, getHostnameOfUrl } from './SpeedKitUrlService';
 import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isBadTestResult, calculateRevenueBoost, verifyWarningMessage} from './TestResultHandler';
-import { createImageElement, createLinkButton, createScannerElement, createVideoElement } from './UiElementCreator';
+import { createImageElement, createLinkButton, createScannerElement, createVideoElement, createWhitelistCandidates } from './UiElementCreator';
 
 import "bootstrap";
 import "../styles/main.scss";
@@ -171,6 +171,20 @@ window.handleTestExampleClick = (testId) => {
     initTest();
 };
 
+window.whitelistCandidateClicked = (elementId) => {
+    const checkboxElement = document.getElementById(elementId);
+    const wListInput = document.getElementById('wListInput');
+    const regex = new RegExp(',?\\s?\\b' + elementId + '\\s?\\b,?');
+
+    if(regex.test(wListInput.value)) {
+        const inputArray = wListInput.value.split(',').map(item => item.trim());
+        inputArray.splice(inputArray.indexOf(elementId), 1);
+        wListInput.value = inputArray.join(', ');
+    } else if(!checkboxElement.checked) {
+        wListInput.value = wListInput.value.length !== 0 ? wListInput.value + ', ' + elementId : elementId;
+    }
+};
+
 function initTest() {
     const testIdParam = getParameterByName('testId');
     if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
@@ -179,6 +193,9 @@ function initTest() {
                 const dataView = result.caching ? 'repeatView' : 'firstView';
                 competitorUrl = result.competitorTestResult.url;
                 $('#currentVendorUrl').val(competitorUrl);
+
+                //handle whitelist candidates and add them to the UI
+                handleWhitelistCandidates(result.competitorTestResult[dataView], result.whitelist);
 
                 if(result.speedKitTestResult && !isBadTestResult(result.competitorTestResult[dataView],
                         result.speedKitTestResult[dataView])) {
@@ -254,7 +271,7 @@ async function initComparison(normalizedUrl) {
     isSpeedKitComparison = normalizedUrl.speedkit;
     competitorUrl = normalizedUrl.url;
 
-    const speedKitUrl = isSpeedKitComparison? competitorUrl: getBaqendUrl(competitorUrl, $wListInput.val());
+    const speedKitUrl = isSpeedKitComparison ? competitorUrl : getBaqendUrl(competitorUrl, $wListInput.val());
 
     // Show testing UI
     startTest();
@@ -395,6 +412,9 @@ function resultStreamUpdate(result, subscription, elementId) {
             if (entry[dataView]) {
                 testResult[elementId] = entry;
                 if (Object.keys(testResult).length === 2) {
+                    //handle whitelist candidates and add them to the UI
+                    handleWhitelistCandidates(testResult['competitor'][dataView], testOverview.whitelist);
+
                     //check if the result is unsatisfactory ==> show information view instead of test result
                     if(isBadTestResult(testResult['competitor'][dataView], testResult['speedKit'][dataView])) {
                         showComparisonError(new Error('This is a bad result'));
@@ -451,7 +471,7 @@ function resultStreamUpdate(result, subscription, elementId) {
  * @param {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} result
  */
 function setPageSpeedMetrics(result) {
-    testOverview.psiDomains = result.domains;
+    testOverview.psiDomains = result.domains.length;
     testOverview.psiRequests = result.requests;
     testOverview.psiResponseSize = result.bytes;
 
@@ -483,16 +503,15 @@ function resetComparison() {
     history.pushState({}, title, "/");
 }
 
-/**
- * @param {string} name
- * @return {null|string}
- */
-function getParameterByName(name) {
-    const url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+function handleWhitelistCandidates(resultData, whitelist) {
+    const sortedDomains = sortArray(resultData, 'domains');
+    let hostname = getHostnameOfUrl(competitorUrl);
+    if (hostname.includes('www.')) {
+        hostname = hostname.substr(hostname.indexOf('www.') + 4);
+    }
+
+    createWhitelistCandidates(sortedDomains
+        .filter(domainObject => domainObject.url.indexOf(hostname) === -1 )
+        .splice(1,6), whitelist
+    );
 }

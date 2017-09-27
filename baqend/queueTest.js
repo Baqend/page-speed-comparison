@@ -229,7 +229,6 @@ function createRun(data, ttfb, db) {
     run.lastVisualChange = data.lastVisualChange;
     run.speedIndex = data.SpeedIndex;
     run.requests = data.requests.length;
-    run.domains = Object.keys(data.domains).length;
     run.bytes = data.bytesIn;
     run.hits = new db.Hits(countHits(data));
     run.domElements = data.domElements;
@@ -241,5 +240,13 @@ function createRun(data, ttfb, db) {
     completeness.p99 = data.visualComplete99;
     completeness.p100 = data.visualComplete;
     run.visualCompleteness = completeness;
+
+    run.domains = [];
+    Object.keys(data.domains).forEach(key => {
+        const dummyObject = data.domains[key];
+        dummyObject.url = key;
+        run.domains.push(dummyObject);
+    });
+
     return run;
 }

@@ -104,7 +104,6 @@
                                pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
                                placeholder="example@example.com" required="">
                     </div>
-
                 </div>
                 <button type="submit" class="c_submit btn btn-orange m-8 contactButton">Contact Baqend</button>
                 <button id="showTestPool" type="button" class="button btn btn-orange btn-ghost hidden">Show test pool</button>
@@ -118,8 +117,7 @@
                 <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
                      title="Number of unique hosts referenced by the page.">
                         <span class="fa-stack">
-                          <i class="fa fa-circle iconCycle"></i>
-                          <i class="fa fa-server iconInner"></i>
+                          <i class="fa fa-server"></i>
                         </span>Domains<br>
                     <h4 class="numberOfHosts noPadding"></h4>
                 </div>
@@ -128,8 +126,7 @@
                 <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
                      title="Number of HTTP resources loaded by the page.">
                         <span class="fa-stack">
-                          <i class="fa fa-circle iconCycle"></i>
-                          <i class="fa fa-paper-plane-o iconInner"></i>
+                          <i class="fa fa-paper-plane-o"></i>
                         </span>Requests<br>
                     <h4 class="numberOfRequests noPadding"></h4>
                 </div>
@@ -138,8 +135,7 @@
                 <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
                      title="Number of uncompressed response bytes for resources on the page.">
                         <span class="fa-stack">
-                          <i class="fa fa-circle iconCycle"></i>
-                          <i class="fa fa-upload iconInner"></i>
+                          <i class="fa fa-upload"></i>
                         </span>Response Size<br>
                     <h4 class="numberOfBytes noPadding"></h4>
                 </div>
@@ -263,17 +259,7 @@
                 <button id="printReport" class="btn btn-blue btn-ghost">Print Report</button>
             </div>
         </div>
-        <div class="row printTeaser p-16 pt-0">
-            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
-                <img src="../../img/Baqend-logo-newflame.png" alt="baqend logo"/>
-            </div>
-            <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10">
-                Baqend Speed Kit hooks into your existing website and makes it faster. Speed Kit is the perfect tool
-                for publishers, landing pages, shops, and agencies to minimize page load times and make backends
-                stable.
-                Learn more at <a href="https://www.baqend.com">baqend.com</a> or contact sales@baqend.com.
-            </div>
-        </div>
+        {{> print }}
         {{> boostWorthiness }}
         {{> wlist }}
     </div>

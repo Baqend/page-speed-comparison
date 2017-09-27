@@ -30,6 +30,7 @@ export function resetView() {
     $('#configInfo').removeClass('hidden');
     $('#competitor').empty();
     $('#speedKit').empty();
+    $('#whitelistCandidates').empty();
     $('#competitor-speedIndex').html('');
     $('#competitor-ttfb').html('');
     $('#competitor-dom').html('');
