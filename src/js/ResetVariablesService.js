@@ -31,6 +31,7 @@ export function resetView() {
     $('#competitor').empty();
     $('#speedKit').empty();
     $('#whitelistCandidates').empty();
+    $('#whitelistCandidatesInfo').addClass('hidden');
     $('#competitor-speedIndex').html('');
     $('#competitor-ttfb').html('');
     $('#competitor-dom').html('');

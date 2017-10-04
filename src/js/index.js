@@ -428,7 +428,12 @@ function resultStreamUpdate(result, subscription, elementId) {
                     $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
 
                     if (pageSpeedInsightFailed) {
-                        setPageSpeedMetrics(testResult['competitor']['firstView']);
+                        const pageSpeedMetrics = {
+                            domains: testResult['competitor']['firstView'].domains.length,
+                            requests: testResult['competitor']['firstView'].requests,
+                            bytes: testResult['competitor']['firstView'].bytes
+                        };
+                        setPageSpeedMetrics(pageSpeedMetrics);
                         $('#compareContent').removeClass('hidden');
                     }
                 }
@@ -471,7 +476,7 @@ function resultStreamUpdate(result, subscription, elementId) {
  * @param {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} result
  */
 function setPageSpeedMetrics(result) {
-    testOverview.psiDomains = result.domains.length;
+    testOverview.psiDomains = result.domains;
     testOverview.psiRequests = result.requests;
     testOverview.psiResponseSize = result.bytes;
 
@@ -505,6 +510,8 @@ function resetComparison() {
 
 function handleWhitelistCandidates(resultData, whitelist) {
     const sortedDomains = sortArray(resultData, 'domains');
+    const totalRequestCount = resultData.requests;
+
     let hostname = getHostnameOfUrl(competitorUrl);
     if (hostname.includes('www.')) {
         hostname = hostname.substr(hostname.indexOf('www.') + 4);
@@ -512,6 +519,6 @@ function handleWhitelistCandidates(resultData, whitelist) {
 
     createWhitelistCandidates(sortedDomains
         .filter(domainObject => domainObject.url.indexOf(hostname) === -1 )
-        .splice(1,6), whitelist
+        .splice(0,6), whitelist, totalRequestCount
     );
 }
