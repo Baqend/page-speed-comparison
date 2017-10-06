@@ -7,6 +7,7 @@
 @import './wlist';
 @import './print';
 @import './layout';
+@import './checkbox';
 
 body, html, .content {
   background: #f8f8f8;
@@ -44,7 +45,6 @@ h3 {
 
 h4 {
   padding-top: 20px;
-  font-size: 14px;
 }
 
 .subhead, .lead {
@@ -144,16 +144,6 @@ img {
   color: transparent;
 }
 
-.iconInner {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  color: rgba(0,0,0,.5);
-  line-height: inherit;
-  font-size: inherit;
-}
-
 .search-button {
   background-color: #FFFFFF;
   color: #0F202D;
@@ -174,28 +164,22 @@ img {
   padding: 0 !important;
 }
 
-.p-5 {
-  padding: 5px;
+.lightGreen {
+  color: #5cb85c;
 }
 
-.mt-5 {
- margin-top: 5px;
-}
-
-.mt-10 {
-  margin-top: 10px;
-}
-
-.mt-20 {
-  margin-top: 20px;
-}
-
-.mb-10 {
-  margin-bottom: 10px;
+.previewFormula {
+  font-size: 14px;
+  color: #888;
 }
 
 .hideMobile {
   display: none;
+}
+
+.printTeaser {
+  display: flex !important;
+  align-items: center !important;
 }
 
 .hideDesktop {
@@ -237,9 +221,8 @@ img {
   font-size: 20px;
 }
 
-.printTeaser {
+.printView {
   display: none;
-  align-items: center;
 }
 
 .noRowMargin {
@@ -343,7 +326,7 @@ img {
   box-shadow: 0 2px 4px 1px rgba(0,0,0,.01);
   background-color: #FFFFFF;
   display: inline-block;
-  width: 100%;
+  width: 95%;
   max-width: 768px;
   text-align: left;
   padding-right: 56px;
@@ -515,10 +498,6 @@ img {
 
   .iconCycle {
     font-size: 34px;
-  }
-
-  .iconInner {
-    font-size: 18px;
   }
 
   .primaryCol {

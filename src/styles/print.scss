@@ -5,7 +5,6 @@
 
   body, html, .content {
     font-size: 12px !important;
-    height:100% !important;
     overflow: hidden !important;
   }
 
@@ -13,20 +12,37 @@
     font-size: 32px !important;
   }
 
+  h3 {
+    font-size: 20px !important;
+  }
+
   h4 {
     font-size: 16px !important;
+  }
+
+  h5 {
+    font-size: 14px !important;
   }
 
   input {
     text-align: center !important;
   }
 
-  #cta {
+  #wList {
     display: none !important;
   }
 
-  #wListConfig {
+  #informationContent {
     display: none !important;
+  }
+
+  #boostWorthiness {
+    display: none;
+  }
+
+  .lightGreen, .lightGreen:before {
+    color: #5cb85c !important;
+    -webkit-print-color-adjust: exact !important;
   }
 
   .wrapper {
@@ -34,10 +50,10 @@
   }
 
   .content {
-    padding: 0 5px !important;
+    padding: 0 !important;
   }
 
-  a{
+  a {
     color: #1967be !important;
     -webkit-print-color-adjust: exact !important;
   }
@@ -62,6 +78,10 @@
     display: none !important;
   }
 
+  .hideOnDefault {
+    display: none !important;
+  }
+
   .hidden-lg {
     display: none!important;
   }
@@ -70,20 +90,8 @@
     border: none !important;
   }
 
-  .printTeaser{
-    display: flex !important;
-  }
-
-  .iconCycle {
-    display: none !important;
-  }
-
-  .fa-rocket {
-    display: none !important;
-  }
-
-  .implementation {
-    display: none !important;
+  .printView {
+    display: inline !important;
   }
 
   .challenge {
@@ -157,20 +165,25 @@
   }
 
   .pt-32 {
-    padding-top: 5px !important;
+    padding-top: 1px !important;
   }
 
   .pb-16 {
       padding-bottom: 5px !important;
   }
 
+  .mb-24 {
+    margin-bottom: 8px !important;
+  }
+
   .p-16{
-    padding: 5px !important;
+    padding: 1px !important;
   }
 
   .flex {
     display: block !important;
   }
+
   .p-32-0 {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
@@ -182,8 +195,8 @@
 
   .infoBox {
     width: 65% !important;
-    margin-top: 16px !important;
-    margin-bottom: 16px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
     > div:first-child {
       display: none !important;
     }

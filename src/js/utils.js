@@ -31,3 +31,30 @@ export function sleep(millis) {
 export function isDeviceIOS() {
     return navigator.userAgent.match(/iPhone|iPod/i);
 }
+
+/**
+ * Sort an Array of Objects by a given sort criterion
+ *
+ * @param {Array} dataArray An Array of Objects.
+ * @param {string} sortCriterion Criterion for sort mechanism
+ * @return {Array} The sorted Array of objects
+ */
+export function sortArray(dataArray, sortCriterion) {
+    return dataArray[sortCriterion].sort(function(a, b) {
+        return parseFloat(b.requests) - parseFloat(a.requests);
+    });
+}
+
+/**
+ * @param {string} name
+ * @return {null|string}
+ */
+export function getParameterByName(name) {
+    const url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}

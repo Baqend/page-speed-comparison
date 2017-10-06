@@ -1,4 +1,5 @@
 const { DefinePlugin } = require('webpack');
+const BaqendPlugin = require('baqend-webpack-plugin');
 const config = require('./webpack.config.base.js');
 
 module.exports = config(({ distDir }) => ({
@@ -16,5 +17,7 @@ module.exports = config(({ distDir }) => ({
       APP: '"makefast-dev"',
       REPORT_PAGE: false,
     }),
+
+    new BaqendPlugin({ app: 'makefast-dev', codeDir: 'baqend' }),
   ],
 }));

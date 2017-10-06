@@ -19,14 +19,19 @@ export function resetView() {
     $('#confirmContact').addClass('hidden');
     $('#compareContent').addClass('hidden');
     $('.testResults').addClass('invisible');
-    $('#info').removeClass('hidden');
     $('#runningInfo').addClass('hidden');
     $('#printButton').addClass('hidden');
     $('#testStatus').addClass('hidden');
-    $('#warningMessage').addClass('hidden');
+    $('#warningAlert').addClass('hidden');
+    $('#showTestPool').addClass('hidden');
+    $('#servedRequestsInfo').addClass('hidden');
+    $('#boostWorthiness').addClass('hidden');
+    $('#info').removeClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#competitor').empty();
     $('#speedKit').empty();
+    $('#whitelistCandidates').empty();
+    $('#whitelistCandidatesInfo').addClass('hidden');
     $('#competitor-speedIndex').html('');
     $('#competitor-ttfb').html('');
     $('#competitor-dom').html('');
@@ -42,19 +47,19 @@ export function resetView() {
     $('#dom-factor').html('');
     $('#lastVisualChange-factor').html('');
     $('#fullyLoaded-factor').html('');
-    $('#servedRequestsInfo').addClass('hidden');
 }
 
 export function resetViewAfterTest() {
     $('.infoBox').fadeOut(1000);
     $('#info').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
-    $('#testStatus').addClass('hidden');
-    $('#runningInfo').addClass('hidden');
+    $('#boostWorthiness').removeClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#printButton').removeClass('hidden');
     $('#wListConfig').removeClass('hidden');
     $('#servedRequestsInfo').removeClass('hidden');
+    $('#testStatus').addClass('hidden');
+    $('#runningInfo').addClass('hidden');
 }
 
 export function resetViewAfterBadTestResult() {
@@ -63,7 +68,7 @@ export function resetViewAfterBadTestResult() {
     $('.hideOnError').addClass('hidden');
     $('.hideOnDefault').removeClass('hidden');
     $('.hideContact').removeClass('hidden');
-    $('#warningMessage').removeClass('hidden');
+    $('#warningAlert').removeClass('hidden');
     $('#info').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
     $('#testStatus').addClass('hidden');
@@ -72,5 +77,5 @@ export function resetViewAfterBadTestResult() {
     $('#competitor').empty();
     $('#speedKit').empty();
     $('#printButton').addClass('hidden');
-    $('#wListConfig').addClass('hidden');
+    $('#wListConfig').removeClass('hidden');
 }

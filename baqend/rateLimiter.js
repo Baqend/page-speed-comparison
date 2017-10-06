@@ -9,7 +9,7 @@ const RateLimiter = require('limiter').RateLimiter;
  * @param reqPerMinute allowed requests per minute
  * @returns {boolean} true if the user is rate limited
  */
-exports.isRateLimited = (req, reqPerMinute = 4) => {
+exports.isRateLimited = (req, reqPerMinute = 8) => {
     const ip = req.get('X-Forwarded-For');
     //Do not block Baqend
     if(ip.includes('134.100.11.49'))

@@ -1,52 +1,52 @@
 <div class="content">
-    <div>
-        <div class="container p-32-0 text-center">
-            <h1 class="mb-24">Page Speed Analyzer</h1>
-            <form id="formConfiguration">
-                <div class="urlInput">
-                    <input type="text" inputmode="url" spellcheck="false" id="currentVendorUrl" placeholder="Enter URL here...">
-                    <button type="submit" class="search-button btn btn-orange btn-ghost">Go</button>
-                </div>
-                <div id="currentVendorUrlInvalid" style="display: none"></div>
-                <div class="row infoBox flex" style="margin-top: 32px; margin-bottom: 0;">
-                    <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-                        <div id="info" class="mb-8 text-right">
-                            <span id="resultInfo" class="challenge">Test the performance of your site!</span>
+    <div class="container p-32-0 text-center">
+        <h1 class="mb-24">Page Speed Analyzer</h1>
+        <form id="formConfiguration">
+            <div class="urlInput">
+                <input type="text" inputmode="url" spellcheck="false" id="currentVendorUrl"
+                       placeholder="Enter URL here...">
+                <button type="submit" class="search-button btn btn-orange btn-ghost">Go</button>
+            </div>
+            <div id="currentVendorUrlInvalid" style="display: none"></div>
+            <div class="row infoBox flex" style="margin-top: 32px; margin-bottom: 0;">
+                <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+                    <div id="info" class="mb-8 text-right">
+                        <span id="resultInfo" class="challenge">Test the performance of your site!</span>
+                    </div>
+                    <div class="hidden" id="testStatus">
+                        <div class="spinner">
+                            <div class="dot1"></div>
+                            <div class="dot2"></div>
                         </div>
-                        <div class="hidden" id="testStatus">
-                            <div class="spinner">
-                                <div class="dot1"></div>
-                                <div class="dot2"></div>
-                            </div>
-                            <div id="statusCarousel" class="carousel slide vertical mt-20">
-                                <div class="carousel-inner">
-                                    <div class="active item">
-                                        <span>Requesting website</span>
-                                    </div>
-                                    <div class="item">
-                                        <span>Analyzing Domains</span>
-                                    </div>
-                                    <div class="item">
-                                        <span>Analyzing Requests</span>
-                                    </div>
-                                    <div class="item">
-                                        <span>Analyzing Response</span>
-                                    </div>
-                                    <div class="item">
-                                        <span id="statusQueue"></span>
-                                    </div>
+                        <div id="statusCarousel" class="carousel slide vertical mt-16">
+                            <div class="carousel-inner">
+                                <div class="active item">
+                                    <span>Requesting website</span>
+                                </div>
+                                <div class="item">
+                                    <span>Analyzing Domains</span>
+                                </div>
+                                <div class="item">
+                                    <span>Analyzing Requests</span>
+                                </div>
+                                <div class="item">
+                                    <span>Analyzing Response</span>
+                                </div>
+                                <div class="item">
+                                    <span id="statusQueue"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left" id="configInfo">
-                        <span class="infoHeader">Choose how to test:</span>
-                        <input name="activityTimeout" type="text" class="activityTimeout">
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding mt-10">
-                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
-                                <span class="align-middle">Region of client</span>
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left" id="configInfo">
+                    <span class="infoHeader">Choose how to test:</span>
+                    <input name="activityTimeout" type="text" class="activityTimeout">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding mt-12">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
+                            <span class="align-middle">Region of client</span>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="location_left" name="switchLanguage"
                                        onclick="handleLocationChange(this);" value="usa"/>
@@ -55,13 +55,13 @@
                                        onclick="handleLocationChange(this);" value="eu" checked/>
                                 <label for="location_right">EU</label>
                             </span>
-                            </div>
                         </div>
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding">
-                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
-                                <span class="align-middle">Cold cache</span>
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 noPadding">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding">
+                            <span class="align-middle">Cold cache</span>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 noPadding text-right">
                             <span class="switch-field">
                                 <input type="radio" id="caching_left" name="switchCaching"
                                        onclick="handleCachingChange(this);" value="no"/>
@@ -70,213 +70,198 @@
                                        onclick="handleCachingChange(this);" value="yes" checked/>
                                 <label for="caching_right">YES</label>
                             </span>
-                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left hidden" id="runningInfo">
-                        <span class="infoHeader">We are running a series of tests against your site</span><br>
-                        <span>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 info text-left hidden" id="runningInfo">
+                    <span class="infoHeader">We are running a series of tests against your site</span><br>
+                    <span>
                         See how fast your current backend stack delivers your site to users.
                         We will compare the results to a version of your site using Baqend Speed Kit.
                     </span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="container wrapper border hidden" id="compareContent">
+        <div id="warningAlert" class="row hidden">
+            <div class="col-sm-12 alert alert-warning text-center"><strong>Warning:</strong>
+                <span id="warningMessage"></span>
+            </div>
+        </div>
+        <div class="row p-16 text-center border-bottom hideContact hidden">
+            <form class="form-inline" id="contact_form">
+                <div class="form-group">
+                    <label for="c_name">Name</label>
+                    <div class="contactInput">
+                        <input type="text" id="c_name" name="name" placeholder="Your Name" required="">
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="c_email" class="ml-8">E-Mail</label>
+                    <div class="contactInput">
+                        <input type="text" id="c_email" name="email"
+                               pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
+                               placeholder="example@example.com" required="">
+                    </div>
+                </div>
+                <button type="submit" class="c_submit btn btn-orange m-8 contactButton">Contact Baqend</button>
+                <button id="showTestPool" type="button" class="button btn btn-orange btn-ghost hidden">Show test pool</button>
             </form>
+            <p id="confirmContact" class="mb-0 hidden">Thanks. We will get in touch shortly. Check out our
+                <a href='https://benchmark.baqend.com' target='_blank'>benchmark</a> in the meantime.
+            </p>
         </div>
-        <div class="container wrapper border hidden" id="compareContent">
-            <div id="warningMessage" class="row hidden">
-                <div class="col-sm-12 alert alert-warning text-center"><strong>Warning:</strong>
-                    While running the test some error occurred.
-                    Please retry the test or contact our Web Performance Experts for further Information and Assistance!
-                </div>
-            </div>
-            <div class="row p-16 text-center border-bottom hideContact hidden">
-                <form class="form-inline" id="contact_form" onsubmit="contactUs(event);">
-                    <div class="form-group">
-                        <label for="c_name">Name</label>
-                        <div class="contactInput">
-                            <input type="text" id="c_name" name="name" placeholder="Your Name" required="">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="c_email" class="ml-8">E-Mail</label>
-                        <div class="contactInput">
-                            <input type="text" id="c_email" name="email"
-                                   pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
-                                   placeholder="example@example.com" required="">
-                        </div>
-
-                    </div>
-                    <button type="submit" class="c_submit btn btn-orange m-8 contactButton">Contact Baqend</button>
-                </form>
-                <p id="confirmContact" class="mb-0 hidden">Thanks. We will get in touch shortly. Check out our
-                    <a href='https://benchmark.baqend.com' target='_blank'>benchmark</a> in the meantime.
-                </p>
-            </div>
-            <div class="row p-16 previewBox text-center border-bottom hideOnError">
-                <div id="numberOfHostsCol">
-                    <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
-                         title="Number of unique hosts referenced by the page.">
+        <div class="row p-16 previewBox text-center border-bottom hideOnError">
+            <div id="numberOfHostsCol">
+                <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                     title="Number of unique hosts referenced by the page.">
                         <span class="fa-stack">
-                          <i class="fa fa-circle iconCycle"></i>
-                          <i class="fa fa-server iconInner"></i>
+                          <i class="fa fa-server"></i>
                         </span>Domains<br>
-                        <h4 class="numberOfHosts noPadding"></h4>
-                    </div>
+                    <h4 class="numberOfHosts noPadding"></h4>
                 </div>
-                <div id="numberOfRequestsCol">
-                    <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
-                         title="Number of HTTP resources loaded by the page.">
+            </div>
+            <div id="numberOfRequestsCol">
+                <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                     title="Number of HTTP resources loaded by the page.">
                         <span class="fa-stack">
-                          <i class="fa fa-circle iconCycle"></i>
-                          <i class="fa fa-paper-plane-o iconInner"></i>
+                          <i class="fa fa-paper-plane-o"></i>
                         </span>Requests<br>
-                        <h4 class="numberOfRequests noPadding"></h4>
-                    </div>
+                    <h4 class="numberOfRequests noPadding"></h4>
                 </div>
-                <div id="numberOfBytesCol">
-                    <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
-                         title="Number of uncompressed response bytes for resources on the page.">
+            </div>
+            <div id="numberOfBytesCol">
+                <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                     title="Number of uncompressed response bytes for resources on the page.">
                         <span class="fa-stack">
-                          <i class="fa fa-circle iconCycle"></i>
-                          <i class="fa fa-upload iconInner"></i>
+                          <i class="fa fa-upload"></i>
                         </span>Response Size<br>
-                        <h4 class="numberOfBytes noPadding"></h4>
-                    </div>
+                    <h4 class="numberOfBytes noPadding"></h4>
                 </div>
             </div>
-            <div class="row p-16 hideOnDefault">
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-                    <h4>
-                        In the following, we provide a pool of web performance tests to give you an impression
-                        of Speed Kit´s potential.
-                    </h4>
-                    <p>Get detailed information by clicking the particular test.</p>
-                </div>
-            </div>
-            <div class="row p-16 pt-32 pb-0 text-center hideOnDefault">
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('397d572d-531d-4e24-bfbb-525256b8fa0a')">
-                        <img class="img-company" src="../../img/fandom.png" alt="Logo Fandom">
-                    </div>
-                    <h4 class="pt-8">4.18 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('e786099b-ef42-4cbe-8cbc-20ccfceed7ee')">
-                        <img class="img-company" src="../../img/imgur.png" alt="Logo Imgur">
-                    </div>
-                    <h4 class="pt-8">2.88 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('5659a7c0-f912-44ec-8966-18c4b12ddb72')">
-                        <img class="img-company" src="../../img/espn.png" alt="Logo ESPN">
-                    </div>
-                    <h4 class="pt-8">2.69 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('45d10159-4149-499f-9fd1-5c9c27df81e5')">
-                        <img class="img-company" src="../../img/walmart.png" alt="Logo Walmart">
-                    </div>
-                    <h4 class="pt-8">2.64 x Faster</h4>
-                </div>
-            </div>
-            <div class="row p-16 pt-32 pb-0 text-center hideOnDefault">
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('bde2f935-401b-490e-b0c3-a788c5bbc946')">
-                        <img class="img-company" src="../../img/realtor.png" alt="Logo Realtor">
-                    </div>
-                    <h4 class="pt-8">2.47 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('ef2c3d68-a189-4166-9892-a2033055da63')">
-                        <img class="img-company" src="../../img/reddit.png" alt="Logo Reddit">
-                    </div>
-                    <h4 class="pt-8">2.44 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('ceb4a777-96bd-49fa-a78d-5135140dcf0f')">
-                        <img class="img-company" src="../../img/golem.png" alt="Logo Golem">
-                    </div>
-                    <h4 class="pt-8">2.34 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('135d37da-e215-4b3c-97b5-ae01c0cf9c1a')">
-                        <img class="img-company" src="../../img/kicker.png" alt="Logo Kicker">
-                    </div>
-                    <h4 class="pt-8">2.31 x Faster</h4>
-                </div>
-            </div>
-            <div class="row p-16 pt-32 pb-0 text-center hideOnDefault">
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('b72fb500-d605-41d9-af69-f2b420ee3987')">
-                        <img class="img-company" src="../../img/molsoncoors.png" alt="Logo MolsonCoors">
-                    </div>
-                    <h4 class="pt-8">2.30 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('db0e8bdc-3719-4183-bbb6-e512441ab773')">
-                        <img class="img-company" src="../../img/alibaba.png" alt="Logo Alibaba">
-                    </div>
-                    <h4 class="pt-8">2.20 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('ee047cc7-9dfb-4e85-bb53-40ee65bfe894')">
-                        <img class="img-company" src="../../img/condenast.png" alt="Logo conde Nast">
-                    </div>
-                    <h4 class="pt-8">1.66 x Faster</h4>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
-                    <div class="img-container" onclick="handleTestExampleClick('6502bada-3f56-4ea5-b56f-9c818ec1b679')">
-                        <img class="img-company" src="../../img/tumblr.png" alt="Logo Tumblr">
-                    </div>
-                    <h4 class="pt-8">1.51 x Faster</h4>
-                </div>
-            </div>
-            <div class="row p-16 pt-32 pb-0 hideOnError">
-                <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 media-columns text-center">
-                    <h4 class="noPadding">Your Website</h4>
-                </div>
-                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 metric-column text-center hidden-md hidden-sm hidden-xs"></div>
-                <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 media-columns text-center">
-                    <h4 class="noPadding">Your Website with Speed Kit</h4>
-                </div>
-            </div>
-            <div class="row p-16 pb-32 flex hideOnError">
-                <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 p-5 media-columns text-center">
-                    <div id="competitor"></div>
-                </div>
-                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 metric-column text-center invisible hidden-md hidden-sm hidden-xs testResults">
-                    {{> metric }}
-                </div>
-                <div class="col-lg-4 col-md-6 col-sm-6 col-md-6 col-xs-6 p-5 media-columns text-center">
-                    <div id="speedKit"></div>
-                </div>
-            </div>
-            <div class="row text-center invisible hidden-lg testResults pb-32 hideOnError">
-                <div class="col-lg-2 col-md-2 col-sm-2 col-xs-0"></div>
-                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-12">
-                    {{> metric }}
-                </div>
-                <div class="col-lg-2 col-md-2 col-sm-2 col-xs-0"></div>
-            </div>
-            <div class="row printButtonContainer text-center hidden" id="printButton">
-                <div class="pb-32 hidden-md hidden-sm hidden-xs">
-                    <button class="btn btn-blue btn-ghost" onclick="printReport();">Print Report</button>
-                </div>
-            </div>
-            <div class="row printTeaser p-16 pt-0">
-                <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
-                    <img src="../../img/Baqend-logo-newflame.png" alt="baqend logo"/>
-                </div>
-                <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10">
-                    Baqend Speed Kit hooks into your existing website and makes it faster. Speed Kit is the perfect tool
-                    for publishers, landing pages, shops, and agencies to minimize page load times and make backends
-                    stable.
-                    Learn more at <a href="https://www.baqend.com">baqend.com</a> or contact sales@baqend.com.
-                </div>
-            </div>
-            {{> wlist }}
         </div>
+        <div class="row p-16 hideOnDefault">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                <h4>
+                    Here are a few performance tests to illustrate Speed Kit's potential.
+                </h4>
+                <p class="font-weight-normal subhead">Click a test to learn more.</p>
+            </div>
+        </div>
+        <div class="row p-16 pt-32 pb-0 text-center hideOnDefault">
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('397d572d-531d-4e24-bfbb-525256b8fa0a');">
+                    <img class="img-company" src="../../img/fandom.png" alt="Logo Fandom">
+                </div>
+                <h4 class="pt-8">4.18 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('5025004a-6f22-4c8c-a213-35d69df2e0f4');">
+                    <img class="img-company" src="../../img/kicker.png" alt="Logo Kicker">
+                </div>
+                <h4 class="pt-8">3.09 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('e786099b-ef42-4cbe-8cbc-20ccfceed7ee');">
+                    <img class="img-company" src="../../img/imgur.png" alt="Logo Imgur">
+                </div>
+                <h4 class="pt-8">2.88 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('b4c4b68c-6588-460d-939b-f9a7c23ca13f');">
+                    <img class="img-company" src="../../img/walmart.png" alt="Logo Walmart">
+                </div>
+                <h4 class="pt-8">2.83 x Faster</h4>
+            </div>
+        </div>
+        <div class="row p-16 pt-32 pb-0 text-center hideOnDefault">
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('5659a7c0-f912-44ec-8966-18c4b12ddb72');">
+                    <img class="img-company" src="../../img/espn.png" alt="Logo ESPN">
+                </div>
+                <h4 class="pt-8">2.69 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('bde2f935-401b-490e-b0c3-a788c5bbc946');">
+                    <img class="img-company" src="../../img/realtor.png" alt="Logo Realtor">
+                </div>
+                <h4 class="pt-8">2.47 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('ef2c3d68-a189-4166-9892-a2033055da63');">
+                    <img class="img-company" src="../../img/reddit.png" alt="Logo Reddit">
+                </div>
+                <h4 class="pt-8">2.44 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('ceb4a777-96bd-49fa-a78d-5135140dcf0f');">
+                    <img class="img-company" src="../../img/golem.png" alt="Logo Golem">
+                </div>
+                <h4 class="pt-8">2.34 x Faster</h4>
+            </div>
+        </div>
+        <div class="row p-16 pt-32 text-center hideOnDefault">
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('b72fb500-d605-41d9-af69-f2b420ee3987');">
+                    <img class="img-company" src="../../img/molsoncoors.png" alt="Logo MolsonCoors">
+                </div>
+                <h4 class="pt-8">2.30 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('db0e8bdc-3719-4183-bbb6-e512441ab773');">
+                    <img class="img-company" src="../../img/alibaba.png" alt="Logo Alibaba">
+                </div>
+                <h4 class="pt-8">2.20 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('ee047cc7-9dfb-4e85-bb53-40ee65bfe894');">
+                    <img class="img-company" src="../../img/condenast.png" alt="Logo conde Nast">
+                </div>
+                <h4 class="pt-8">1.66 x Faster</h4>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 mt-8">
+                <div class="img-container" onclick="handleTestExampleClick('6502bada-3f56-4ea5-b56f-9c818ec1b679');">
+                    <img class="img-company" src="../../img/tumblr.png" alt="Logo Tumblr">
+                </div>
+                <h4 class="pt-8">1.51 x Faster</h4>
+            </div>
+        </div>
+        <div class="row p-16 pt-32 pb-0 hideOnError">
+            <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 media-columns text-center">
+                <h4 class="noPadding">Your Website</h4>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 metric-column text-center hidden-md hidden-sm hidden-xs"></div>
+            <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 media-columns text-center">
+                <h4 class="noPadding">Your Website with Speed Kit</h4>
+            </div>
+        </div>
+        <div class="row p-16 pb-32 flex hideOnError">
+            <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 p-8 media-columns text-center">
+                <div id="competitor"></div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 metric-column text-center invisible hidden-md hidden-sm hidden-xs testResults">
+                {{> metric }}
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-6 col-md-6 col-xs-6 p-8 media-columns text-center">
+                <div id="speedKit"></div>
+            </div>
+        </div>
+        <div class="row text-center invisible hidden-lg testResults pb-32 hideOnError">
+            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-0"></div>
+            <div class="col-lg-8 col-md-8 col-sm-8 col-xs-12">
+                {{> metric }}
+            </div>
+            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-0"></div>
+        </div>
+        <div class="row printButtonContainer text-center hidden" id="printButton">
+            <div class="pb-32 hidden-md hidden-sm hidden-xs">
+                <button id="printReport" class="btn btn-blue btn-ghost">Print Report</button>
+            </div>
+        </div>
+        {{> print }}
+        {{> boostWorthiness }}
+        {{> wlist }}
     </div>
 </div>
 <div id="informationContent" class="hidden">

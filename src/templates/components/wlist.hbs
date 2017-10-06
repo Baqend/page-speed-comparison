@@ -1,10 +1,24 @@
-<div id="wList" class="row p-16">
+<div id="wList" class="row">
     <div id="wListConfig" class="row p-64-0 border-top text-center hidden">
         <div class="col-xs-12">
             <h3 class="p-0">Unexpected result?</h3>
-            <p id="servedRequestsInfo" class="font-weight-normal hidden">Speed Kit served <strong><span id="servedRequests"></span>%</strong> of all requests. Tell Speed Kit a comma-separated list of <strong>domains</strong> it should handle:</p>
-            <h4 class="font-weight-normal p-0 mt-16"></h4>
-            <form class="urlInput mt-24" id="formWhitelist">
+            <p class="font-weight-normal subhead mt-16">
+                <span id="servedRequestsInfo" class="hidden">Speed Kit served
+                    <strong>
+                        <span id="servedRequests"></span>%
+                    </strong>
+                    of all requests.
+                </span>
+                Tell Speed Kit a comma-separated list of <strong>domains</strong> it should handle:
+            </p>
+            <p id="whitelistCandidatesInfo" class="font-weight-normal subhead hidden">
+                You can find suggested domains for your website below.
+            </p>
+        </div>
+        <div id="whitelistCandidates" class="col-lg-10 col-lg-offset-2 col-md-10 col-md-offset-2
+            col-sm-12 col-sm-offset-0 col-xs-12 col-xs-offset-0 text-left checkbox-custom"></div>
+        <div class="col-xs-12 mt-32">
+            <form class="urlInput" id="formWhitelist">
                 <input type="text" id="wListInput" placeholder="Enter domains here...">
                 <button type="submit" class="search-button btn btn-orange btn-ghost">Go</button>
             </form>

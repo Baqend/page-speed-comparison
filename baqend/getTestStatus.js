@@ -9,7 +9,7 @@ exports.call = function(db, data, req) {
                 return {status: result};
             });
         } else {
-            return {error: 'Object not found'};
+            throw new Abort('Object not found');
         }
     })
 };

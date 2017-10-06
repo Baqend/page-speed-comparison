@@ -12,7 +12,7 @@ const ttl = 86000/2;
 exports.call = function (db, data, req) {
     //Check if IP is rate-limited
     if (Limiter.isRateLimited(req)) {
-        return {error: 'Too many requests!'};
+        throw new Abort({message: 'Too many requests', status: 429});
     }
 
     const testUrl = data.url;
@@ -64,21 +64,26 @@ exports.call = function (db, data, req) {
                 minimalResults: true
             });
 
-            return API.runTest(testUrl, prewarmOptions).then((testId) => {
+            return API.runTest(testUrl, prewarmOptions, db).then((testId) => {
                 return getPrewarmResult(db, testId);
             });
         }
     }).then(ttfb => {
         return API.runTestWithoutWait(testScript, testOptions).then(testId => {
+            db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
             testResult.testId = testId;
             testResult.save();
-            return API.waitOnTest(testId);
+            return API.waitOnTest(testId, db);
         }).then(testId => {
             return getTestResult(db, testResult, testId, ttfb);
         }).then(() => {
             db.log.info(`Test completed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}`);
         }).catch((e) => {
             db.log.warn(`Test failed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}\n\n${e.stack}`);
+            testResult.ready().then(() => {
+                testResult.testDataMissing = true;
+                testResult.save();
+            });
         });
     });
 
@@ -224,7 +229,6 @@ function createRun(data, ttfb, db) {
     run.lastVisualChange = data.lastVisualChange;
     run.speedIndex = data.SpeedIndex;
     run.requests = data.requests.length;
-    run.domains = Object.keys(data.domains).length;
     run.bytes = data.bytesIn;
     run.hits = new db.Hits(countHits(data));
     run.domElements = data.domElements;
@@ -236,5 +240,13 @@ function createRun(data, ttfb, db) {
     completeness.p99 = data.visualComplete99;
     completeness.p100 = data.visualComplete;
     run.visualCompleteness = completeness;
+
+    run.domains = [];
+    Object.keys(data.domains).forEach(key => {
+        const dummyObject = data.domains[key];
+        dummyObject.url = key;
+        run.domains.push(dummyObject);
+    });
+
     return run;
 }
