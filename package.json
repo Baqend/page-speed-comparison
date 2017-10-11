@@ -44,6 +44,7 @@
     "bootstrap": "^3.3.7",
     "clean-webpack-plugin": "^0.1.16",
     "jquery": ">=2.2.0",
+    "node-fetch": "^1.7.3",
     "webpack-merge": "^4.1.0",
     "whatwg-fetch": "^2.0.3"
   }

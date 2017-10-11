@@ -24,14 +24,17 @@ export function resetView() {
     $('#testStatus').addClass('hidden');
     $('#warningAlert').addClass('hidden');
     $('#showTestPool').addClass('hidden');
-    $('#servedRequestsInfo').addClass('hidden');
     $('#boostWorthiness').addClass('hidden');
+    $('#competitorLink').addClass('hidden');
+    $('#competitorLink').empty();
+    $('#speedKitLink').addClass('hidden');
+    $('#speedKitLink').empty();
     $('#info').removeClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#competitor').empty();
     $('#speedKit').empty();
     $('#whitelistCandidates').empty();
-    $('#whitelistCandidatesInfo').addClass('hidden');
+    $('#whitelist').addClass('hidden');
     $('#competitor-speedIndex').html('');
     $('#competitor-ttfb').html('');
     $('#competitor-dom').html('');
@@ -56,10 +59,11 @@ export function resetViewAfterTest() {
     $('#boostWorthiness').removeClass('hidden');
     $('#configInfo').removeClass('hidden');
     $('#printButton').removeClass('hidden');
-    $('#wListConfig').removeClass('hidden');
-    $('#servedRequestsInfo').removeClass('hidden');
+    $('#whitelist').removeClass('hidden');
     $('#testStatus').addClass('hidden');
     $('#runningInfo').addClass('hidden');
+    $('#competitorLink').removeClass('hidden');
+    $('#speedKitLink').removeClass('hidden');
 }
 
 export function resetViewAfterBadTestResult() {
@@ -68,7 +72,6 @@ export function resetViewAfterBadTestResult() {
     $('.hideOnError').addClass('hidden');
     $('.hideOnDefault').removeClass('hidden');
     $('.hideContact').removeClass('hidden');
-    $('#warningAlert').removeClass('hidden');
     $('#info').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
     $('#testStatus').addClass('hidden');
@@ -76,6 +79,13 @@ export function resetViewAfterBadTestResult() {
     $('#configInfo').removeClass('hidden');
     $('#competitor').empty();
     $('#speedKit').empty();
+    $('#boostWorthiness').addClass('hidden');
     $('#printButton').addClass('hidden');
-    $('#wListConfig').removeClass('hidden');
+}
+
+export function showExamples() {
+    resetView();
+    $('#compareContent').removeClass('hidden');
+    $('.hideOnError').addClass('hidden');
+    $('#informationContent').removeClass('hidden');
 }

@@ -43,22 +43,26 @@ export function createScannerElement() {
 /**
  * @return {HTMLButtonElement}
  */
-export function createLinkButton() {
-    const button = document.createElement('button');
-    button.setAttribute('id', 'openSpeedKitWebsite');
-    button.setAttribute('type', 'button');
-    button.setAttribute('class', 'btn openButton');
-    button.setAttribute('onclick', 'openSpeedKitLink()');
-    button.innerHTML = 'open in new tab';
-    return button;
+export function createLinkButton(targetUrl) {
+    const link = document.createElement('a');
+    const italic = document.createElement('i');
+    italic.setAttribute('class', 'fa fa-external-link');
+    italic.setAttribute('aria-hidden', 'true');
+    link.setAttribute('href', targetUrl);
+    link.setAttribute('style', 'color: #000000;');
+    link.setAttribute('target', '_blank');
+    link.appendChild(italic);
+
+    return link;
 }
 
 export function createWhitelistCandidates(domainArray, whitelist, totalRequestCount) {
     if( domainArray.length > 0 ) {
-        $('#whitelistCandidatesInfo').removeClass('hidden');
+        $('#whitelist').removeClass('hidden');
+        $('#wListInput').val(whitelist);
         domainArray.forEach((domainObject) => {
             const domainUrl = domainObject.url;
-            if(!document.getElementById(domainUrl)) {
+            if(!document.getElementById(domainUrl) && document.getElementById('whitelistCandidates').children.length < 6) {
                 const divContainer = document.createElement('div');
                 const checkbox = document.createElement('input');
                 const checkboxLabel = document.createElement('label');

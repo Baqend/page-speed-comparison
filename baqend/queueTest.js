@@ -2,6 +2,7 @@ const url = require('url');
 const API = require('./Pagetest').API;
 const credentials = require('./credentials');
 const Limiter = require('./rateLimiter');
+const AdBlocker = require('./adBlocker');
 const download = require('./download');
 const countHits = require('./countHits').countHits;
 const activityTimeout = 75;
@@ -165,9 +166,7 @@ function getTestResult(db, testResult, testId, ttfb) {
 
     return API.getTestResults(testId, options).then(result => {
         db.log.info('Saving test result for ' + testId, result.data);
-
-        createTestResult(testResult, result.data, ttfb, db);
-        return testResult.save();
+        return createTestResult(testResult, result.data, ttfb, db);
     }).then(ignored => {
         if(testResult.testDataMissing)
             throw new Error('Test Data Missing');
@@ -207,14 +206,21 @@ function createTestResult(testObject, testResult, ttfb, db) {
     testObject.location = testResult.location;
     testObject.url = testResult.testUrl;
     testObject.summaryUrl = testResult.summary;
-    testObject.firstView = createRun(testResult.runs['1'].firstView, ttfb, db);
-    testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
-    if (testResult.runs['1'].repeatView) {
-        testObject.repeatView = createRun(testResult.runs['1'].repeatView, ttfb, db);
-        testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
-    }
-    db.log.info('First and repeat view ', [testObject.firstView, testObject.repeatView]);
-    return testObject;
+
+    return createRun(testResult.runs['1'].firstView, ttfb, db).then((firstView) => {
+        testObject.firstView = firstView;
+        testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
+
+        if (!testResult.runs['1'].repeatView) {
+            return testObject.save();
+        }
+
+        return createRun(testResult.runs['1'].repeatView, ttfb, db).then(repeatView => {
+            testObject.repeatView = repeatView;
+            testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
+            return testObject.save();
+        });
+    });
 }
 
 function createRun(data, ttfb, db) {
@@ -242,11 +248,32 @@ function createRun(data, ttfb, db) {
     run.visualCompleteness = completeness;
 
     run.domains = [];
-    Object.keys(data.domains).forEach(key => {
-        const dummyObject = data.domains[key];
-        dummyObject.url = key;
-        run.domains.push(dummyObject);
-    });
 
-    return run;
+    return createDomainList(data, run);
+}
+
+function createDomainList(data, run) {
+    return AdBlocker.getAdSet().then((adSet) => {
+        for (const key of Object.keys(data.domains)) {
+            const domainObject = data.domains[key];
+
+            if(!isAdDomain(key, adSet)) {
+                domainObject.url = key;
+                run.domains.push(domainObject);
+            }
+        }
+
+        return run;
+    });
+}
+
+function isAdDomain(url, adSet) {
+    const index = url.indexOf('.');
+    if(index !== -1) {
+        if(adSet.has(url)) {
+            return true;
+        }
+        return isAdDomain(url.substr(index + 1), adSet);
+    }
+    return false;
 }

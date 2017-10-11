@@ -1,6 +1,7 @@
 import { createVideoElement, createLinkButton } from './UiElementCreator';
 import { formatFileSize } from './utils';
 import { roundToTenths, roundToHundredths } from './maths';
+import { getBaqendUrl } from './SpeedKitUrlService';
 
 /**
  * @param {{ caching: boolean }} testOptions
@@ -9,6 +10,8 @@ import { roundToTenths, roundToHundredths } from './maths';
 export function displayTestResultsById(testOptions, result) {
     const dataView = testOptions.caching ? 'repeatView' : 'firstView';
     const videoView = testOptions.caching ? 'videoFileRepeatView' : 'videoFileFirstView';
+    const competitorResult = result.competitorTestResult;
+    const speedKitResult = result.speedKitTestResult;
 
     $('.center-vertical').removeClass('center-vertical');
     $('.numberOfHosts').html(result.psiDomains);
@@ -23,34 +26,35 @@ export function displayTestResultsById(testOptions, result) {
 
     $('#compareContent').removeClass('hidden');
     $('#printButton').removeClass('hidden');
-    $('#wListConfig').removeClass('hidden');
-    $('#wListInput').val(result.whitelist);
-    $('#servedRequestsInfo').removeClass('hidden');
     $('#informationContent').removeClass('hidden');
     $('#boostWorthiness').removeClass('hidden');
     $('.infoBox').fadeOut(0);
     $('.hideOnDefault').addClass('hidden');
+    $('#competitorLink').empty();
+    $('#speedKitLink').empty();
+    $('#competitorLink').removeClass('hidden');
+    $('#speedKitLink').removeClass('hidden');
 
-    if (result.competitorTestResult.location.indexOf('us') !== -1) {
+    if (competitorResult.location.indexOf('us') !== -1) {
         $('#location_left').prop('checked', true);
     }
 
     $('#caching_left').prop('checked', result.caching);
 
-    displayTestResults('competitor', result.competitorTestResult[dataView], testOptions);
+    displayTestResults('competitor', competitorResult[dataView], testOptions);
     $('#competitor').empty().append(createVideoElement('video-competitor',
-        result.competitorTestResult[videoView].url));
+        competitorResult[videoView].url));
 
-    displayTestResults('speedKit', result.speedKitTestResult[dataView], testOptions);
-    $('#speedKit').empty().append(/^https/.test(result.competitorTestResult.url) ? createLinkButton() : '',
-        createVideoElement('video-speedKit', result.speedKitTestResult[videoView].url));
+    displayTestResults('speedKit', speedKitResult[dataView], testOptions);
 
-    calculateFactors(result.competitorTestResult[dataView], result.speedKitTestResult[dataView], testOptions);
-    $('#servedRequests').text(calculateServedRequests(result.speedKitTestResult.firstView));
+    if(/^https/.test(competitorResult.url)) {
+        $('#competitorLink').append(createLinkButton(competitorResult.url));
+        $('#speedKitLink').append(createLinkButton(getBaqendUrl(competitorResult.url, result.whitelist)));
+    }
 
-    calculateRevenueBoost(result.competitorTestResult[dataView], result.speedKitTestResult[dataView]);
+    $('#speedKit').empty().append(createVideoElement('video-speedKit', speedKitResult[videoView].url));
 
-    verifyWarningMessage();
+    calculateRevenueBoost(competitorResult[dataView], speedKitResult[dataView]);
 }
 
 /**
@@ -77,24 +81,48 @@ export function displayTestResults(elementId, data, testOptions) {
  * @param {Error} error
  */
 export function verifyWarningMessage(error) {
-    if(error && error.message.status === 429) {
-        $('#warningMessage').text('You reached the maximum number of running tests. Please wait at least one ' +
-            'minute until you start further tests!');
-    } else {
-        $('#warningMessage').text('While running the test an error occurred. Please retry the test or contact our ' +
-            'Web Performance Experts for further Information and Assistance!');
-    }
+    if(error) {
+        $('#warningMessage').text(() => {
+            switch (error.message) {
+                case 'Too many requests':
+                    return 'You reached the maximum number of running tests. Please wait at least one ' +
+                        'minute until you start further tests!';
+                case 'Baqend app detected':
+                    return 'Your website already uses baqend´s technology. Please choose another website ' +
+                        'to be tested!';
+                case 'Low served rate':
+                    return 'The number of resources served by the Speed Kit is quite low. Choose some of the suggested ' +
+                        'domains to improve the test result.';
+                case 'Bad result':
+                    return 'It looks like some fine-tuning or configuration is required to measure your site. Please contact our ' +
+                        'web performance experts for further information and assistance!';
+                default:
+                    return 'While running the test an error occurred. Please retry the test or contact our ' +
+                        'web performance experts for further information and assistance!';
+            }
+        });
 
-    $('#warningAlert').addClass('hidden');
+        $('#warningAlert').removeClass('hidden');
+    }
 }
 
 /**
  * @param {*} competitorData
- *  * @param {*} speedKitData
+ * @param {*} speedKitData
  */
-export function isBadTestResult(competitorData, speedKitData) {
-    const speedIndexFactor = roundToHundredths(competitorData.speedIndex / (speedKitData.speedIndex > 0 ? speedKitData.speedIndex : 1));
-    return speedIndexFactor < 1.2 || calculateServedRequests(speedKitData) < 20;
+export function isSpeedIndexSatisfactory(competitorData, speedKitData) {
+    if(competitorData.speedIndex > 0 && speedKitData.speedIndex > 0) {
+        const speedIndexFactor = roundToHundredths(competitorData.speedIndex / speedKitData.speedIndex );
+        return speedIndexFactor > 1.2;
+    }
+    return false;
+}
+
+/**
+ * @param {*} speedKitData
+ */
+export function isServedRateSatisfactory(speedKitData) {
+    return calculateServedRequests(speedKitData) > 20;
 }
 
 /**

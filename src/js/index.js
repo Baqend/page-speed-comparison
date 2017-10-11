@@ -1,8 +1,9 @@
 import { formatFileSize, sleep, isDeviceIOS, sortArray, getParameterByName } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
-import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult } from './ResetVariablesService';
+import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult, showExamples } from './ResetVariablesService';
 import { getBaqendUrl, getHostnameOfUrl } from './SpeedKitUrlService';
-import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isBadTestResult, calculateRevenueBoost, verifyWarningMessage} from './TestResultHandler';
+import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isServedRateSatisfactory, isSpeedIndexSatisfactory,
+    calculateRevenueBoost, verifyWarningMessage} from './TestResultHandler';
 import { createImageElement, createLinkButton, createScannerElement, createVideoElement, createWhitelistCandidates } from './UiElementCreator';
 
 import "bootstrap";
@@ -41,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Simplified version for report view
     if (REPORT_PAGE) {
         $('#testConfiguration').remove();
-        $('#wList').remove();
+        $('#whitelist').remove();
     }
 
     title = $('title').text();
@@ -108,14 +109,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $('#showTestPool').on('click', () => {
         $('#showTestPool').addClass('hidden');
+        $('#boostWorthiness').addClass('hidden');
+        $('#printButton').addClass('hidden');
         $('.hideOnError').addClass('hidden');
         $('.hideOnDefault').removeClass('hidden');
     });
 });
 
 window.addEventListener("popstate", () => {
-    if (db.isReady)
-        initTest();
+    history.pushState(null, document.title, location.href);
 });
 
 /**
@@ -157,11 +159,6 @@ window.playVideos = (videoElement) => {
     videoElement.play();
 };
 
-window.openSpeedKitLink = () => {
-    const win = window.open(getBaqendUrl(competitorUrl, $('#wListInput').val()), '_blank');
-    win.focus();
-};
-
 window.handleTestExampleClick = (testId) => {
     history.pushState({}, title, '/?testId=' + testId);
     $('#showTestPool').removeClass('hidden');
@@ -187,37 +184,88 @@ window.whitelistCandidateClicked = (elementId) => {
 
 function initTest() {
     const testIdParam = getParameterByName('testId');
+    let dataView;
+    let competitorResult;
+    let speedKitResult;
+    let whitelist;
+
     if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
         db.TestOverview.load(testIdParam, { depth: 1 }).then((result) => {
-            if (result) {
-                const dataView = result.caching ? 'repeatView' : 'firstView';
-                competitorUrl = result.competitorTestResult.url;
-                $('#currentVendorUrl').val(competitorUrl);
+            if (!result || !result.competitorTestResult || !result.speedKitTestResult)
+                throw new Error();
+
+            dataView = result.caching ? 'repeatView' : 'firstView';
+            competitorResult = result.competitorTestResult;
+            speedKitResult = result.speedKitTestResult;
+            whitelist = result.whitelist;
+
+            competitorUrl = result.competitorTestResult.url;
+            $('#currentVendorUrl').val(competitorUrl);
+
+            if(!competitorResult[dataView] || !speedKitResult[dataView])
+                throw new Error();
+
+            //if speed index is satisfactory ==> show the test result and a list of suggested domains
+            //else don´t show test result but an error message
+            if(isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
+                testOptions.speedKit = result.speedKit;
+                testOptions.caching = result.caching;
+                testOptions.location = competitorResult.location;
+
+                displayTestResultsById(testOptions, result);
+
+                calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
+                $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
+
+                //if served rate is not satisfactory ==> show warning message and list of suggested domains
+                //else don´t do anything
+                if(!isServedRateSatisfactory(speedKitResult[dataView]))
+                    verifyWarningMessage(new Error('Low served rate'));
 
                 //handle whitelist candidates and add them to the UI
-                handleWhitelistCandidates(result.competitorTestResult[dataView], result.whitelist);
+                handleWhitelistCandidates(competitorResult[dataView], whitelist);
 
-                if(result.speedKitTestResult && !isBadTestResult(result.competitorTestResult[dataView],
-                        result.speedKitTestResult[dataView])) {
-                    testOptions.speedKit = result.speedKit;
-                    testOptions.caching = result.caching;
-                    testOptions.location = result.competitorTestResult.location;
-
-                    try {
-                        displayTestResultsById(testOptions, result);
-                    } catch(e) {
-                        showComparisonError(e);
-                    }
-                } else {
-                    showComparisonError(new Error('This is a bad result'));
-                }
+            } else {
+                throw new Error('Bad result');
             }
-        });
+
+            //if served rate is not satisfactory ==> show warning message and list of suggested domains
+            //else don´t do anything
+            if(!isServedRateSatisfactory(speedKitResult[dataView])) {
+                calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
+                $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
+
+                //handle whitelist candidates and add them to the UI
+                handleWhitelistCandidates(competitorResult[dataView], whitelist);
+
+                verifyWarningMessage(new Error('Low served rate'));
+            }
+        }).catch(e => {
+            if(e.message === 'Bad result') {
+                //if served rate is not satisfactory ==> show warning message and list of suggested domains
+                //else don´t do anything
+                if(!isServedRateSatisfactory(speedKitResult[dataView])) {
+                    //handle whitelist candidates and add them to the UI
+                    handleWhitelistCandidates(competitorResult[dataView], whitelist);
+                    $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
+                    e.message = 'Low served rate';
+                }
+                verifyWarningMessage(e);
+                resetViewAfterBadTestResult();
+            } else {
+                showComparisonError(e);
+            }
+        })
     }
 
-    const url = getParameterByName("url");
+    const url = getParameterByName('url');
     if (url) {
         submitComparison(url);
+    }
+
+    const examples = getParameterByName('examples');
+    if (examples) {
+        showExamples();
     }
 }
 
@@ -233,7 +281,11 @@ async function submitComparison(url) {
         const normalizedResult = await normalizeUrl(url);
 
         $currentVendorUrl.val(normalizedResult.url);
-        return initComparison(normalizedResult);
+        if(!normalizedResult.isBaqendApp) {
+            return initComparison(normalizedResult);
+        } else {
+            return showComparisonError(new Error('Baqend app detected'));
+        }
     } catch (e) {
         showComparisonError(e);
     }
@@ -283,15 +335,8 @@ async function initComparison(normalizedUrl) {
     testOverview.whitelist = $wListInput.val();
 
     try {
-        const [pageSpeedResult, competitorResult, speedKitResult] = await Promise.all([
-            //Call Page Speed Insights
-            callPageSpeedInsightsAPI(competitorUrl).catch(() => {
-                const carousel = $('.carousel').carousel({ interval: false, wrap: false });
-                carousel.carousel(4);
-                pageSpeedInsightFailed = true;
-                updateTestStatus();
-            }),
-            // Test the competitor's site
+        const [competitorResult, speedKitResult] = await Promise.all([
+            // Test the competitor site
             db.modules.post('queueTest', {
                 url: competitorUrl,
                 activityTimeout,
@@ -300,7 +345,7 @@ async function initComparison(normalizedUrl) {
                 isClone: false,
                 caching: testOptions.caching,
             }),
-            // Test the Makefast's site
+            // Test the Makefast site
             db.modules.post('queueTest', {
                 url: speedKitUrl,
                 activityTimeout,
@@ -308,9 +353,15 @@ async function initComparison(normalizedUrl) {
                 location: testOptions.location,
                 isClone: true,
                 caching: testOptions.caching,
-            }),
+            })
         ]);
+    } catch (e) {
+        showComparisonError(e);
+        return;
+    }
 
+    try {
+        const pageSpeedResult = await callPageSpeedInsightsAPI(competitorUrl);
         statusText.carousel(1);
         const screenShot = pageSpeedResult.screenshot;
         setPageSpeedMetrics(pageSpeedResult);
@@ -328,14 +379,14 @@ async function initComparison(normalizedUrl) {
 
         if (now === testInstance) {
             statusText.carousel(4);
-            updateTestStatus(competitorResult.baqendId);
+            getTestStatus(competitorResult.baqendId);
         }
         await sleep(1000);
 
         if (now === testInstance) {
             $('#compareContent').removeClass('hidden');
             //check whether the container elements don´t have any content (e.g. video already created)
-            if($competitor.children().length < 1 && $speedKit.children().length < 1) {
+            if ($competitor.children().length < 1 && $speedKit.children().length < 1) {
                 $competitor.append(createImageElement(screenShot),
                     createScannerElement());
 
@@ -345,10 +396,13 @@ async function initComparison(normalizedUrl) {
 
             await sleep(2000);
             //subscribe on the test results
-            subscribeOnResult(competitorResult.baqendId, speedKitResult.baqendId)
+            subscribeOnResult(competitorResult.baqendId, speedKitResult.baqendId);
         }
     } catch (error) {
-        showComparisonError(error);
+        statusText.carousel(4);
+        pageSpeedInsightFailed = true;
+        getTestStatus(competitorResult.baqendId);
+        subscribeOnResult(competitorResult.baqendId, speedKitResult.baqendId);
     }
 }
 
@@ -371,7 +425,7 @@ function subscribeOnResult(competitorBaqendId, speedKitBaqendId) {
 /**
  * @param {string} competitorBaqendId
  */
-function updateTestStatus(competitorBaqendId) {
+function getTestStatus(competitorBaqendId) {
     const interval = setInterval(function () {
         if (competitorBaqendId) {
             try {
@@ -408,33 +462,42 @@ function resultStreamUpdate(result, subscription, elementId) {
             testOverview[elementId + 'TestResult'] = entry;
         }
 
-        if (!entry.testDataMissing) {
+        try {
+            if (entry.testDataMissing)
+                throw new Error('test data missing');
+
             if (entry[dataView]) {
                 testResult[elementId] = entry;
                 if (Object.keys(testResult).length === 2) {
-                    //handle whitelist candidates and add them to the UI
-                    handleWhitelistCandidates(testResult['competitor'][dataView], testOverview.whitelist);
+                    //if speed index is satisfactory ==> show the test result and a list of suggested domains
+                    //else don´t show test result but an error message
+                    if(isSpeedIndexSatisfactory(testResult['competitor'][dataView], testResult['speedKit'][dataView])) {
+                        displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
+                        displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
+                        calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
+                        calculateRevenueBoost(testResult['competitor'][dataView], testResult['speedKit'][dataView]);
 
-                    //check if the result is unsatisfactory ==> show information view instead of test result
-                    if(isBadTestResult(testResult['competitor'][dataView], testResult['speedKit'][dataView])) {
-                        showComparisonError(new Error('This is a bad result'));
-                        return;
-                    }
+                        //compensate missing psi metrics with wpt metrics
+                        if (pageSpeedInsightFailed) {
+                            const pageSpeedMetrics = {
+                                domains: testResult['competitor']['firstView'].domains.length,
+                                requests: testResult['competitor']['firstView'].requests,
+                                bytes: testResult['competitor']['firstView'].bytes
+                            };
+                            setPageSpeedMetrics(pageSpeedMetrics);
+                            $('#compareContent').removeClass('hidden');
+                        }
 
-                    displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
-                    displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
-                    calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
-                    calculateRevenueBoost(testResult['competitor'][dataView], testResult['speedKit'][dataView]);
-                    $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
+                        //if served rate is not satisfactory ==> show warning message and list of suggested domains
+                        //else don´t do anything
+                        if(!isServedRateSatisfactory(testResult['speedKit'][dataView]))
+                            verifyWarningMessage(new Error('Low served rate'));
 
-                    if (pageSpeedInsightFailed) {
-                        const pageSpeedMetrics = {
-                            domains: testResult['competitor']['firstView'].domains.length,
-                            requests: testResult['competitor']['firstView'].requests,
-                            bytes: testResult['competitor']['firstView'].bytes
-                        };
-                        setPageSpeedMetrics(pageSpeedMetrics);
-                        $('#compareContent').removeClass('hidden');
+                        //handle whitelist candidates and add them to the UI
+                        handleWhitelistCandidates(testResult['competitor'][dataView], testOverview.whitelist);
+                        $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
+                    } else {
+                        throw new Error('Bad result');
                     }
                 }
             }
@@ -453,15 +516,29 @@ function resultStreamUpdate(result, subscription, elementId) {
 
                     //create "open in new tab" button only if the original website has SSL
                     if(/^https/.test(competitorUrl)) {
-                        speedKitElement.append(createLinkButton());
+                        $('#competitorLink').append(createLinkButton(competitorUrl));
+                        $('#speedKitLink').append(createLinkButton(getBaqendUrl(competitorUrl, testOverview.whitelist)));
                     }
 
                     resetViewAfterTest();
                 }
                 subscription.unsubscribe();
             }
-        } else {
-            showComparisonError(new Error('test data missing'));
+        } catch(e) {
+            if(e.message === 'Bad result') {
+                //if served rate is not satisfactory ==> show warning message and list of suggested domains
+                //else don´t do anything
+                if(!isServedRateSatisfactory(testResult['speedKit'][dataView])) {
+                    //handle whitelist candidates and add them to the UI
+                    handleWhitelistCandidates(testResult['competitor'][dataView], testOverview.whitelist);
+                    $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
+                    e.message = 'Low served rate';
+                }
+                verifyWarningMessage(e);
+                resetViewAfterBadTestResult();
+            } else {
+                showComparisonError(e);
+            }
         }
 
         testOverview.ready().then(() => {
@@ -509,16 +586,20 @@ function resetComparison() {
 }
 
 function handleWhitelistCandidates(resultData, whitelist) {
-    const sortedDomains = sortArray(resultData, 'domains');
-    const totalRequestCount = resultData.requests;
+    if( resultData.domains ) {
+        const sortedDomains = sortArray(resultData, 'domains');
+        const totalRequestCount = resultData.requests;
 
-    let hostname = getHostnameOfUrl(competitorUrl);
-    if (hostname.includes('www.')) {
-        hostname = hostname.substr(hostname.indexOf('www.') + 4);
+        let hostname = getHostnameOfUrl(competitorUrl);
+        if ( hostname.includes('www.') ) {
+            hostname = hostname.substr(hostname.indexOf('www.') + 4);
+        }
+
+        createWhitelistCandidates(sortedDomains
+            .filter(domainObject => {
+                return domainObject.url.indexOf(hostname) === -1;
+            })
+            .splice(0,6), whitelist, totalRequestCount
+        );
     }
-
-    createWhitelistCandidates(sortedDomains
-        .filter(domainObject => domainObject.url.indexOf(hostname) === -1 )
-        .splice(0,6), whitelist, totalRequestCount
-    );
 }
