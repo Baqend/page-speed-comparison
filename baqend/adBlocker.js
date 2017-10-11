@@ -1,27 +1,31 @@
 const fetch = require('node-fetch');
 
+const AD_SERVER_URL = 'https://raw.githubusercontent.com/easylist/easylist/master/easylist/easylist_adservers.txt';
 let adHosts;
 
 /**
- * Checks if an IP address is rate-limited.
+ * Returns all domains that are ads.
  *
- * @returns {boolean} true if the domain is a ad domain
+ * @returns {Promise<Set<string>>} A set of ad domain strings
  */
-exports.getAdSet = () => {
+function getAdSet() {
     if (adHosts) {
         return Promise.resolve(adHosts);
     }
 
-    return loadAdList().then(adSet => {
+    return loadAdSet().then((adSet) => {
         adHosts = adSet;
         return adSet;
     });
 }
 
-function loadAdList() {
-    return fetch('https://raw.githubusercontent.com/easylist/easylist/master/easylist/easylist_adservers.txt').then(resp => {
+/**
+ * @return {Promise<Set<string>>} A set of ad domain strings
+ */
+function loadAdSet() {
+    return fetch(AD_SERVER_URL).then((resp) => {
         return resp.text();
-    }).then(text => {
+    }).then((text) => {
         const lines = text.split('\n')
             .filter(line => line.startsWith('||'))
             .map(line => line.substring(2, line.indexOf('^$')));
@@ -29,3 +33,5 @@ function loadAdList() {
         return new Set(lines);
     });
 }
+
+exports.getAdSet = getAdSet;

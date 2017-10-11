@@ -47,4 +47,5 @@ function toFile(db, url, target, maxRetries = 10) {
         });
     });
 }
+
 exports.toFile = toFile;
