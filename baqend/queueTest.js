@@ -86,7 +86,7 @@ function startTest(
             });
 
             return API.runTest(testUrl, prewarmOptions, db).then((testId) => {
-                return getPrewarmResult(db, testId);
+                return getPrewarmResult(db, testId, isSpeedKitComparison);
             });
         }
     }).then((ttfb) => {
@@ -166,14 +166,14 @@ function createTestScript(testUrl, isClone, isCachingDisabled = true, activityTi
  * @param db
  * @param {string} testId
  */
-function getPrewarmResult(db, testId) {
+function getPrewarmResult(db, testId, isSpeedKitComparison) {
     return API.getTestResults(testId, {
         requests: false,
         breakdown: false,
         domains: false,
         pageSpeed: false,
     }).then((result) => {
-        const ttfb = result.data.runs['1'].firstView.TTFB;
+        const ttfb = isSpeedKitComparison ? result.data.runs['2'].firstView.TTFB : result.data.runs['1'].firstView.TTFB;
         db.log.info('TTFB of prewarm: ' + ttfb + ' with testId ' + testId, result.data.runs['1'].firstView);
         return ttfb;
     });
