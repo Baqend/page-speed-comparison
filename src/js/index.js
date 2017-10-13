@@ -222,6 +222,18 @@ function initTest() {
                 if(!isServedRateSatisfactory(speedKitResult[dataView]))
                     verifyWarningMessage(new Error('Low served rate'));
 
+                //check whether the speed index should be replaced by the first meaningful paint
+                if(shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])) {
+                    $('.showSpeedIndex').addClass('hidden');
+                    $('.showFirstMeaningfulPaint').removeClass('hidden');
+                    verifyWarningMessage(new Error('Show FMC'));
+                    calculateRevenueBoost(competitorResult[dataView].firstMeaningfulPaint, speedKitResult[dataView].firstMeaningfulPaint);
+                } else {
+                    $('.showSpeedIndex').removeClass('hidden');
+                    $('.showFirstMeaningfulPaint').addClass('hidden');
+                    calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
+                }
+
                 //handle whitelist candidates and add them to the UI
                 handleWhitelistCandidates(competitorResult[dataView], whitelist);
 
@@ -469,33 +481,46 @@ function resultStreamUpdate(result, subscription, elementId) {
             if (entry[dataView]) {
                 testResult[elementId] = entry;
                 if (Object.keys(testResult).length === 2) {
+                    const competitorResult = testResult['competitor'];
+                    const speedKitResult = testResult['speedKit'];
                     //if speed index is satisfactory ==> show the test result and a list of suggested domains
                     //else don´t show test result but an error message
-                    if(isSpeedIndexSatisfactory(testResult['competitor'][dataView], testResult['speedKit'][dataView])) {
-                        displayTestResults('competitor', testResult['competitor'][dataView], testOptions);
-                        displayTestResults('speedKit', testResult['speedKit'][dataView], testOptions);
-                        calculateFactors(testResult['competitor'][dataView], testResult['speedKit'][dataView], testOptions);
-                        calculateRevenueBoost(testResult['competitor'][dataView], testResult['speedKit'][dataView]);
+                    if(isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
+                        displayTestResults('competitor', competitorResult[dataView], testOptions);
+                        displayTestResults('speedKit', speedKitResult[dataView], testOptions);
+                        calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
 
                         //compensate missing psi metrics with wpt metrics
                         if (pageSpeedInsightFailed) {
                             const pageSpeedMetrics = {
-                                domains: testResult['competitor']['firstView'].domains.length,
-                                requests: testResult['competitor']['firstView'].requests,
-                                bytes: testResult['competitor']['firstView'].bytes
+                                domains: competitorResult.firstView.domains.length,
+                                requests: competitorResult.firstView.requests,
+                                bytes: competitorResult.firstView.bytes
                             };
                             setPageSpeedMetrics(pageSpeedMetrics);
                             $('#compareContent').removeClass('hidden');
                         }
 
+                        //check whether the speed index should be replaced by the first meaningful paint
+                        if(shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])) {
+                            $('.showSpeedIndex').addClass('hidden');
+                            $('.showFirstMeaningfulPaint').removeClass('hidden');
+                            verifyWarningMessage(new Error('Show FMC'));
+                            calculateRevenueBoost(competitorResult[dataView].firstMeaningfulPaint, speedKitResult[dataView].firstMeaningfulPaint);
+                        } else {
+                            $('.showSpeedIndex').removeClass('hidden');
+                            $('.showFirstMeaningfulPaint').addClass('hidden');
+                            calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
+                        }
+
                         //if served rate is not satisfactory ==> show warning message and list of suggested domains
                         //else don´t do anything
-                        if(!isServedRateSatisfactory(testResult['speedKit'][dataView]))
+                        if(!isServedRateSatisfactory(speedKitResult[dataView]))
                             verifyWarningMessage(new Error('Low served rate'));
 
                         //handle whitelist candidates and add them to the UI
-                        handleWhitelistCandidates(testResult['competitor'][dataView], testOverview.whitelist);
-                        $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
+                        handleWhitelistCandidates(competitorResult[dataView], testOverview.whitelist);
+                        $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
                     } else {
                         throw new Error('Bad result');
                     }
@@ -585,6 +610,21 @@ function resetComparison() {
     history.pushState({}, title, "/");
 }
 
+function shouldShowFirstMeaningfulPaint(competitorResult, speedKitResult) {
+    //competitor fully loaded minus competitor time to first byte ist bigger than ten seconds
+    const firstCondition = competitorResult.fullyLoaded - competitorResult.ttfb > 10000;
+
+    //speed kit served requests are 20% less than competitors served requests (exclude failed requests)
+    const secondCondition = (speedKitResult.requests - speedKitResult.failedRequests) / (competitorResult.requests - competitorResult.failedRequests) <= 0.8;
+
+    //speed kit's (last visual change - fully loaded) /(max. of both values) is 20% bigger than the one of the competitor
+    const competitorNum = (competitorResult.lastVisualChange - competitorResult.fullyLoaded) / (Math.max(competitorResult.lastVisualChange, competitorResult.fullyLoaded));
+    const speedKitNum = (speedKitResult.lastVisualChange - speedKitResult.fullyLoaded) / (Math.max(speedKitResult.lastVisualChange, speedKitResult.fullyLoaded));
+    const thirdCondition = competitorNum > 0 && speedKitNum > 0 ? (speedKitNum / competitorNum) >= 1.2 : false;
+
+    return firstCondition || secondCondition || thirdCondition;
+}
+
 function handleWhitelistCandidates(resultData, whitelist) {
     if( resultData.domains ) {
         const sortedDomains = sortArray(resultData, 'domains');
@@ -597,7 +637,7 @@ function handleWhitelistCandidates(resultData, whitelist) {
 
         createWhitelistCandidates(sortedDomains
             .filter(domainObject => {
-                return domainObject.url.indexOf(hostname) === -1;
+                return domainObject.url.indexOf(hostname) === -1 && !domainObject.isAdDomain;
             })
             .splice(0,6), whitelist, totalRequestCount
         );

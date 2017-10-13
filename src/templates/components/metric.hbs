@@ -1,18 +1,40 @@
-<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-    <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
-         title="Represents how quickly the page rendered the user-visible content.">
-        <span class="primaryFactor speedIndex-factor"></span>
-    </div>
-</div>
-<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 primaryCol pb-16 mb-16 border-bottom">
-    <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-speedIndex" style="font-weight: 600;"></div>
-    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+<div class="showSpeedIndex">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
              title="Represents how quickly the page rendered the user-visible content.">
-            Speed Index
+            <span class="primaryFactor speedIndex-factor"></span>
         </div>
     </div>
-    <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 speedKit-speedIndex" style="font-weight: 600;"></div>
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 primaryCol pb-16 mb-16 border-bottom">
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-speedIndex" style="font-weight: 600;"></div>
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+            <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                 title="Represents how quickly the page rendered the user-visible content.">
+                Speed Index
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 speedKit-speedIndex" style="font-weight: 600;"></div>
+    </div>
+</div>
+
+<div class="showFirstMeaningfulPaint hidden">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+             title="Represents the time when a page's primary content appears on the screen.">
+            <span class="primaryFactor firstMeaningfulPaint-factor"></span>
+        </div>
+    </div>
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-16 mb-16 border-bottom secondaryCol">
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-firstMeaningfulPaint"></div>
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+            <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                 title="Represents the time when a page's primary content appears on the screen.">
+                <!-- First Meaningful Paint -->
+                First Meaningful Paint
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 speedKit-firstMeaningfulPaint" style="font-weight: 600;"></div>
+    </div>
 </div>
 
 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -89,7 +111,3 @@
     </div>
     <div class="col-lg-3 speedKit-lastVisualChange"></div>
 </div>
-
-<!-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mt-20 hidden-md hidden-sm hidden-xs">
-    <button class="btn btn-blue btn-ghost" onclick="printReport()">Print Report</button>
-</div> -->

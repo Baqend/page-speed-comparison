@@ -53,8 +53,6 @@ export function displayTestResultsById(testOptions, result) {
     }
 
     $('#speedKit').empty().append(createVideoElement('video-speedKit', speedKitResult[videoView].url));
-
-    calculateRevenueBoost(competitorResult[dataView], speedKitResult[dataView]);
 }
 
 /**
@@ -65,6 +63,7 @@ export function displayTestResultsById(testOptions, result) {
 export function displayTestResults(elementId, data, testOptions) {
     const lastVisualChange = roundToTenths((data.lastVisualChange / 1000) % 60);
     $('.' + elementId + '-speedIndex').html(data.speedIndex + 'ms');
+    $('.' + elementId + '-firstMeaningfulPaint').html(data.firstMeaningfulPaint + 'ms');
     $('.' + elementId + '-dom').html(data.domLoaded + 'ms');
     $('.' + elementId + '-fullyLoaded').html(data.fullyLoaded + 'ms');
     $('.' + elementId + '-lastVisualChange').html(Math.round(lastVisualChange * 100) / 100 + 's');
@@ -96,6 +95,9 @@ export function verifyWarningMessage(error) {
                 case 'Bad result':
                     return 'It looks like some fine-tuning or configuration is required to measure your site. Please contact our ' +
                         'web performance experts for further information and assistance!';
+                case 'Show FMC':
+                    return 'Because your website uses a lot of asynchronous resources, we replaced the speed index metric ' +
+                        'by the first meaningful paint!';
                 default:
                     return 'While running the test an error occurred. Please retry the test or contact our ' +
                         'web performance experts for further information and assistance!';
@@ -147,8 +149,11 @@ export function calculateServedRequests(data) {
  * @param {{ caching: boolean }} testOptions
  */
 export function calculateFactors(competitorResult, speedKitResult, testOptions) {
-    const speedIndexFactor = calculateSpeedIndexFactor(competitorResult.speedIndex, speedKitResult.speedIndex);
+    const speedIndexFactor = calculateFactor(competitorResult.speedIndex, speedKitResult.speedIndex);
     $('.speedIndex-factor').html(speedIndexFactor + 'x ' + (speedIndexFactor > 1 ? 'Faster' : ''));
+
+    const firstMeaningfulPaint = roundToHundredths(competitorResult.firstMeaningfulPaint / (speedKitResult.firstMeaningfulPaint > 0 ? speedKitResult.firstMeaningfulPaint : 1));
+    $('.firstMeaningfulPaint-factor').html(firstMeaningfulPaint + 'x ' + (firstMeaningfulPaint > 1 ? 'Faster' : ''));
 
     const domFactor = roundToHundredths(competitorResult.domLoaded / (speedKitResult.domLoaded > 0 ? speedKitResult.domLoaded : 1));
     $('.dom-factor').html(domFactor + 'x ' + (domFactor > 1 ? 'Faster' : ''));
@@ -168,24 +173,24 @@ export function calculateFactors(competitorResult, speedKitResult, testOptions) 
 }
 
 /**
- * @param {number} competitorSpeedIndex
- * @param {number} speedKitSpeedIndex
+ * @param {number} competitorValue
+ * @param {number} speedKitValue
  */
-export function calculateSpeedIndexFactor(competitorSpeedIndex, speedKitSpeedIndex) {
-    return roundToHundredths(competitorSpeedIndex / (speedKitSpeedIndex > 0 ? speedKitSpeedIndex : 1));
+export function calculateFactor(competitorValue, speedKitValue) {
+    return roundToHundredths(competitorValue / (speedKitValue > 0 ? speedKitValue : 1));
 }
 
 /**
- * @param {*} competitorData
- * @param {*} speedKitData
+ * @param {*} competitorValue
+ * @param {*} speedKitValue
  */
-export function calculateRevenueBoost(competitorData, speedKitData) {
-    const speedIndexFactor = calculateSpeedIndexFactor(competitorData.speedIndex, speedKitData.speedIndex);
-    $('.boostValue').text(speedIndexFactor);
+export function calculateRevenueBoost(competitorValue, speedKitValue) {
+    const factor = calculateFactor(competitorValue, speedKitValue);
+    $('.boostValue').text(factor);
 
-    const publisherRevenue = Math.round((1/((19/5) - 1)*(speedIndexFactor - 1) + 1) * 100 - 100);
+    const publisherRevenue = Math.round((1/((19/5) - 1)*(factor - 1) + 1) * 100 - 100);
     $('.publisherRevenue').text(publisherRevenue + '%');
 
-    const eCommerceRevenue = Math.round((competitorData.speedIndex - speedKitData.speedIndex) * 0.01);
+    const eCommerceRevenue = Math.round((competitorValue - speedKitValue) * 0.01);
     $('.eCommerceRevenue').text(eCommerceRevenue + '%');
 }

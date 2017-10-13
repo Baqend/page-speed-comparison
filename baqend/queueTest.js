@@ -60,7 +60,7 @@ function startTest(
         tcpDump: false,
         timeline: true, //TODO: only for debugging
         priority: 0,
-        duration: 1, //capture at least one second
+        minimumDuration: 1, //capture at least one second
         chromeTrace: false,
         netLog: false,
         disableHTTPHeaders: true,
@@ -280,6 +280,7 @@ function createTestResult(db, testObject, testResult, ttfb) {
  */
 function createRun(db, data, ttfb) {
     const run = new db.Run();
+    const firstMeaningfulPaintObject = data.chromeUserTiming.reverse().find(entry => { return entry.name === 'firstMeaningfulPaintCandidate' });
     run.loadTime = data.loadTime;
     run.ttfb = ttfb ? ttfb : data.TTFB;
     run.domLoaded = data.domContentLoadedEventStart;
@@ -289,7 +290,9 @@ function createRun(db, data, ttfb) {
     run.startRender = data.render;
     run.lastVisualChange = data.lastVisualChange;
     run.speedIndex = data.SpeedIndex;
+    run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
     run.requests = data.requests.length;
+    run.failedRequests = createFailedRequestsCount(data);
     run.bytes = data.bytesIn;
     run.hits = new db.Hits(countHits(data));
     run.domElements = data.domElements;
@@ -307,15 +310,23 @@ function createRun(db, data, ttfb) {
     return createDomainList(data, run);
 }
 
+function createFailedRequestsCount(data) {
+    let failedRequests = 0;
+    data.requests.forEach(request => {
+        if(request.responseCode >= 400)
+            failedRequests++;
+    });
+
+    return failedRequests;
+}
+
 function createDomainList(data, run) {
     return getAdSet().then((adSet) => {
         for (const key of Object.keys(data.domains)) {
             const domainObject = data.domains[key];
-
-            if (!isAdDomain(key, adSet)) {
-                domainObject.url = key;
-                run.domains.push(domainObject);
-            }
+            domainObject.isAdDomain = isAdDomain(key, adSet);
+            domainObject.url = key;
+            run.domains.push(domainObject);
         }
 
         return run;
