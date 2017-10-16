@@ -28,7 +28,7 @@
     text-align: center !important;
   }
 
-  #wList {
+  #whitelist {
     display: none !important;
   }
 
@@ -37,6 +37,10 @@
   }
 
   #boostWorthiness {
+    display: none;
+  }
+
+  #warningAlert {
     display: none;
   }
 
