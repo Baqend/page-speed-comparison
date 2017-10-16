@@ -17,7 +17,7 @@ exports.call = function (db, data, req) {
     }
 
     const { url, location, isClone, caching, isSpeedKitComparison, activityTimeout } = data;
-
+db.log.info(isSpeedKitComparison);
     const baqendId = startTest(db, url, location, isClone, !caching, activityTimeout, isSpeedKitComparison);
     return { baqendId };
 };

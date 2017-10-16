@@ -26,14 +26,10 @@ export function getBaqendUrl(originalUrl, whitelistStr) {
  * @return {string} A string representing the rules.
  */
 export function generateRules(originalUrl, whitelist) {
-    let hostname = getHostnameOfUrl(originalUrl);
-    // Remove "www" in the beginning
-    if (hostname.includes('www.')) {
-        hostname = hostname.substr(hostname.indexOf('www.') + 4);
-    }
+    const domain = getTLD(originalUrl);
 
     // Replace TLD with a wildcard
-    const host = [`regexp:/^(?:[\\w-]*\\.){0,3}${hostname.substr(0, hostname.indexOf('.'))}\\./`];
+    const host = [`regexp:/^(?:[\\w-]*\\.){0,3}${domain}/`];
 
     // Create parts for the regexp
     if (whitelist.length) {
@@ -45,16 +41,25 @@ export function generateRules(originalUrl, whitelist) {
 }
 
 /**
- * Extracts the hostname of a URL.
+ * Extracts the top level domain of a URL.
  *
  * @param {string} url The URL to extract the hostname of.
  * @return {string} The extracted hostname.
  */
-export function getHostnameOfUrl(url) {
+export function getTLD(url) {
     const dummyElement = document.createElement('a');
     dummyElement.href = url;
 
-    return dummyElement.hostname;
+    let hostname = dummyElement.hostname;
+    // Remove "www" in the beginning
+    if (hostname.includes('www.')) {
+        hostname = hostname.substr(hostname.indexOf('www.') + 4);
+    }
+
+    const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
+    const [, domain] = domainFilter.exec(hostname);
+
+    return domain;
 }
 
 /**

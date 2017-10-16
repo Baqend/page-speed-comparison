@@ -188,7 +188,7 @@ export function calculateRevenueBoost(competitorValue, speedKitValue) {
     const factor = calculateFactor(competitorValue, speedKitValue);
     $('.boostValue').text(factor);
 
-    const publisherRevenue = Math.round((1/((19/5) - 1)*(factor - 1) + 1) * 100 - 100);
+    const publisherRevenue = Math.round(((competitorValue - speedKitValue) / (19000 - 5000)) * 100);
     $('.publisherRevenue').text(publisherRevenue + '%');
 
     const eCommerceRevenue = Math.round((competitorValue - speedKitValue) * 0.01);

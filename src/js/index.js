@@ -1,7 +1,7 @@
 import { formatFileSize, sleep, isDeviceIOS, sortArray, getParameterByName } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import { resetView, resetViewAfterTest, showInfoBox, startTest, resetViewAfterBadTestResult, showExamples } from './ResetVariablesService';
-import { getBaqendUrl, getHostnameOfUrl } from './SpeedKitUrlService';
+import { getBaqendUrl, getTLD } from './SpeedKitUrlService';
 import { calculateServedRequests, calculateFactors, displayTestResults, displayTestResultsById, isServedRateSatisfactory, isSpeedIndexSatisfactory,
     calculateRevenueBoost, verifyWarningMessage} from './TestResultHandler';
 import { createImageElement, createLinkButton, createScannerElement, createVideoElement, createWhitelistCandidates } from './UiElementCreator';
@@ -618,9 +618,10 @@ function shouldShowFirstMeaningfulPaint(competitorResult, speedKitResult) {
     const secondCondition = (speedKitResult.requests - speedKitResult.failedRequests) / (competitorResult.requests - competitorResult.failedRequests) <= 0.8;
 
     //speed kit's (last visual change - fully loaded) /(max. of both values) is 20% bigger than the one of the competitor
-    const competitorNum = (competitorResult.lastVisualChange - competitorResult.fullyLoaded) / (Math.max(competitorResult.lastVisualChange, competitorResult.fullyLoaded));
-    const speedKitNum = (speedKitResult.lastVisualChange - speedKitResult.fullyLoaded) / (Math.max(speedKitResult.lastVisualChange, speedKitResult.fullyLoaded));
-    const thirdCondition = competitorNum > 0 && speedKitNum > 0 ? (speedKitNum / competitorNum) >= 1.2 : false;
+    const competitorNum = Math.abs(competitorResult.fullyLoaded - competitorResult.lastVisualChange);
+    const speedKitNum = Math.abs(speedKitResult.fullyLoaded - speedKitResult.lastVisualChange);
+    const max =  Math.max(competitorResult.fullyLoaded, competitorResult.lastVisualChange, speedKitResult.fullyLoaded, speedKitResult.lastVisualChange);
+    const thirdCondition = Math.abs(competitorNum - speedKitNum) / max >= 0.2;
 
     return firstCondition || secondCondition || thirdCondition;
 }
@@ -630,14 +631,11 @@ function handleWhitelistCandidates(resultData, whitelist) {
         const sortedDomains = sortArray(resultData, 'domains');
         const totalRequestCount = resultData.requests;
 
-        let hostname = getHostnameOfUrl(competitorUrl);
-        if ( hostname.includes('www.') ) {
-            hostname = hostname.substr(hostname.indexOf('www.') + 4);
-        }
+        const domain = getTLD(competitorUrl);
 
         createWhitelistCandidates(sortedDomains
             .filter(domainObject => {
-                return domainObject.url.indexOf(hostname) === -1 && !domainObject.isAdDomain;
+                return domainObject.url.indexOf(domain) === -1 && !domainObject.isAdDomain;
             })
             .splice(0,6), whitelist, totalRequestCount
         );

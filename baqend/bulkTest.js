@@ -1,13 +1,14 @@
-const { startTest } = require('./queueTest');
+const { createTestOverview } = require('./createTestOverview');
 const { getTestStatus } = require('./getTestStatus');
 
 exports.post = function bulkTestPost(db, req, res) {
     const results = [];
     for (const entry of req.body) {
-        const { url, location, isClone, caching, runs } = entry;
+        const url = entry.url;
+        const runs = entry.runs;
         const baqendIds = [];
         for (let i = 0; i < (runs || 1); i++) {
-            baqendIds.push(startTest(url, location, isClone, caching));
+            baqendIds.push(createTestOverview(db, entry));
         }
         results.push({ url, baqendIds });
     }

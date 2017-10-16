@@ -1,3 +1,4 @@
+<!-- show speed index before first meaningful paint-->
 <div class="showSpeedIndex">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
@@ -5,7 +6,7 @@
             <span class="primaryFactor speedIndex-factor"></span>
         </div>
     </div>
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 primaryCol pb-16 mb-16 border-bottom">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 primaryCol pb-8 mb-8 border-bottom">
         <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-speedIndex" style="font-weight: 600;"></div>
         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
             <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
@@ -17,6 +18,28 @@
     </div>
 </div>
 
+<div class="showSpeedIndex">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+             title="Represents the time when a page's primary content appears on the screen.">
+            <span class="secondaryFactor firstMeaningfulPaint-factor"></span>
+        </div>
+    </div>
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-8 mb-8 border-bottom secondaryCol">
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-firstMeaningfulPaint"></div>
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+            <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                 title="Represents the time when a page's primary content appears on the screen.">
+                <!-- First Meaningful Paint -->
+                1st Meaningful Paint
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 speedKit-firstMeaningfulPaint"></div>
+    </div>
+</div>
+<!-- show speed index first than first meaningful paint end -->
+
+<!-- show first meaningful paint before speed index start-->
 <div class="showFirstMeaningfulPaint hidden">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
@@ -24,18 +47,38 @@
             <span class="primaryFactor firstMeaningfulPaint-factor"></span>
         </div>
     </div>
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-16 mb-16 border-bottom secondaryCol">
-        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-firstMeaningfulPaint"></div>
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-8 mb-8 border-bottom secondaryCol">
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-firstMeaningfulPaint" style="font-weight: 600; font-size: 22px;"></div>
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="margin-top: 5px;">
             <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
                  title="Represents the time when a page's primary content appears on the screen.">
                 <!-- First Meaningful Paint -->
-                First Meaningful Paint
+                1st Meaningful Paint
             </div>
         </div>
-        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 speedKit-firstMeaningfulPaint" style="font-weight: 600;"></div>
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 speedKit-firstMeaningfulPaint" style="font-weight: 600; font-size: 22px;"></div>
     </div>
 </div>
+
+<div class="showFirstMeaningfulPaint hidden">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+             title="Represents how quickly the page rendered the user-visible content.">
+            <span class="secondaryFactor speedIndex-factor"></span>
+        </div>
+    </div>
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 secondaryCol pb-8 mb-8 border-bottom">
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-speedIndex"></div>
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+            <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                 title="Represents how quickly the page rendered the user-visible content.">
+                Speed Index
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 speedKit-speedIndex"></div>
+    </div>
+</div>
+<!-- show first meaningful paint before speed index end-->
 
 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
     <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
@@ -44,7 +87,7 @@
         <span class="secondaryFactor ttfb-factor"></span>
     </div>
 </div>
-<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-16 mb-16 border-bottom secondaryCol">
+<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-8 mb-8 border-bottom secondaryCol">
     <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-ttfb"></div>
     <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
         <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
@@ -64,7 +107,7 @@
         <span class="secondaryFactor dom-factor"></span>
     </div>
 </div>
-<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-16 mb-16 border-bottom secondaryCol">
+<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-8 mb-8 border-bottom secondaryCol">
     <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-dom"></div>
     <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
         <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
@@ -83,7 +126,7 @@
         <span class="secondaryFactor fullyLoaded-factor"></span>
     </div>
 </div>
-<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-16 mb-16 border-bottom secondaryCol">
+<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 pb-8 mb-8 border-bottom secondaryCol">
     <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 competitor-fullyLoaded"></div>
     <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
         <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
