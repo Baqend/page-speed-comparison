@@ -26,10 +26,17 @@ module.exports = (config) => webpackMerge({
       {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
-        loader: 'awesome-typescript-loader',
-        options: {
-          transpileOnly: true,
-        },
+        use: [
+          {
+            loader: 'awesome-typescript-loader',
+            options: {
+              transpileOnly: true,
+            },
+          },
+          {
+            loader: 'eslint-loader',
+          }
+        ],
       },
       {
         test: /\.scss$/,
