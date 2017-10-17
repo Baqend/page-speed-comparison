@@ -1,13 +1,12 @@
-/* global document */
+/* global $ document */
 
 /**
- * @param {*} screenshotData
+ * @param {*} data
  * @return {HTMLImageElement}
  */
-export function createImageElement(screenshotData) {
+export function createImageElement(data) {
   const img = document.createElement('img');
-  img.setAttribute('src', 'data:' + screenshotData.mime_type + ';base64,' +
-    screenshotData.data.replace(/_/g, '/').replace(/-/g, '+'));
+  img.setAttribute('src', `data:${data.mime_type};base64,${data.data.replace(/_/g, '/').replace(/-/g, '+')}`);
   img.setAttribute('alt', 'preview of website screen');
   img.setAttribute('id', 'preview-image');
   img.setAttribute('class', 'blur');
@@ -43,7 +42,7 @@ export function createScannerElement() {
 }
 
 /**
- * @return {HTMLButtonElement}
+ * @return {HTMLAnchorElement}
  */
 export function createLinkButton(targetUrl) {
   const link = document.createElement('a');
@@ -68,7 +67,7 @@ export function createWhitelistCandidates(domainArray, whitelist, totalRequestCo
         const divContainer = document.createElement('div');
         const checkbox = document.createElement('input');
         const checkboxLabel = document.createElement('label');
-        const regex = new RegExp(',?\\s?\\b' + domainUrl + '\\s?\\b,?');
+        const regex = new RegExp(`,?\\s?\\b${domainUrl}\\s?\\b,?`);
 
         divContainer.setAttribute('class', 'col-lg-6 col-md-6 col-sm-12 col-xs-12 mt-16 p-8');
         checkbox.setAttribute('type', 'checkbox');
@@ -80,7 +79,7 @@ export function createWhitelistCandidates(domainArray, whitelist, totalRequestCo
 
         checkboxLabel.setAttribute('for', domainUrl);
         checkboxLabel.setAttribute('onclick', 'whitelistCandidateClicked(this.htmlFor)');
-        checkboxLabel.innerHTML = domainUrl + ' (' + Math.round((100 / totalRequestCount) * domainObject.requests) + '%)';
+        checkboxLabel.innerHTML = `${domainUrl} (${Math.round((100 / totalRequestCount) * domainObject.requests)}%)`;
         divContainer.appendChild(checkbox);
         divContainer.appendChild(checkboxLabel);
         $('#whitelistCandidates').append(divContainer);

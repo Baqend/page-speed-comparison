@@ -27,10 +27,8 @@ export function resetView() {
   $('#warningAlert').addClass('hidden');
   $('#showTestPool').addClass('hidden');
   $('#boostWorthiness').addClass('hidden');
-  $('#competitorLink').addClass('hidden');
-  $('#competitorLink').empty();
-  $('#speedKitLink').addClass('hidden');
-  $('#speedKitLink').empty();
+  $('#competitorLink').addClass('hidden').empty();
+  $('#speedKitLink').addClass('hidden').empty();
   $('#info').removeClass('hidden');
   $('#configInfo').removeClass('hidden');
   $('#competitor').empty();

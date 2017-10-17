@@ -1,3 +1,9 @@
+/* eslint-disable no-use-before-define */
+/* global $ APP document REPORT_PAGE window */
+
+import 'bootstrap';
+import { db } from 'baqend/realtime';
+
 import { formatFileSize, getParameterByName, isDeviceIOS, sleep, sortArray } from './utils';
 import { callPageSpeedInsightsAPI } from './pageSpeed';
 import {
@@ -27,11 +33,8 @@ import {
   createWhitelistCandidates,
 } from './UiElementCreator';
 
-import "bootstrap";
-import "../styles/main.scss";
-import * as hbs from "../templates";
-import { db } from "baqend/realtime";
-import { Subscription } from 'rxjs';
+import '../styles/main.scss';
+import * as hbs from '../templates';
 
 /** @type {string} */
 let competitorUrl;
@@ -52,8 +55,8 @@ let title;
 /** @type {boolean} */
 let isSpeedKitComparison;
 
-document.addEventListener("DOMContentLoaded", () => {
-  $("#main").html(hbs.main({}));
+document.addEventListener('DOMContentLoaded', () => {
+  $('#main').html(hbs.main({}));
   $('[data-toggle="tooltip"]').tooltip();
 
   db.connect(APP, true).then(() => {
@@ -89,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     $('#implementation-toggle').hide();
     $('#implementation-dots').hide();
-    $('.implementation-hidden').show("medium");
+    $('.implementation-hidden').show('medium');
   });
 
   $('#printReport').on('click', () => {
@@ -100,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
     competitorVideo.currentTime = competitorVideo.duration;
     speedKitVideo.currentTime = speedKitVideo.duration;
 
-    setTimeout(function () {
+    setTimeout(() => {
       window.print();
     }, 100);
   });
@@ -113,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const $confirmContact = $('#confirmContact');
     const $name = $('#c_name');
     const $email = $('#c_email');
-    let data = {
+    const data = {
       name: $name.val(),
       email: $email.val(),
       url: competitorUrl,
@@ -121,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
       subject: 'from page speed analyzer',
     };
 
-    $.post('https:// Bbq.app.baqend.com/v1/code/mailUs', data, (data, status, xhr) => {
+    $.post('https://bbq.app.baqend.com/v1/code/mailUs', data, () => {
       $name.val('');
       $email.val('');
       $confirmContact.removeClass('hidden');
@@ -137,8 +140,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-window.addEventListener("popstate", () => {
-  history.pushState(null, document.title, location.href);
+window.addEventListener('popstate', () => {
+  window.history.pushState(null, document.title, window.location.href);
 });
 
 /**
@@ -176,12 +179,13 @@ window.playVideos = (videoElement) => {
     secondVideo.play();
   }
 
+  // eslint-disable-next-line no-param-reassign
   videoElement.currentTime = 0;
   videoElement.play();
 };
 
 window.handleTestExampleClick = (testId) => {
-  history.pushState({}, title, '/?testId=' + testId);
+  window.history.pushState({}, title, `/?testId=${testId}`);
   $('#showTestPool').removeClass('hidden');
   $('.hideContact').removeClass('hidden');
   $('.hideOnError').removeClass('hidden');
@@ -192,28 +196,38 @@ window.handleTestExampleClick = (testId) => {
 window.whitelistCandidateClicked = (elementId) => {
   const checkboxElement = document.getElementById(elementId);
   const wListInput = document.getElementById('wListInput');
-  const regex = new RegExp(',?\\s?\\b' + elementId + '\\s?\\b,?');
+  const regex = new RegExp(`,?\\s?\\b${elementId}\\s?\\b,?`);
 
   if (regex.test(wListInput.value)) {
     const inputArray = wListInput.value.split(',').map(item => item.trim());
     inputArray.splice(inputArray.indexOf(elementId), 1);
     wListInput.value = inputArray.join(', ');
   } else if (!checkboxElement.checked) {
-    wListInput.value = wListInput.value.length !== 0 ? wListInput.value + ', ' + elementId : elementId;
+    wListInput.value = wListInput.value.length !== 0 ? `${wListInput.value}, ${elementId}` : elementId;
   }
 };
 
+/**
+ * @param {string} url
+ * @return {Promise<{ url: string, speedkit: boolean }>}
+ */
+async function normalizeUrl(url) {
+  return db.modules.get('normalizeUrl', { url });
+}
+
 function initTest() {
   const testIdParam = getParameterByName('testId');
-  let dataView;
-  let competitorResult;
-  let speedKitResult;
-  let whitelist;
 
   if (testIdParam && (!testOverview || testOverview.key !== testIdParam)) {
+    let dataView;
+    let competitorResult;
+    let speedKitResult;
+    let whitelist;
+
     db.TestOverview.load(testIdParam, { depth: 1 }).then((result) => {
-      if (!result || !result.competitorTestResult || !result.speedKitTestResult)
+      if (!result || !result.competitorTestResult || !result.speedKitTestResult) {
         throw new Error();
+      }
 
       dataView = result.caching ? 'repeatView' : 'firstView';
       competitorResult = result.competitorTestResult;
@@ -223,8 +237,9 @@ function initTest() {
       competitorUrl = result.competitorTestResult.url;
       $('#currentVendorUrl').val(competitorUrl);
 
-      if (!competitorResult[dataView] || !speedKitResult[dataView])
+      if (!competitorResult[dataView] || !speedKitResult[dataView]) {
         throw new Error();
+      }
 
       // If speed index is satisfactory ==> show the test result and a list of suggested domains
       // Else don´t show test result but an error message
@@ -240,15 +255,19 @@ function initTest() {
 
         // if served rate is not satisfactory ==> show warning message and list of suggested domains
         // else don´t do anything
-        if (!isServedRateSatisfactory(speedKitResult[dataView]))
+        if (!isServedRateSatisfactory(speedKitResult[dataView])) {
           verifyWarningMessage(new Error('Low served rate'));
+        }
 
         // Check whether the speed index should be replaced by the first meaningful paint
         if (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])) {
           $('.showSpeedIndex').addClass('hidden');
           $('.showFirstMeaningfulPaint').removeClass('hidden');
           verifyWarningMessage(new Error('Show FMC'));
-          calculateRevenueBoost(competitorResult[dataView].firstMeaningfulPaint, speedKitResult[dataView].firstMeaningfulPaint);
+          calculateRevenueBoost(
+            competitorResult[dataView].firstMeaningfulPaint,
+            speedKitResult[dataView].firstMeaningfulPaint,
+          );
         } else {
           $('.showSpeedIndex').removeClass('hidden');
           $('.showFirstMeaningfulPaint').addClass('hidden');
@@ -257,7 +276,6 @@ function initTest() {
 
         // Handle whitelist candidates and add them to the UI
         handleWhitelistCandidates(competitorResult[dataView], whitelist);
-
       } else {
         throw new Error('Bad result');
       }
@@ -273,7 +291,7 @@ function initTest() {
 
         verifyWarningMessage(new Error('Low served rate'));
       }
-    }).catch(e => {
+    }).catch((e) => {
       if (e.message === 'Bad result') {
         // If served rate is not satisfactory ==> show warning message and list of suggested domains
         // Else don´t do anything
@@ -306,30 +324,20 @@ function initTest() {
  * @param {string} [url]
  * @return {Promise<void>}
  */
-async function submitComparison(url) {
-  const $currentVendorUrl = $('#currentVendorUrl');
-  url = url || $currentVendorUrl.val();
+async function submitComparison(url = $('#currentVendorUrl').val()) {
   try {
     await db.modules.get('testRateLimited');
     const normalizedResult = await normalizeUrl(url);
 
-    $currentVendorUrl.val(normalizedResult.url);
+    $('#currentVendorUrl').val(normalizedResult.url);
     if (!normalizedResult.isBaqendApp) {
-      return initComparison(normalizedResult);
-    } else {
-      return showComparisonError(new Error('Baqend app detected'));
+      initComparison(normalizedResult);
+      return;
     }
+    showComparisonError(new Error('Baqend app detected'));
   } catch (e) {
     showComparisonError(e);
   }
-}
-
-/**
- * @param {string} url
- * @return {Promise<{ url: string, speedkit: boolean }>}
- */
-async function normalizeUrl(url) {
-  return await db.modules.get('normalizeUrl', { url });
 }
 
 /**
@@ -360,8 +368,8 @@ async function initComparison(normalizedUrl) {
 
   // Show testing UI
   startTest();
-  $('.center-vertical').animate({ 'marginTop': '0px' }, 500);
-  const activityTimeout = parseInt($('.activityTimeout').val()) || undefined;
+  $('.center-vertical').animate({ marginTop: '0px' }, 500);
+  const activityTimeout = parseInt($('.activityTimeout').val(), 10) || undefined;
 
   testOverview = new db.TestOverview();
   testOverview.caching = testOptions.caching;
@@ -388,54 +396,57 @@ async function initComparison(normalizedUrl) {
         caching: testOptions.caching,
       }),
     ]);
-  } catch (e) {
-    showComparisonError(e);
-    return;
-  }
 
-  try {
-    const pageSpeedResult = await callPageSpeedInsightsAPI(competitorUrl);
-    statusText.carousel(1);
-    const screenShot = pageSpeedResult.screenshot;
-    setPageSpeedMetrics(pageSpeedResult);
-    await sleep(1000);
+    try {
+      const pageSpeedResult = await callPageSpeedInsightsAPI(competitorUrl);
+      statusText.carousel(1);
+      const screenShot = pageSpeedResult.screenshot;
+      setPageSpeedMetrics(pageSpeedResult);
+      await sleep(1000);
 
-    if (now === testInstance) {
-      statusText.carousel(2);
-    }
-    await sleep(1000);
-
-    if (now === testInstance) {
-      statusText.carousel(3);
-    }
-    await sleep(1000);
-
-    if (now === testInstance) {
-      statusText.carousel(4);
-      getTestStatus(competitorResult.baqendId);
-    }
-    await sleep(1000);
-
-    if (now === testInstance) {
-      $('#compareContent').removeClass('hidden');
-      // Check whether the container elements don´t have any content (e.g. video already created)
-      if ($competitor.children().length < 1 && $speedKit.children().length < 1) {
-        $competitor.append(createImageElement(screenShot),
-          createScannerElement());
-
-        $speedKit.append(createImageElement(screenShot),
-          createScannerElement());
+      if (now === testInstance) {
+        statusText.carousel(2);
       }
+      await sleep(1000);
 
-      await sleep(2000);
-      // Subscribe on the test results
+      if (now === testInstance) {
+        statusText.carousel(3);
+      }
+      await sleep(1000);
+
+      if (now === testInstance) {
+        statusText.carousel(4);
+        getTestStatus(competitorResult.baqendId);
+      }
+      await sleep(1000);
+
+      if (now === testInstance) {
+        $('#compareContent').removeClass('hidden');
+        // Check whether the container elements don´t have any content (e.g. video already created)
+        if ($competitor.children().length < 1 && $speedKit.children().length < 1) {
+          $competitor.append(
+            createImageElement(screenShot),
+            createScannerElement(),
+          );
+
+          $speedKit.append(
+            createImageElement(screenShot),
+            createScannerElement(),
+          );
+        }
+
+        await sleep(2000);
+        // Subscribe on the test results
+        subscribeOnResult(competitorResult.baqendId, speedKitResult.baqendId);
+      }
+    } catch (error) {
+      statusText.carousel(4);
+      pageSpeedInsightFailed = true;
+      getTestStatus(competitorResult.baqendId);
       subscribeOnResult(competitorResult.baqendId, speedKitResult.baqendId);
     }
-  } catch (error) {
-    statusText.carousel(4);
-    pageSpeedInsightFailed = true;
-    getTestStatus(competitorResult.baqendId);
-    subscribeOnResult(competitorResult.baqendId, speedKitResult.baqendId);
+  } catch (e) {
+    showComparisonError(e);
   }
 }
 
@@ -448,10 +459,10 @@ function subscribeOnResult(competitorBaqendId, speedKitBaqendId) {
   const speedKitOnNext = result => resultStreamUpdate(result, speedKitSubscription, 'speedKit');
   const onError = err => showComparisonError(err);
 
-  competitorSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + competitorBaqendId)
+  competitorSubscription = db.TestResult.find().equal('id', `/db/TestResult/${competitorBaqendId}`)
     .resultStream(competitorOnNext, onError);
 
-  speedKitSubscription = db.TestResult.find().equal('id', '/db/TestResult/' + speedKitBaqendId)
+  speedKitSubscription = db.TestResult.find().equal('id', `/db/TestResult/${speedKitBaqendId}`)
     .resultStream(speedKitOnNext, onError);
 }
 
@@ -459,10 +470,10 @@ function subscribeOnResult(competitorBaqendId, speedKitBaqendId) {
  * @param {string} competitorBaqendId
  */
 function getTestStatus(competitorBaqendId) {
-  const interval = setInterval(function () {
+  const interval = setInterval(() => {
     if (competitorBaqendId) {
       try {
-        db.modules.get('getTestStatus', { baqendId: competitorBaqendId }).then(res => {
+        db.modules.get('getTestStatus', { baqendId: competitorBaqendId }).then((res) => {
           if (!res.error) {
             if (res.status.statusCode === 101) {
               $('#statusQueue').html(res.status.statusText);
@@ -480,6 +491,89 @@ function getTestStatus(competitorBaqendId) {
 }
 
 /**
+ * @param {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} result
+ */
+function setPageSpeedMetrics(result) {
+  testOverview.psiDomains = result.domains;
+  testOverview.psiRequests = result.requests;
+  testOverview.psiResponseSize = result.bytes;
+
+  $('.numberOfHosts').html(testOverview.psiDomains);
+  $('.numberOfRequests').html(testOverview.psiRequests);
+  $('.numberOfBytes').html(formatFileSize(testOverview.psiResponseSize, 2));
+}
+
+function resetComparison() {
+  if (competitorSubscription) {
+    competitorSubscription.unsubscribe();
+  }
+
+  if (speedKitSubscription) {
+    speedKitSubscription.unsubscribe();
+  }
+
+  pageSpeedInsightFailed = false;
+  testResult = {};
+  testVideo = {};
+
+  window.history.pushState({}, title, '/');
+}
+
+/**
+ * @param {Error} e
+ */
+function showComparisonError(e) {
+  verifyWarningMessage(e);
+  resetComparison();
+  resetViewAfterBadTestResult();
+}
+
+function handleWhitelistCandidates(resultData, whitelist) {
+  if (resultData.domains) {
+    const sortedDomains = sortArray(resultData, 'domains');
+    const totalRequestCount = resultData.requests;
+
+    const domain = getTLD(competitorUrl);
+
+    createWhitelistCandidates(
+      sortedDomains
+        .filter(domainObject => domainObject.url.indexOf(domain) === -1 && !domainObject.isAdDomain)
+        .splice(0, 6),
+      whitelist,
+      totalRequestCount,
+    );
+  }
+}
+
+/**
+ * @param competitorResult Result from the competitor's site.
+ * @param speedKitResult Result from Speed Kit.
+ * @return {boolean}
+ */
+function shouldShowFirstMeaningfulPaint(competitorResult, speedKitResult) {
+  // Competitor fully loaded minus competitor time to first byte ist bigger than ten seconds
+  const firstCondition = competitorResult.fullyLoaded - competitorResult.ttfb > 10000;
+
+  // Speed kit served requests are 20% less than competitors served requests (exclude failed requests)
+  const secondCondition = (speedKitResult.requests - speedKitResult.failedRequests)
+    / (competitorResult.requests - competitorResult.failedRequests) <= 0.8;
+
+  // Speed kit's (fully loaded - last visual change ) - competitor's (fully loaded - last visual change ) is
+  // 20% bigger than the max of all four values
+  const competitorNum = Math.abs(competitorResult.fullyLoaded - competitorResult.lastVisualChange);
+  const speedKitNum = Math.abs(speedKitResult.fullyLoaded - speedKitResult.lastVisualChange);
+  const max = Math.max(
+    competitorResult.fullyLoaded,
+    competitorResult.lastVisualChange,
+    speedKitResult.fullyLoaded,
+    speedKitResult.lastVisualChange,
+  );
+  const thirdCondition = max / Math.abs(competitorNum - speedKitNum) <= 0.8;
+
+  return firstCondition || secondCondition || thirdCondition;
+}
+
+/**
  * @param {*} result
  * @param {Subscription} subscription
  * @param {string} elementId
@@ -491,19 +585,20 @@ function resultStreamUpdate(result, subscription, elementId) {
   if (result.length > 0) {
     const entry = result[0];
 
-    if (!testOverview[elementId + 'TestResult']) {
-      testOverview[elementId + 'TestResult'] = entry;
+    if (!testOverview[`${elementId}TestResult`]) {
+      testOverview[`${elementId}TestResult`] = entry;
     }
 
     try {
-      if (entry.testDataMissing)
+      if (entry.testDataMissing) {
         throw new Error('test data missing');
+      }
 
       if (entry[dataView]) {
         testResult[elementId] = entry;
         if (Object.keys(testResult).length === 2) {
-          const competitorResult = testResult['competitor'];
-          const speedKitResult = testResult['speedKit'];
+          const competitorResult = testResult.competitor;
+          const speedKitResult = testResult.speedKit;
           // If speed index is satisfactory ==> show the test result and a list of suggested domains
           // Else don´t show test result but an error message
           if (isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
@@ -527,7 +622,10 @@ function resultStreamUpdate(result, subscription, elementId) {
               $('.showSpeedIndex').addClass('hidden');
               $('.showFirstMeaningfulPaint').removeClass('hidden');
               verifyWarningMessage(new Error('Show FMC'));
-              calculateRevenueBoost(competitorResult[dataView].firstMeaningfulPaint, speedKitResult[dataView].firstMeaningfulPaint);
+              calculateRevenueBoost(
+                competitorResult[dataView].firstMeaningfulPaint,
+                speedKitResult[dataView].firstMeaningfulPaint,
+              );
             } else {
               $('.showSpeedIndex').removeClass('hidden');
               $('.showFirstMeaningfulPaint').addClass('hidden');
@@ -536,8 +634,9 @@ function resultStreamUpdate(result, subscription, elementId) {
 
             // If served rate is not satisfactory ==> show warning message and list of suggested domains
             // Else don´t do anything
-            if (!isServedRateSatisfactory(speedKitResult[dataView]))
+            if (!isServedRateSatisfactory(speedKitResult[dataView])) {
               verifyWarningMessage(new Error('Low served rate'));
+            }
 
             // Handle whitelist candidates and add them to the UI
             handleWhitelistCandidates(competitorResult[dataView], testOverview.whitelist);
@@ -557,8 +656,8 @@ function resultStreamUpdate(result, subscription, elementId) {
           competitorElement.empty();
           speedKitElement.empty();
 
-          competitorElement.append(createVideoElement('video-competitor', testVideo['competitor']));
-          speedKitElement.append(createVideoElement('video-speedKit', testVideo['speedKit']));
+          competitorElement.append(createVideoElement('video-competitor', testVideo.competitor));
+          speedKitElement.append(createVideoElement('video-speedKit', testVideo.speedKit));
 
           // Create "open in new tab" button only if the original website has SSL
           if (/^https/.test(competitorUrl)) {
@@ -574,10 +673,10 @@ function resultStreamUpdate(result, subscription, elementId) {
       if (e.message === 'Bad result') {
         // If served rate is not satisfactory ==> show warning message and list of suggested domains
         // Else don´t do anything
-        if (!isServedRateSatisfactory(testResult['speedKit'][dataView])) {
+        if (!isServedRateSatisfactory(testResult.speedKit[dataView])) {
           // Handle whitelist candidates and add them to the UI
-          handleWhitelistCandidates(testResult['competitor'][dataView], testOverview.whitelist);
-          $('#servedRequests').text(calculateServedRequests(testResult['speedKit']['firstView']));
+          handleWhitelistCandidates(testResult.competitor[dataView], testOverview.whitelist);
+          $('#servedRequests').text(calculateServedRequests(testResult.speedKit.firstView));
           e.message = 'Low served rate';
         }
         verifyWarningMessage(e);
@@ -587,79 +686,8 @@ function resultStreamUpdate(result, subscription, elementId) {
       }
     }
 
-    testOverview.ready().then(() => {
-      return testOverview.save();
-    }).then(() => {
-      history.pushState({}, title, '/?testId=' + testOverview.key);
+    testOverview.ready().then(() => testOverview.save()).then(() => {
+      window.history.pushState({}, title, `/?testId=${testOverview.key}`);
     });
-  }
-}
-
-/**
- * @param {{ domains: number | null, requests: number | null, bytes: number | null, screenshot: string | null }} result
- */
-function setPageSpeedMetrics(result) {
-  testOverview.psiDomains = result.domains;
-  testOverview.psiRequests = result.requests;
-  testOverview.psiResponseSize = result.bytes;
-
-  $('.numberOfHosts').html(testOverview.psiDomains);
-  $('.numberOfRequests').html(testOverview.psiRequests);
-  $('.numberOfBytes').html(formatFileSize(testOverview.psiResponseSize, 2));
-}
-
-/**
- * @param {Error} e
- */
-function showComparisonError(e) {
-  verifyWarningMessage(e);
-  resetComparison();
-  resetViewAfterBadTestResult();
-}
-
-function resetComparison() {
-  if (competitorSubscription)
-    competitorSubscription.unsubscribe();
-
-  if (speedKitSubscription)
-    speedKitSubscription.unsubscribe();
-
-  pageSpeedInsightFailed = false;
-  testResult = {};
-  testVideo = {};
-
-  history.pushState({}, title, "/");
-}
-
-function shouldShowFirstMeaningfulPaint(competitorResult, speedKitResult) {
-  // Competitor fully loaded minus competitor time to first byte ist bigger than ten seconds
-  const firstCondition = competitorResult.fullyLoaded - competitorResult.ttfb > 10000;
-
-  // Speed kit served requests are 20% less than competitors served requests (exclude failed requests)
-  const secondCondition = (speedKitResult.requests - speedKitResult.failedRequests) / (competitorResult.requests - competitorResult.failedRequests) <= 0.8;
-
-    //speed kit's (fully loaded - last visual change ) - competitor's (fully loaded - last visual change ) is 20% bigger than the max of all four values
-    const competitorNum = Math.abs(competitorResult.fullyLoaded - competitorResult.lastVisualChange);
-    const speedKitNum = Math.abs(speedKitResult.fullyLoaded - speedKitResult.lastVisualChange);
-    const max =  Math.max(competitorResult.fullyLoaded, competitorResult.lastVisualChange, speedKitResult.fullyLoaded, speedKitResult.lastVisualChange);
-    const thirdCondition = max / Math.abs(competitorNum - speedKitNum) <= 0.8;
-
-  return firstCondition || secondCondition || thirdCondition;
-}
-
-function handleWhitelistCandidates(resultData, whitelist) {
-  if (resultData.domains) {
-    const sortedDomains = sortArray(resultData, 'domains');
-    const totalRequestCount = resultData.requests;
-
-    const domain = getTLD(competitorUrl);
-
-    createWhitelistCandidates(
-      sortedDomains
-        .filter((domainObject) => {
-          return domainObject.url.indexOf(domain) === -1 && !domainObject.isAdDomain;
-        })
-        .splice(0, 6), whitelist, totalRequestCount,
-    );
   }
 }
