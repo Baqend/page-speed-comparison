@@ -638,11 +638,11 @@ function shouldShowFirstMeaningfulPaint(competitorResult, speedKitResult) {
   // Speed kit served requests are 20% less than competitors served requests (exclude failed requests)
   const secondCondition = (speedKitResult.requests - speedKitResult.failedRequests) / (competitorResult.requests - competitorResult.failedRequests) <= 0.8;
 
-  // Speed kit's (last visual change - fully loaded) /(max. of both values) is 20% bigger than the one of the competitor
-  const competitorNum = Math.abs(competitorResult.fullyLoaded - competitorResult.lastVisualChange);
-  const speedKitNum = Math.abs(speedKitResult.fullyLoaded - speedKitResult.lastVisualChange);
-  const max = Math.max(competitorResult.fullyLoaded, competitorResult.lastVisualChange, speedKitResult.fullyLoaded, speedKitResult.lastVisualChange);
-  const thirdCondition = Math.abs(competitorNum - speedKitNum) / max >= 0.2;
+    //speed kit's (fully loaded - last visual change ) - competitor's (fully loaded - last visual change ) is 20% bigger than the max of all four values
+    const competitorNum = Math.abs(competitorResult.fullyLoaded - competitorResult.lastVisualChange);
+    const speedKitNum = Math.abs(speedKitResult.fullyLoaded - speedKitResult.lastVisualChange);
+    const max =  Math.max(competitorResult.fullyLoaded, competitorResult.lastVisualChange, speedKitResult.fullyLoaded, speedKitResult.lastVisualChange);
+    const thirdCondition = max / Math.abs(competitorNum - speedKitNum) <= 0.8;
 
   return firstCondition || secondCondition || thirdCondition;
 }

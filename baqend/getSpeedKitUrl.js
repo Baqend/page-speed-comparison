@@ -1,6 +1,6 @@
 const credentials = require('./credentials');
+const urlModule = require('url');
 const BAQEND_URL = `https://${credentials.app}.speed-kit.com/`;
-
 /**
  * Generates a reg exp representing the whitelist.
  *
@@ -34,10 +34,8 @@ function generateRules(originalUrl, whitelist) {
  * @return {string} The extracted hostname.
  */
 function getHostnameOfUrl(url) {
-    const dummyElement = document.createElement('a');
-    dummyElement.href = url;
-
-    return dummyElement.hostname;
+    const parsedUrl = urlModule.parse(url);
+    return parsedUrl.hostname;
 }
 
 /**
