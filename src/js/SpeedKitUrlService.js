@@ -1,3 +1,5 @@
+/* global APP document */
+
 const BAQEND_URL = `https://${APP}.speed-kit.com/`;
 
 /**
@@ -8,14 +10,14 @@ const BAQEND_URL = `https://${APP}.speed-kit.com/`;
  * @return {string} A URL to send to Speed Kit.
  */
 export function getBaqendUrl(originalUrl, whitelistStr) {
-    const whitelistDomains = whitelistStr
-        .split(',')
-        .map(item => item.trim())
-        .filter(item => !!item);
+  const whitelistDomains = whitelistStr
+    .split(',')
+    .map(item => item.trim())
+    .filter(item => !!item);
 
-    const whitelist = generateRules(originalUrl, whitelistDomains);
+  const whitelist = generateRules(originalUrl, whitelistDomains);
 
-    return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&whitelist=${encodeURIComponent(whitelist)}`;
+  return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&whitelist=${encodeURIComponent(whitelist)}`;
 }
 
 /**
@@ -26,18 +28,18 @@ export function getBaqendUrl(originalUrl, whitelistStr) {
  * @return {string} A string representing the rules.
  */
 export function generateRules(originalUrl, whitelist) {
-    const domain = getTLD(originalUrl);
+  const domain = getTLD(originalUrl);
 
-    // Replace TLD with a wildcard
-    const host = [`regexp:/^(?:[\\w-]*\\.){0,3}${domain}/`];
+  // Replace TLD with a wildcard
+  const host = [`regexp:/^(?:[\\w-]*\\.){0,3}${domain}/`];
 
-    // Create parts for the regexp
-    if (whitelist.length) {
-        host.push(`regexp:/^(?:[\\w-]*\\.){0,3}(?:${whitelist.map(item => escapeRegExp(item)).join('|')})/`);
-    }
+  // Create parts for the regexp
+  if (whitelist.length) {
+    host.push(`regexp:/^(?:[\\w-]*\\.){0,3}(?:${whitelist.map(item => escapeRegExp(item)).join('|')})/`);
+  }
 
-    // Create the final exp
-    return JSON.stringify([{ host }]);
+  // Create the final exp
+  return JSON.stringify([{ host }]);
 }
 
 /**
@@ -47,19 +49,19 @@ export function generateRules(originalUrl, whitelist) {
  * @return {string} The extracted hostname.
  */
 export function getTLD(url) {
-    const dummyElement = document.createElement('a');
-    dummyElement.href = url;
+  const dummyElement = document.createElement('a');
+  dummyElement.href = url;
 
-    let hostname = dummyElement.hostname;
-    // Remove "www" in the beginning
-    if (hostname.includes('www.')) {
-        hostname = hostname.substr(hostname.indexOf('www.') + 4);
-    }
+  let { hostname } = dummyElement;
+  // Remove "www" in the beginning
+  if (hostname.includes('www.')) {
+    hostname = hostname.substr(hostname.indexOf('www.') + 4);
+  }
 
-    const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
-    const [, domain] = domainFilter.exec(hostname);
+  const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
+  const [, domain] = domainFilter.exec(hostname);
 
-    return domain;
+  return domain;
 }
 
 /**
@@ -69,5 +71,5 @@ export function getTLD(url) {
  * @return {string}
  */
 export function escapeRegExp(str) {
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  return str.replace(/[[\]/{}()*+?.\\^$|-]/g, '\\$&');
 }

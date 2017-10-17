@@ -7,7 +7,7 @@
  * @return {number} The rounded number.
  */
 export function roundToTenths(num) {
-    return Math.round(num * 10) / 10;
+  return Math.round(num * 10) / 10;
 }
 
 /**
@@ -19,5 +19,5 @@ export function roundToTenths(num) {
  * @return {number} The rounded number.
  */
 export function roundToHundredths(num) {
-    return Math.round(num * 100) / 100;
+  return Math.round(num * 100) / 100;
 }

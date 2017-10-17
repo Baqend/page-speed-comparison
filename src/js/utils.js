@@ -1,16 +1,18 @@
+/* global window */
+
 /**
  * @param {number} bytes The file size in bytes to format.
  * @param {number} [decimals] The number of decimals
  * @return {string}
  */
 export function formatFileSize(bytes, decimals) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1000;
-    const dm = decimals || 2;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+  if (bytes === 0) return '0 Bytes';
+  const k = 1000;
+  const dm = decimals || 2;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
 /**
@@ -20,16 +22,16 @@ export function formatFileSize(bytes, decimals) {
  * @return {Promise<void>} A promise which resolves when we wake up.
  */
 export function sleep(millis) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, millis);
-    });
+  return new Promise((resolve) => {
+    setTimeout(resolve, millis);
+  });
 }
 
 /**
  * Verify whether the device is IOS or not
  */
 export function isDeviceIOS() {
-    return navigator.userAgent.match(/iPhone|iPod/i);
+  return window.navigator.userAgent.match(/iPhone|iPod/i);
 }
 
 /**
@@ -40,9 +42,7 @@ export function isDeviceIOS() {
  * @return {Array} The sorted Array of objects
  */
 export function sortArray(dataArray, sortCriterion) {
-    return dataArray[sortCriterion].sort(function(a, b) {
-        return parseFloat(b.requests) - parseFloat(a.requests);
-    });
+  return dataArray[sortCriterion].sort((a, b) => parseFloat(b.requests) - parseFloat(a.requests));
 }
 
 /**
@@ -50,11 +50,11 @@ export function sortArray(dataArray, sortCriterion) {
  * @return {null|string}
  */
 export function getParameterByName(name) {
-    const url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+  const url = window.location.href;
+  const newName = name.replace(/[[\]]/g, '\\$&');
+  const regex = new RegExp(`[?&]${newName}(=([^&#]*)|&|#|$)`);
+  const results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
