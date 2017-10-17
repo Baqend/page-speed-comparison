@@ -35,7 +35,7 @@ module.exports = (config) => webpackMerge({
           },
           {
             loader: 'eslint-loader',
-          }
+          },
         ],
       },
       {
