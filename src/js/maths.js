@@ -21,3 +21,15 @@ export function roundToTenths(num) {
 export function roundToHundredths(num) {
   return Math.round(num * 100) / 100;
 }
+
+/**
+ * @param {number} float The float to format.
+ * @return {string} A formatted percentage.
+ */
+export function formatPercentage(float) {
+  return (float * 100).toFixed(0);
+}
+
+export function zeroSafeDiv(divisor, dividend) {
+  return divisor / Math.max(dividend, 1);
+}

@@ -232,6 +232,7 @@ function initTest() {
       dataView = result.caching ? 'repeatView' : 'firstView';
       competitorResult = result.competitorTestResult;
       speedKitResult = result.speedKitTestResult;
+      // eslint-disable-next-line prefer-destructuring
       whitelist = result.whitelist;
 
       competitorUrl = result.competitorTestResult.url;
