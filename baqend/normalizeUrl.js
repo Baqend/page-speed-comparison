@@ -29,20 +29,25 @@ function fetchUrl(url, mobile, redirects) {
 }
 
 exports.call = (db, data) => {
-  let urlInput = data.url;
+  const urlInput = data.urls;
   const { mobile } = data;
+  const inputArray = Array.isArray(urlInput) ? urlInput : [urlInput];
 
-  const hasProtocol = /^https?:\/\//.test(urlInput);
-  urlInput = hasProtocol ? urlInput : `http://${urlInput}`;
+  const fetchPromises = inputArray.map((url) => {
+    const hasProtocol = /^https?:\/\//.test(url);
+    url = hasProtocol ? url : `http://${url}`;
 
-  return fetchUrl(urlInput, mobile).then((fetchRes) => {
-    const parsedUrl = urlModule.parse(fetchRes.url);
-    const swUrl = urlModule.format(Object.assign({}, parsedUrl, { pathname: '/sw.js' }));
+    return fetchUrl(url, mobile).then((fetchRes) => {
+      const parsedUrl = urlModule.parse(fetchRes.url);
+      const swUrl = urlModule.format(Object.assign({}, parsedUrl, { pathname: '/sw.js' }));
 
-    return fetch(swUrl).then((res) => {
-      if (!res.ok) { return false; }
+      return fetch(swUrl).then((res) => {
+        if (!res.ok) { return false; }
 
-      return res.text().then(text => text.indexOf('speed-kit') !== -1);
-    }).catch(() => false).then(speedkit => ({ url: fetchRes.url, isBaqendApp: fetchRes.isBaqendApp, speedkit }));
+        return res.text().then(text => text.indexOf('speed-kit') !== -1);
+      }).catch(() => false).then(speedkit => ({ url: fetchRes.url, isBaqendApp: fetchRes.isBaqendApp, speedkit }));
+    }).catch(e => Promise.resolve({ e }));
   });
+
+  return Promise.all(fetchPromises);
 };

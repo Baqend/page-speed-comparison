@@ -24,7 +24,7 @@
     "@types/bootstrap": "^3.3.36",
     "@types/jquery": "^3.2.12",
     "awesome-typescript-loader": "^3.2.3",
-    "baqend-coding-standard": "^1.1.0",
+    "baqend-coding-standard": "^1.1.1",
     "baqend-webpack-plugin": "^1.0.2",
     "css-loader": "^0.28.1",
     "eslint": "^4.9.0",

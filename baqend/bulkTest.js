@@ -1,8 +1,24 @@
+/* eslint-disable comma-dangle */
 /* eslint no-restricted-syntax: 0 */
 
 const { startTest } = require('./queueTest');
 const { getSpeedKitUrl } = require('./getSpeedKitUrl');
-const { getTestStatus } = require('./getTestStatus');
+
+function updateBulkTest(bulkTest, testResult) {
+  let hasFinished = true;
+  bulkTest.load({ depth: 2 }).then(() => {
+    for (const entry of bulkTest.testOverviews) {
+      if (!entry.competitorTestResult.firstView || !entry.speedKitTestResult.firstView) {
+        hasFinished = false;
+        break;
+      }
+    }
+
+    bulkTest.optimisticSave(() => {
+      bulkTest.hasFinished = hasFinished;
+    });
+  });
+}
 
 exports.post = function bulkTestPost(db, req, res) {
   const results = [];
@@ -15,30 +31,41 @@ exports.post = function bulkTestPost(db, req, res) {
       runs,
     } = entry;
 
+    const bulkTest = new db.BulkTest();
     const speedKitUrl = getSpeedKitUrl(url, whitelist);
     const testOverviews = [];
     for (let i = 0; i < (runs || 1); i += 1) {
       const testOverview = new db.TestOverview();
       testOverview.whitelist = whitelist;
       testOverview.caching = !isCachingDisabled;
-      testOverview.save();
 
-      startTest(db, url, location, false, isCachingDisabled, null, false, (testResult) => {
-        testOverview.competitorTestResult = testResult;
-        testOverview.psiDomains = testResult.firstView.domains.length;
-        testOverview.psiRequests = testResult.firstView.requests;
-        testOverview.psiResponseSize = testResult.firstView.bytes;
-        testOverview.save();
-      });
+      testOverview.competitorTestResult = startTest(
+        db, url, location, false, isCachingDisabled, null, false,
+        (testResult) => {
+          testOverview.competitorTestResult = testResult;
+          testOverview.psiDomains = testResult.firstView.domains.length;
+          testOverview.psiRequests = testResult.firstView.requests;
+          testOverview.psiResponseSize = testResult.firstView.bytes;
+          testOverview.save();
 
-      startTest(db, speedKitUrl, location, true, isCachingDisabled, null, false, (testResult) => {
-        testOverview.speedKitTestResult = testResult;
-        testOverview.save();
-      });
+          updateBulkTest(bulkTest, testResult);
+        },
+      );
+
+      testOverview.speedKitTestResult = startTest(
+        db, speedKitUrl, location, true, isCachingDisabled, null, false,
+        (testResult) => {
+          testOverview.speedKitTestResult = testResult;
+          testOverview.save();
+
+          updateBulkTest(bulkTest, testResult);
+        },
+      );
 
       testOverviews.push(testOverview);
+      testOverview.save();
     }
-    const bulkTest = new db.BulkTest();
+
     bulkTest.url = url;
     bulkTest.testOverviews = testOverviews;
     bulkTest.save();
@@ -46,14 +73,4 @@ exports.post = function bulkTestPost(db, req, res) {
     results.push({ url, bulkTest });
   }
   res.send(results);
-};
-
-exports.get = function bulkTestGet(db, req, res) {
-  const promises = [];
-  const baqendIds = req.query.ids.split(',');
-  for (const baqendId of baqendIds) {
-    promises.push(getTestStatus(baqendId));
-  }
-
-  return Promise.all(promises).then(results => res.send(results));
 };

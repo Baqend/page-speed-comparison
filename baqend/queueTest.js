@@ -17,9 +17,9 @@ exports.call = function (db, data, req) {
   }
 
   const { url, location, isClone, caching, isSpeedKitComparison, activityTimeout, mobile } = data;
-  db.log.info(isSpeedKitComparison);
-  const baqendId = startTest(db, url, location, isClone, !caching, activityTimeout, isSpeedKitComparison, mobile);
-  return { baqendId };
+
+  const testResult = startTest(db, url, location, isClone, !caching, activityTimeout, isSpeedKitComparison, mobile);
+  return { baqendId: testResult.key };
 };
 
 /**
@@ -120,7 +120,7 @@ function startTest(db,
     });
   });
 
-  return testResult.key;
+  return testResult;
 }
 
 /**

@@ -225,7 +225,7 @@ window.whitelistCandidateClicked = (elementId) => {
  * @return {Promise<{ url: string, speedkit: boolean }>}
  */
 async function normalizeUrl(url, mobile) {
-  return db.modules.get('normalizeUrl', { url, mobile });
+  return db.modules.get('normalizeUrl', { urls: url, mobile });
 }
 
 function initTest() {
@@ -344,9 +344,9 @@ async function submitComparison(url = $('#currentVendorUrl').val()) {
     await db.modules.get('testRateLimited');
     const normalizedResult = await normalizeUrl(url, testOptions.mobile);
 
-    $('#currentVendorUrl').val(normalizedResult.url);
-    if (!normalizedResult.isBaqendApp) {
-      initComparison(normalizedResult);
+    $('#currentVendorUrl').val(normalizedResult[0].url);
+    if (!normalizedResult[0].isBaqendApp) {
+      initComparison(normalizedResult[0]);
       return;
     }
     showComparisonError(new Error('Baqend app detected'));
