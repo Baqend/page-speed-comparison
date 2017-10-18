@@ -40,7 +40,7 @@ import * as hbs from '../templates';
 let competitorUrl;
 let testResult = {};
 let testVideo = {};
-const testOptions = { location: 'eu-central-1:Chrome', caching: false };
+const testOptions = { location: 'eu-central-1:Chrome', caching: false, mobile: false };
 /** @type {boolean} */
 let pageSpeedInsightFailed = false;
 let testInstance;
@@ -159,11 +159,23 @@ window.handleLocationChange = (radioButton) => {
  * @param {HTMLInputElement} radioButton
  */
 window.handleCachingChange = (radioButton) => {
-  testOptions.caching = radioButton.value;
+  testOptions.caching = !radioButton.value;
   if (radioButton.value === 'yes') {
     testOptions.caching = false;
   } else if (radioButton.value === 'no') {
     testOptions.caching = true;
+  }
+};
+
+/**
+ * @param {HTMLInputElement} radioButton
+ */
+window.handleMobileChange = (radioButton) => {
+  testOptions.mobile = radioButton.value;
+  if (radioButton.value === 'yes') {
+    testOptions.mobile = true;
+  } else if (radioButton.value === 'no') {
+    testOptions.mobile = false;
   }
 };
 
@@ -208,11 +220,12 @@ window.whitelistCandidateClicked = (elementId) => {
 };
 
 /**
- * @param {string} url
+ * @param {string} url The url to resolve
+ * @param {boolean} mobile Resolves the url on desktop or mobile style
  * @return {Promise<{ url: string, speedkit: boolean }>}
  */
-async function normalizeUrl(url) {
-  return db.modules.get('normalizeUrl', { url });
+async function normalizeUrl(url, mobile) {
+  return db.modules.get('normalizeUrl', { url, mobile });
 }
 
 function initTest() {
@@ -247,6 +260,7 @@ function initTest() {
       if (isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
         testOptions.speedKit = result.speedKit;
         testOptions.caching = result.caching;
+        testOptions.mobile = !!result.mobile;
         testOptions.location = competitorResult.location;
 
         displayTestResultsById(testOptions, result);
@@ -328,7 +342,7 @@ function initTest() {
 async function submitComparison(url = $('#currentVendorUrl').val()) {
   try {
     await db.modules.get('testRateLimited');
-    const normalizedResult = await normalizeUrl(url);
+    const normalizedResult = await normalizeUrl(url, testOptions.mobile);
 
     $('#currentVendorUrl').val(normalizedResult.url);
     if (!normalizedResult.isBaqendApp) {
@@ -365,7 +379,9 @@ async function initComparison(normalizedUrl) {
   isSpeedKitComparison = normalizedUrl.speedkit;
   competitorUrl = normalizedUrl.url;
 
-  const speedKitUrl = isSpeedKitComparison ? competitorUrl : getBaqendUrl(competitorUrl, $wListInput.val());
+  const speedKitUrl = isSpeedKitComparison
+    ? competitorUrl
+    : getBaqendUrl(competitorUrl, $wListInput.val(), testOptions.mobile);
 
   // Show testing UI
   startTest();
@@ -374,6 +390,7 @@ async function initComparison(normalizedUrl) {
 
   testOverview = new db.TestOverview();
   testOverview.caching = testOptions.caching;
+  testOverview.mobile = testOptions.mobile;
   testOverview.whitelist = $wListInput.val();
 
   try {
@@ -386,6 +403,7 @@ async function initComparison(normalizedUrl) {
         location: testOptions.location,
         isClone: false,
         caching: testOptions.caching,
+        mobile: testOptions.mobile,
       }),
       // Test the Makefast site
       db.modules.post('queueTest', {
@@ -395,11 +413,12 @@ async function initComparison(normalizedUrl) {
         location: testOptions.location,
         isClone: true,
         caching: testOptions.caching,
+        mobile: testOptions.mobile,
       }),
     ]);
 
     try {
-      const pageSpeedResult = await callPageSpeedInsightsAPI(competitorUrl);
+      const pageSpeedResult = await callPageSpeedInsightsAPI(competitorUrl, testOptions.mobile);
       statusText.carousel(1);
       const screenShot = pageSpeedResult.screenshot;
       setPageSpeedMetrics(pageSpeedResult);

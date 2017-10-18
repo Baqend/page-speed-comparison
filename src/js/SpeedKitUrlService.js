@@ -61,9 +61,10 @@ export function generateRules(originalUrl, whitelist) {
  *
  * @param {string} originalUrl The URL to make fast. ;-)
  * @param {string} whitelistStr The whitelist string with comma-separated values.
+ * @param {boolean} enableUserAgentDetection Enables the user agent detection in makefast
  * @return {string} A URL to send to Speed Kit.
  */
-export function getBaqendUrl(originalUrl, whitelistStr) {
+export function getBaqendUrl(originalUrl, whitelistStr, enableUserAgentDetection) {
   const whitelistDomains = whitelistStr
     .split(',')
     .map(item => item.trim())
@@ -71,5 +72,10 @@ export function getBaqendUrl(originalUrl, whitelistStr) {
 
   const whitelist = generateRules(originalUrl, whitelistDomains);
 
-  return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&whitelist=${encodeURIComponent(whitelist)}`;
+  let url = `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&whitelist=${encodeURIComponent(whitelist)}`;
+  if (enableUserAgentDetection) {
+    url += '&agentDetec=true';
+  }
+
+  return url;
 }

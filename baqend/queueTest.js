@@ -16,9 +16,9 @@ exports.call = function (db, data, req) {
     throw new Abort({ message: 'Too many requests', status: 429 });
   }
 
-  const { url, location, isClone, caching, isSpeedKitComparison, activityTimeout } = data;
+  const { url, location, isClone, caching, isSpeedKitComparison, activityTimeout, mobile } = data;
   db.log.info(isSpeedKitComparison);
-  const baqendId = startTest(db, url, location, isClone, !caching, activityTimeout, isSpeedKitComparison);
+  const baqendId = startTest(db, url, location, isClone, !caching, activityTimeout, isSpeedKitComparison, mobile);
   return { baqendId };
 };
 
@@ -30,6 +30,7 @@ exports.call = function (db, data, req) {
  * @param {boolean} isCachingDisabled
  * @param {number} activityTimeout
  * @param {boolean} isSpeedKitComparison
+ * @param {boolean} mobile
  * @param {function} callback
  * @return {string}
  */
@@ -40,6 +41,7 @@ function startTest(db,
                    isCachingDisabled = true,
                    activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
                    isSpeedKitComparison = false,
+                   mobile = false,
                    callback = null) {
   // Create a new test result
   const testResult = new db.TestResult();
@@ -70,6 +72,13 @@ function startTest(db,
     poll: 1, //poll every second
     timeout: 2 * DEFAULT_TIMEOUT //set timeout
   };
+
+  if (mobile) {
+    Object.assign(testOptions, {
+      mobile: true,
+      device: 'iPhone6'
+    });
+  }
 
   const requirePrewarm = isClone;
 

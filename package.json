@@ -16,6 +16,7 @@
     "build:report": "webpack --config ./config/webpack.config.report.js --optimize-minimize",
     "deploy:prod": "npm run build:prod && baqend deploy --file-dir dist makefast",
     "deploy:staging": "npm run build:staging && baqend deploy --file-dir dist makefast-staging",
+    "deploy:dev": "npm run build:dev && baqend deploy --file-dir dist makefast-dev",
     "deploy-code:dev": "baqend deploy --code makefast-dev",
     "deploy-code:staging": "baqend deploy --code makefast-staging"
   },

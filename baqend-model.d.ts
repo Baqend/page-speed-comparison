@@ -27,6 +27,7 @@ declare module "baqend" {
       psiRequests: number;
       psiResponseSize: string;
       caching: boolean;
+      mobile: boolean;
       competitorTestResult: TestResult;
       speedKitTestResult: TestResult;
       whitelist: string;
