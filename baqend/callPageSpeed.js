@@ -39,7 +39,7 @@ function callPageSpeed(url, mobile) {
 }
 
 exports.get = function get(db, req, res) {
-  return callPageSpeed(req.query.url, req.query.mobile === 'mobile').then(results => res.send(results));
+  return callPageSpeed(req.query.url, req.query.mobile === 'true').then(results => res.send(results));
 };
 
 exports.callPageSpeed = callPageSpeed;
