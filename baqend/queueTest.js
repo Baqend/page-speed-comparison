@@ -48,7 +48,6 @@ function startTest(db,
   testResult.id = db.util.uuid();
 
   const testOptions = {
-    connectivity: 'Native',
     location: testLocation,
     firstViewOnly: isCachingDisabled,
     runs: 1,

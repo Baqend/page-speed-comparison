@@ -40,7 +40,7 @@ import * as hbs from '../templates';
 let competitorUrl;
 let testResult = {};
 let testVideo = {};
-const testOptions = { location: 'eu-central-1:Chrome', caching: false, mobile: false };
+const testOptions = { location: 'eu-central-1:Chrome.Native', caching: false, mobile: false };
 /** @type {boolean} */
 let pageSpeedInsightFailed = false;
 let testInstance;
@@ -149,9 +149,9 @@ window.addEventListener('popstate', () => {
  */
 window.handleLocationChange = (radioButton) => {
   if (radioButton.value === 'usa') {
-    testOptions.location = 'us-east-1:Chrome';
+    testOptions.location = 'us-east-1:Chrome.Native';
   } else if (radioButton.value === 'eu') {
-    testOptions.location = 'eu-central-1:Chrome';
+    testOptions.location = 'eu-central-1:Chrome.Native';
   }
 };
 

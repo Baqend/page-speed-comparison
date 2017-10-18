@@ -77,5 +77,15 @@ export function getBaqendUrl(originalUrl, whitelistStr, enableUserAgentDetection
     url += '&agentDetec=true';
   }
 
+  /* // add blacklist options
+  const blacklist = [
+    {
+      contentType: ['document'],
+    },
+  ];
+
+  url += `&blacklist=${encodeURIComponent(JSON.stringify(blacklist))}`;
+  */
+
   return url;
 }
