@@ -30,7 +30,7 @@ function fetchUrl(url, mobile, redirects) {
 
 exports.call = (db, data) => {
   const urlInput = data.urls;
-  const { mobile } = data;
+  const mobile = data.mobile === 'true';
   const inputArray = Array.isArray(urlInput) ? urlInput : [urlInput];
 
   const fetchPromises = inputArray.map((url) => {
