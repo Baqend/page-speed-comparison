@@ -121,6 +121,18 @@ export function isSpeedIndexSatisfactory(competitorData, speedKitData) {
 }
 
 /**
+ * @param {*} competitorData
+ * @param {*} speedKitData
+ */
+export function isFMPSatisfactory(competitorData, speedKitData) {
+  if (competitorData.firstMeaningfulPaint > 0 && speedKitData.firstMeaningfulPaint > 0) {
+    const firstMeaningfulPaintFactor = roundToHundredths(competitorData.firstMeaningfulPaint / speedKitData.firstMeaningfulPaint);
+    return firstMeaningfulPaintFactor > 1.2;
+  }
+  return false;
+}
+
+/**
  * @param {*} data
  * @return {string}
  */

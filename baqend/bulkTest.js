@@ -1,4 +1,4 @@
-/* eslint-disable comma-dangle */
+/* eslint-disable comma-dangle, function-paren-newline */
 /* eslint no-restricted-syntax: 0 */
 
 const { startTest } = require('./queueTest');
@@ -40,8 +40,7 @@ exports.post = function bulkTestPost(db, req, res) {
       testOverview.caching = !isCachingDisabled;
 
       testOverview.competitorTestResult = startTest(
-        db, url, location, false, isCachingDisabled, null, false,
-        (testResult) => {
+        db, url, location, false, isCachingDisabled, null, false, null, (testResult) => {
           testOverview.competitorTestResult = testResult;
           testOverview.psiDomains = testResult.firstView.domains.length;
           testOverview.psiRequests = testResult.firstView.requests;
@@ -49,18 +48,15 @@ exports.post = function bulkTestPost(db, req, res) {
           testOverview.save();
 
           updateBulkTest(bulkTest, testResult);
-        },
-      );
+        });
 
       testOverview.speedKitTestResult = startTest(
-        db, speedKitUrl, location, true, isCachingDisabled, null, false,
-        (testResult) => {
+        db, speedKitUrl, location, true, isCachingDisabled, null, false, null, (testResult) => {
           testOverview.speedKitTestResult = testResult;
           testOverview.save();
 
           updateBulkTest(bulkTest, testResult);
-        },
-      );
+        });
 
       testOverviews.push(testOverview);
       testOverview.save();

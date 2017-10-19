@@ -46,7 +46,7 @@ exports.call = (db, data) => {
 
         return res.text().then(text => text.indexOf('speed-kit') !== -1);
       }).catch(() => false).then(speedkit => ({ url: fetchRes.url, isBaqendApp: fetchRes.isBaqendApp, speedkit }));
-    }).catch(e => Promise.resolve({ e }));
+    }).catch(() => Promise.resolve(null));
   });
 
   return Promise.all(fetchPromises);
