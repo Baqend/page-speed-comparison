@@ -126,7 +126,8 @@ export function isSpeedIndexSatisfactory(competitorData, speedKitData) {
  */
 export function isFMPSatisfactory(competitorData, speedKitData) {
   if (competitorData.firstMeaningfulPaint > 0 && speedKitData.firstMeaningfulPaint > 0) {
-    const firstMeaningfulPaintFactor = roundToHundredths(competitorData.firstMeaningfulPaint / speedKitData.firstMeaningfulPaint);
+    const firstMeaningfulPaintFactor =
+      roundToHundredths(competitorData.firstMeaningfulPaint / speedKitData.firstMeaningfulPaint);
     return firstMeaningfulPaintFactor > 1.2;
   }
   return false;
@@ -154,7 +155,7 @@ export function calculateServedRequests(data) {
  * @param {*} speedKitData
  */
 export function isServedRateSatisfactory(speedKitData) {
-  return calculateServedRequests(speedKitData) > 20;
+  return calculateServedRequests(speedKitData) > 30;
 }
 
 /**

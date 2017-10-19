@@ -4,18 +4,27 @@
 const { startTest } = require('./queueTest');
 const { getSpeedKitUrl } = require('./getSpeedKitUrl');
 
-function updateBulkTest(bulkTest, testResult) {
+function updateBulkTest(db, bulkTest, testResult) {
+  const meanValues = testResult.url.indexOf('makefast') !== -1 ? 'speedKitMeanValues' : 'competitorMeanValues';
+  const dataView = 'firstView';
+  const { speedIndex, firstMeaningfulPaint } = testResult[dataView];
+
   let hasFinished = true;
   bulkTest.load({ depth: 2 }).then(() => {
     for (const entry of bulkTest.testOverviews) {
-      if (!entry.competitorTestResult.firstView || !entry.speedKitTestResult.firstView) {
+      if (!entry.competitorTestResult[dataView] || !entry.speedKitTestResult[dataView]) {
         hasFinished = false;
         break;
       }
     }
 
     bulkTest.optimisticSave(() => {
+      const meanValue = bulkTest[meanValues];
+      meanValue.speedIndex = Number.isInteger(meanValue.speedIndex) ? (meanValue.speedIndex + speedIndex) / 2 : speedIndex;
+      meanValue.firstMeaningfulPaint = Number.isInteger(meanValue.firstMeaningfulPaint) ? (meanValue.firstMeaningfulPaint + firstMeaningfulPaint) / 2 : firstMeaningfulPaint;
       bulkTest.hasFinished = hasFinished;
+      db.log.info(meanValue.speedIndex);
+      db.log.info(meanValue.firstMeaningfulPaint);
     });
   });
 }
@@ -31,9 +40,16 @@ exports.post = function bulkTestPost(db, req, res) {
       runs,
     } = entry;
 
-    const bulkTest = new db.BulkTest();
+
     const speedKitUrl = getSpeedKitUrl(url, whitelist);
     const testOverviews = [];
+
+    const bulkTest = new db.BulkTest();
+    bulkTest.url = url;
+    bulkTest.testOverviews = testOverviews;
+    bulkTest.speedKitMeanValues = new db.Mean();
+    bulkTest.competitorMeanValues = new db.Mean();
+
     for (let i = 0; i < (runs || 1); i += 1) {
       const testOverview = new db.TestOverview();
       testOverview.whitelist = whitelist;
@@ -47,7 +63,7 @@ exports.post = function bulkTestPost(db, req, res) {
           testOverview.psiResponseSize = testResult.firstView.bytes;
           testOverview.save();
 
-          updateBulkTest(bulkTest, testResult);
+          updateBulkTest(db, bulkTest, testResult);
         });
 
       testOverview.speedKitTestResult = startTest(
@@ -55,17 +71,14 @@ exports.post = function bulkTestPost(db, req, res) {
           testOverview.speedKitTestResult = testResult;
           testOverview.save();
 
-          updateBulkTest(bulkTest, testResult);
+          updateBulkTest(db, bulkTest, testResult);
         });
 
       testOverviews.push(testOverview);
       testOverview.save();
     }
 
-    bulkTest.url = url;
-    bulkTest.testOverviews = testOverviews;
     bulkTest.save();
-
     results.push({ url, bulkTest });
   }
   res.send(results);
