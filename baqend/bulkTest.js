@@ -1,7 +1,7 @@
 /* eslint-disable comma-dangle, function-paren-newline */
 /* eslint no-restricted-syntax: 0 */
 
-const { startTest } = require('./queueTest');
+const { queueTest } = require('./queueTest');
 const { getSpeedKitUrl } = require('./getSpeedKitUrl');
 
 const fields = ['speedIndex', 'firstMeaningfulPaint', 'ttfb', 'domLoaded', 'fullyLoaded', 'lastVisualChange'];
@@ -89,7 +89,7 @@ function updateBulkTest(db, bulkTestRef) {
  * @param {string} whitelist A whitelist to use for the test.
  * @param {string} location The server location to execute the test.
  * @param {number} runs The number of runs to execute.
- * @param {boolean} isCachingDisabled If true,
+ * @param {boolean} caching If true, browser caching will be used. Defaults to false.
  * @return {{ url: string, bulkTest: object }} An object containing bulk test information
  */
 function createBulkTest(db, createdBy, {
@@ -97,7 +97,7 @@ function createBulkTest(db, createdBy, {
   whitelist,
   location = 'eu-central-1:Chrome',
   runs = 1,
-  isCachingDisabled = true,
+  caching = false,
 }) {
   const speedKitUrl = getSpeedKitUrl(url, whitelist);
   const bulkTest = new db.BulkTest();
@@ -110,10 +110,15 @@ function createBulkTest(db, createdBy, {
     const testOverview = new db.TestOverview();
     testOverview.url = url;
     testOverview.whitelist = whitelist;
-    testOverview.caching = !isCachingDisabled;
+    testOverview.caching = caching;
 
-    testOverview.competitorTestResult = startTest(
-      db, url, location, false, isCachingDisabled, null, false, null, (testResult) => {
+    testOverview.competitorTestResult = queueTest({
+      db,
+      location,
+      caching,
+      url,
+      isClone: false,
+      finish(testResult) {
         testOverview.competitorTestResult = testResult;
         if (testResult.testDataMissing !== true) {
           testOverview.psiDomains = testResult.firstView.domains.length;
@@ -121,16 +126,24 @@ function createBulkTest(db, createdBy, {
           testOverview.psiResponseSize = testResult.firstView.bytes;
         }
         testOverview.save();
-        updateBulkTest(db, bulkTest);
-      });
 
-    testOverview.speedKitTestResult = startTest(
-      db, speedKitUrl, location, true, isCachingDisabled, null, false, null, (testResult) => {
+        updateBulkTest(db, bulkTest);
+      },
+    });
+
+    testOverview.speedKitTestResult = queueTest({
+      db,
+      location,
+      caching,
+      url: speedKitUrl,
+      isClone: true,
+      finish(testResult) {
         testOverview.speedKitTestResult = testResult;
         testOverview.save();
 
         updateBulkTest(db, bulkTest);
-      });
+      },
+    });
 
     bulkTest.testOverviews.push(testOverview);
     testOverview.save();

@@ -1,3 +1,4 @@
+/* eslint-disable comma-dangle, no-use-before-define, no-restricted-syntax */
 /* global Abort */
 const { parse } = require('url');
 const { API } = require('./Pagetest');
@@ -7,24 +8,23 @@ const { getAdSet } = require('./adBlocker');
 const { toFile } = require('./download');
 const { countHits } = require('./countHits');
 
+const DEFAULT_LOCATION = 'eu-central-1:Chrome';
 const DEFAULT_ACTIVITY_TIMEOUT = 75;
 const DEFAULT_TIMEOUT = 30;
 const DEFAULT_TTL = 86000 / 2;
 
 exports.call = function (db, data, req) {
-  //Check if IP is rate-limited
+  // Check if IP is rate-limited
   if (isRateLimited(req)) {
     throw new Abort({ message: 'Too many requests', status: 429 });
   }
 
-  const { url, location, isClone, caching, isSpeedKitComparison, activityTimeout, mobile } = data;
-
-  const testResult = startTest(db, url, location, isClone, !caching, activityTimeout, isSpeedKitComparison, mobile);
+  const testResult = queueTest(Object.assign({}, { db }, data));
   return { baqendId: testResult.key };
 };
 
 /**
- * @param db
+ * @param db The Baqend instance.
  * @param {string} testUrl
  * @param {string} testLocation
  * @param {boolean} isClone
@@ -34,16 +34,19 @@ exports.call = function (db, data, req) {
  * @param {boolean} mobile
  * @param {function} callback
  * @return {string}
+ * @deprecated Use queueTest.
  */
-function startTest(db,
-                   testUrl,
-                   testLocation,
-                   isClone,
-                   isCachingDisabled = true,
-                   activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
-                   isSpeedKitComparison = false,
-                   mobile = false,
-                   callback = null) {
+function startTest(
+  db,
+  testUrl,
+  testLocation,
+  isClone,
+  isCachingDisabled = true,
+  activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
+  isSpeedKitComparison = false,
+  mobile = false,
+  callback = null
+) {
   // Create a new test result
   const pendingTest = new db.TestResult();
   pendingTest.id = db.util.uuid();
@@ -60,23 +63,23 @@ function startTest(db,
     domains: false,
     saveResponseBodies: false,
     tcpDump: false,
-    timeline: true, //TODO: only for debugging
+    timeline: true, // TODO: only for debugging
     priority: 0,
-    minimumDuration: 1, //capture at least one second
+    minimumDuration: 1, // capture at least one second
     chromeTrace: false,
     netLog: false,
     disableHTTPHeaders: true,
     disableScreenshot: true,
-    block: 'favicon', //exclude favicons for fair comparison, as not handled by SWs
+    block: 'favicon', // exclude favicons for fair comparison, as not handled by SWs
     jpegQuality: 100,
-    poll: 1, //poll every second
-    timeout: 2 * DEFAULT_TIMEOUT //set timeout
+    poll: 1, // poll every second
+    timeout: 2 * DEFAULT_TIMEOUT // set timeout
   };
 
   if (mobile) {
     Object.assign(testOptions, {
       mobile: true,
-      device: 'iPhone6'
+      device: 'iPhone6',
     });
   }
 
@@ -137,10 +140,10 @@ function startTest(db,
  * @param {boolean} isSpeedKitComparison
  * @return {string}
  */
-function createTestScript(testUrl, isClone, isCachingDisabled = true, activityTimeout = DEFAULT_ACTIVITY_TIMEOUT, isSpeedKitComparison = false) {
+function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison) {
   let hostname;
   try {
-    hostname = parse(testUrl).hostname;
+    ({ hostname } = parse(testUrl));
   } catch (e) {
     throw new Abort(`Invalid Url specified: ${e.message}`);
   }
@@ -155,16 +158,16 @@ function createTestScript(testUrl, isClone, isCachingDisabled = true, activityTi
     `;
   }
 
-  let installNavigation = testUrl + '&noCaching=true&blockExternal=true';
+  let installNavigation = `${testUrl}&noCaching=true&blockExternal=true`;
   if (!isCachingDisabled) {
-    installNavigation = testUrl.split('#')[0];
+    [installNavigation] = testUrl.split('#');
   }
 
-  //SW always needs to be installed
+  // SW always needs to be installed
   const installSW = `
     logData 0
-    setTimeout ${DEFAULT_TIMEOUT}	
-    ${isSpeedKitComparison ? 'blockDomainsExcept ' + hostname : ''}
+    setTimeout ${DEFAULT_TIMEOUT}
+    ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
     navigate ${installNavigation}
     ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
     navigate about:blank
@@ -175,14 +178,15 @@ function createTestScript(testUrl, isClone, isCachingDisabled = true, activityTi
   return `
     setActivityTimeout ${activityTimeout}
     ${installSW}
-    setTimeout ${DEFAULT_TIMEOUT}	
+    setTimeout ${DEFAULT_TIMEOUT}
     navigate ${testUrl}
   `;
 }
 
 /**
- * @param db
+ * @param db The Baqend instance.
  * @param {string} testId
+ * @param {boolean} isSpeedKitComparison
  */
 function getPrewarmResult(db, testId, isSpeedKitComparison) {
   return API.getTestResults(testId, {
@@ -192,23 +196,25 @@ function getPrewarmResult(db, testId, isSpeedKitComparison) {
     pageSpeed: false,
   }).then((result) => {
     const ttfb = isSpeedKitComparison ? result.data.runs['2'].firstView.TTFB : result.data.runs['1'].firstView.TTFB;
-    db.log.info('TTFB of prewarm: ' + ttfb + ' with testId ' + testId, result.data.runs['1'].firstView);
+    db.log.info(`TTFB of prewarm: ${ttfb} with testId ${testId}`, result.data.runs['1'].firstView);
     return ttfb;
   });
 }
 
 /**
- * @param db
- * @param testResult
+ * @param db The Baqend instance.
+ * @param originalResult
  * @param {string} testId
  * @param {string} ttfb
+ * @return {Promise<object>} A promised test result.
  */
-function getTestResult(db, testResult, testId, ttfb) {
+function getTestResult(db, originalResult, testId, ttfb) {
+  const testResult = originalResult;
   db.log.info(`Pingback received for ${testId}`);
 
   if (testResult.firstView) {
     db.log.info(`Result already exists for ${testId}`);
-    return;
+    return Promise.resolve(testResult);
   }
 
   testResult.testId = testId;
@@ -221,27 +227,25 @@ function getTestResult(db, testResult, testId, ttfb) {
   };
 
   return API.getTestResults(testId, options).then((result) => {
-    db.log.info('Saving test result for ' + testId, result.data);
+    db.log.info(`Saving test result for ${testId}`, result.data);
     return createTestResult(db, testResult, result.data, ttfb);
-  }).then((ignored) => {
+  }).then(() => {
     if (testResult.testDataMissing) {
       throw new Error('Test Data Missing');
     }
 
-    db.log.info('creating video for ' + testId);
-    return Promise.all([API.createVideo(testId + '-r:1-c:0'), API.createVideo(testId + '-r:1-c:1')]);
+    db.log.info(`creating video for ${testId}`);
+    return Promise.all([API.createVideo(`${testId}-r:1-c:0`), API.createVideo(`${testId}-r:1-c:1`)]);
   }).then((result) => {
-    db.log.info('videos created for ' + testId);
+    db.log.info(`videos created for ${testId}`);
 
     testResult.videoIdFirstView = result[0].data.videoId;
-    const videoFirstViewPromise = toFile(db,
-      constructVideoLink(testId, testResult.videoIdFirstView), '/www/videoFirstView/' + testId + '.mp4');
+    const videoFirstViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdFirstView), `/www/videoFirstView/${testId}.mp4`);
 
     let videoRepeatViewPromise = Promise.resolve(true);
     if (result[1].data && result[1].data.videoId) {
       testResult.videoIdRepeatedView = result[1].data.videoId;
-      videoRepeatViewPromise = toFile(db,
-        constructVideoLink(testId, testResult.videoIdRepeatedView), '/www/videoRepeatView/' + testId + '.mp4');
+      videoRepeatViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdRepeatedView), `/www/videoRepeatView/${testId}.mp4`);
     }
 
     return Promise.all([videoFirstViewPromise, videoRepeatViewPromise]).then((values) => {
@@ -259,18 +263,19 @@ function getTestResult(db, testResult, testId, ttfb) {
  * @return {string}
  */
 function constructVideoLink(testId, videoId) {
-  const date = testId.substr(0, 2) + '/' + testId.substr(2, 2) + '/' + testId.substr(4, 2);
+  const date = `${testId.substr(0, 2)}/${testId.substr(2, 2)}/${testId.substr(4, 2)}`;
   const videoLink = videoId.substr(videoId.indexOf('_') + 1, videoId.length);
   return `http://${credentials.wpt_dns}/results/video/${date}/${videoLink}/video.mp4`;
 }
 
 /**
- * @param db
- * @param testObject
- * @param testResult
+ * @param db The Baqend instance.
+ * @param {object} originalObject
+ * @param {object} testResult
  * @param {string} ttfb
  */
-function createTestResult(db, testObject, testResult, ttfb) {
+function createTestResult(db, originalObject, testResult, ttfb) {
+  const testObject = originalObject;
   testObject.location = testResult.location;
   testObject.url = testResult.testUrl;
   testObject.summaryUrl = testResult.summary;
@@ -283,7 +288,7 @@ function createTestResult(db, testObject, testResult, ttfb) {
       return testObject.save();
     }
 
-    return createRun(db, testResult.runs['1'].repeatView, ttfb).then(repeatView => {
+    return createRun(db, testResult.runs['1'].repeatView, ttfb).then((repeatView) => {
       testObject.repeatView = repeatView;
       testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
       return testObject.save();
@@ -292,17 +297,16 @@ function createTestResult(db, testObject, testResult, ttfb) {
 }
 
 /**
- * @param db
+ * @param db The Baqend instance.
  * @param data
  * @param {string} ttfb
  */
 function createRun(db, data, ttfb) {
   const run = new db.Run();
-  const firstMeaningfulPaintObject = data.chromeUserTiming.reverse().find(entry => {
-    return entry.name === 'firstMeaningfulPaintCandidate';
-  });
+  const nameToFind = 'firstMeaningfulPaintCandidate';
+  const firstMeaningfulPaintObject = data.chromeUserTiming.reverse().find(entry => entry.name === nameToFind);
   run.loadTime = data.loadTime;
-  run.ttfb = ttfb ? ttfb : data.TTFB;
+  run.ttfb = ttfb || data.TTFB;
   run.domLoaded = data.domContentLoadedEventStart;
   run.load = data.loadEventStart;
   run.fullyLoaded = data.fullyLoaded;
@@ -332,9 +336,10 @@ function createRun(db, data, ttfb) {
 
 function createFailedRequestsCount(data) {
   let failedRequests = 0;
-  data.requests.forEach(request => {
-    if (request.responseCode >= 400)
-      failedRequests++;
+  data.requests.forEach((request) => {
+    if (request.responseCode >= 400) {
+      failedRequests += 1;
+    }
   });
 
   return failedRequests;
@@ -371,4 +376,43 @@ function isAdDomain(url, adSet) {
   return isAdDomain(url.substr(index + 1), adSet);
 }
 
+/**
+ * @param db The Baqend instance.
+ * @param {string} url The URL to test.
+ * @param {boolean} isClone True, if this is the cloned page.
+ * @param {string} [location] The server location to execute the test.
+ * @param {boolean} [caching] True, if browser caching should be used.
+ * @param {number} [activityTimeout] The timeout when the test should be aborted.
+ * @param {boolean} [isSpeedKitComparison] True, if Speed Kit is already running on the tested site.
+ * @param {boolean} [mobile] True, if a mobile-only test should be made.
+ * @param {function} [finish] A callback which will be called when the test succeeds or fails.
+ * @return {string}
+ */
+function queueTest({
+  // Required parameters
+  db,
+  url,
+  isClone,
+  // Optional parameters
+  location = DEFAULT_LOCATION,
+  caching = false,
+  activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
+  isSpeedKitComparison = false,
+  mobile = false,
+  finish = null,
+}) {
+  return startTest(
+    db,
+    url,
+    location,
+    isClone,
+    !caching,
+    activityTimeout,
+    isSpeedKitComparison,
+    mobile,
+    finish
+  );
+}
+
 exports.startTest = startTest;
+exports.queueTest = queueTest;
