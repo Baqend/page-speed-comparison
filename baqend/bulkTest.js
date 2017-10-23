@@ -48,7 +48,9 @@ function factorize(db, competitor, speedKit) {
  * Returns whether a bulk test has finished.
  */
 function hasFinished(bulkTest) {
-  return bulkTest.testOverviews.every(it => it.speedKitTestResult.firstView && it.competitorTestResult.firstView);
+  return bulkTest.testOverviews.every(it =>
+    (it.competitorTestResult.testDataMissing !== true && !it.competitorTestResult.firstView) ||
+    (it.speedKitTestResult.testDataMissing !== true && !it.speedKitTestResult.firstView));
 }
 
 /**
@@ -106,11 +108,12 @@ function createBulkTest(db, createdBy, {
     testOverview.competitorTestResult = startTest(
       db, url, location, false, isCachingDisabled, null, false, null, (testResult) => {
         testOverview.competitorTestResult = testResult;
-        testOverview.psiDomains = testResult.firstView.domains.length;
-        testOverview.psiRequests = testResult.firstView.requests;
-        testOverview.psiResponseSize = testResult.firstView.bytes;
+        if (testResult.testDataMissing !== true) {
+          testOverview.psiDomains = testResult.firstView.domains.length;
+          testOverview.psiRequests = testResult.firstView.requests;
+          testOverview.psiResponseSize = testResult.firstView.bytes;
+        }
         testOverview.save();
-
         updateBulkTest(db, bulkTest);
       });
 
