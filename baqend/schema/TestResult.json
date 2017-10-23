@@ -19,19 +19,19 @@
       "type": "/db/String",
       "order": 0
     },
+    "location": {
+      "name": "location",
+      "type": "/db/String",
+      "order": 1
+    },
     "firstView": {
       "name": "firstView",
       "type": "/db/Run",
-      "order": 1
+      "order": 2
     },
     "repeatView": {
       "name": "repeatView",
       "type": "/db/Run",
-      "order": 2
-    },
-    "location": {
-      "name": "location",
-      "type": "/db/String",
       "order": 3
     },
     "url": {

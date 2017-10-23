@@ -34,20 +34,30 @@
       "type": "/db/Boolean",
       "order": 3
     },
+    "mobile": {
+      "name": "mobile",
+      "type": "/db/Boolean",
+      "order": 4
+    },
+    "url": {
+      "name": "url",
+      "type": "/db/String",
+      "order": 5
+    },
     "competitorTestResult": {
       "name": "competitorTestResult",
       "type": "/db/TestResult",
-      "order": 4
+      "order": 6
     },
     "speedKitTestResult": {
       "name": "speedKitTestResult",
       "type": "/db/TestResult",
-      "order": 5
+      "order": 7
     },
     "whitelist": {
       "name": "whitelist",
       "type": "/db/String",
-      "order": 6
+      "order": 8
     }
   }
 }
