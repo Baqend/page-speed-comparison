@@ -45,12 +45,18 @@ function factorize(db, competitor, speedKit) {
 }
 
 /**
+ * Checks whether a test overview is finished.
+ */
+function hasTestOverviewFinished({ competitorTestResult, speedKitTestResult }) {
+  return (competitorTestResult.testDataMissing === true || competitorTestResult.firstView)
+    && (speedKitTestResult.testDataMissing === true || speedKitTestResult.firstView);
+}
+
+/**
  * Returns whether a bulk test has finished.
  */
-function hasFinished(bulkTest) {
-  return bulkTest.testOverviews.every(it =>
-    (it.competitorTestResult.testDataMissing !== true && !it.competitorTestResult.firstView) ||
-    (it.speedKitTestResult.testDataMissing !== true && !it.speedKitTestResult.firstView));
+function hasBulkTestFinished(bulkTest) {
+  return bulkTest.testOverviews.every(it => hasTestOverviewFinished(it));
 }
 
 /**
@@ -67,7 +73,7 @@ function pickResults(bulkTest, name) {
 function updateBulkTest(db, bulkTestRef) {
   const bulkTest = bulkTestRef;
   return bulkTest.load({ depth: 2 }).then(() => {
-    bulkTest.hasFinished = hasFinished(bulkTest);
+    bulkTest.hasFinished = hasBulkTestFinished(bulkTest);
     bulkTest.speedKitMeanValues = aggregate(db, pickResults(bulkTest, 'speedKit'));
     bulkTest.competitorMeanValues = aggregate(db, pickResults(bulkTest, 'competitor'));
     bulkTest.factors = factorize(db, bulkTest.competitorMeanValues, bulkTest.speedKitMeanValues);
@@ -102,6 +108,7 @@ function createBulkTest(db, createdBy, {
 
   for (let i = 0; i < runs; i += 1) {
     const testOverview = new db.TestOverview();
+    testOverview.url = url;
     testOverview.whitelist = whitelist;
     testOverview.caching = !isCachingDisabled;
 

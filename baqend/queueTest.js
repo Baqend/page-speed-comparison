@@ -1,4 +1,5 @@
-const url = require('url');
+/* global Abort */
+const { parse } = require('url');
 const { API } = require('./Pagetest');
 const credentials = require('./credentials');
 const { isRateLimited } = require('./rateLimiter');
@@ -44,8 +45,8 @@ function startTest(db,
                    mobile = false,
                    callback = null) {
   // Create a new test result
-  const testResult = new db.TestResult();
-  testResult.id = db.util.uuid();
+  const pendingTest = new db.TestResult();
+  pendingTest.id = db.util.uuid();
 
   const testOptions = {
     location: testLocation,
@@ -98,28 +99,34 @@ function startTest(db,
       });
     }
   }).then((ttfb) => {
-    return API.runTestWithoutWait(testScript, testOptions).then((testId) => {
-      db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
-      testResult.testId = testId;
-      testResult.save();
-      return API.waitOnTest(testId, db);
-    }).then((testId) => {
-      return getTestResult(db, testResult, testId, ttfb);
-    }).then((testResult) => {
-      if (callback) {
-        callback(testResult);
-      }
-      db.log.info(`Test completed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}`);
-    }).catch((e) => {
-      db.log.warn(`Test failed, id: ${testResult.id}, testId: ${testResult.testId} script:\n${testScript}\n\n${e.stack}`);
-      testResult.ready().then(() => {
-        testResult.testDataMissing = true;
-        testResult.save();
+    return API.runTestWithoutWait(testScript, testOptions)
+      .then((testId) => {
+        db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
+        pendingTest.testId = testId;
+        pendingTest.save();
+        return API.waitOnTest(testId, db);
+      })
+      .then(testId => getTestResult(db, pendingTest, testId, ttfb))
+      .then((result) => {
+        if (callback) {
+          callback(result);
+        }
+        db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
+      })
+      .catch((e) => {
+        db.log.warn(`Test failed, id: ${pendingTest.id}, testId: ${pendingTest.testId} script:\n${testScript}\n\n${e.stack}`);
+        return pendingTest.ready().then(() => {
+          pendingTest.testDataMissing = true;
+          return pendingTest.save();
+        }).then(() => {
+          if (callback) {
+            callback(pendingTest);
+          }
+        });
       });
-    });
   });
 
-  return testResult;
+  return pendingTest;
 }
 
 /**
@@ -133,9 +140,9 @@ function startTest(db,
 function createTestScript(testUrl, isClone, isCachingDisabled = true, activityTimeout = DEFAULT_ACTIVITY_TIMEOUT, isSpeedKitComparison = false) {
   let hostname;
   try {
-    hostname = url.parse(testUrl).hostname;
+    hostname = parse(testUrl).hostname;
   } catch (e) {
-    throw new Abort('Invalid Url specified: ' + e.message);
+    throw new Abort(`Invalid Url specified: ${e.message}`);
   }
 
   if (!isClone) {
