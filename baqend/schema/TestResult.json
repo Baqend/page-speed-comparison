@@ -69,10 +69,10 @@
       "type": "/db/File",
       "order": 10
     },
-    "hasFinished" : {
+    "hasFinished": {
       "name": "hasFinished",
       "type": "/db/Boolean",
-      "order": 8
+      "order": 11
     }
   }
 }
