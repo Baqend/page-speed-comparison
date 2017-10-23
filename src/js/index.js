@@ -291,11 +291,17 @@ function initTest() {
         } else {
           $('.showSpeedIndex').removeClass('hidden');
           $('.showFirstMeaningfulPaint').addClass('hidden');
+
+          // check if firstMeaningfulPaint metric was computed (for legacy tests)
+          if (!competitorResult[dataView].firstMeaningfulPaint || !speedKitResult[dataView].firstMeaningfulPaint) {
+            $('.firstMeaningfulPaintMissing').addClass('hidden');
+          }
+
           calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
         }
 
         // Handle whitelist candidates and add them to the UI
-        handleWhitelistCandidates(competitorResult[dataView], whitelist);
+        handleWhitelistCandidates(speedKitResult[dataView], whitelist);
       } else {
         throw new Error('Bad result');
       }
@@ -307,7 +313,7 @@ function initTest() {
         $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
 
         // Handle whitelist candidates and add them to the UI
-        handleWhitelistCandidates(competitorResult[dataView], whitelist);
+        handleWhitelistCandidates(speedKitResult[dataView], whitelist);
 
         verifyWarningMessage(new Error('Low served rate'));
       }
@@ -317,7 +323,7 @@ function initTest() {
         // Else don´t do anything
         if (!isServedRateSatisfactory(speedKitResult[dataView])) {
           // Handle whitelist candidates and add them to the UI
-          handleWhitelistCandidates(competitorResult[dataView], whitelist);
+          handleWhitelistCandidates(speedKitResult[dataView], whitelist);
           $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
           e.message = 'Low served rate';
         }
@@ -396,6 +402,7 @@ async function initComparison(normalizedUrl) {
   testOverview = new db.TestOverview();
   testOverview.caching = testOptions.caching;
   testOverview.mobile = testOptions.mobile;
+  testOverview.url = competitorUrl;
   testOverview.whitelist = $wListInput.val();
 
   try {
@@ -562,7 +569,12 @@ function handleWhitelistCandidates(resultData, whitelist) {
 
     createWhitelistCandidates(
       sortedDomains
-        .filter(domainObject => domainObject.url.indexOf(domain) === -1 && !domainObject.isAdDomain)
+        .filter((domainObject) => {
+          const filter = domainObject.url.indexOf(domain) === -1
+            && domainObject.url.indexOf('makefast') === -1
+            && !domainObject.isAdDomain;
+          return filter;
+        })
         .splice(0, 6),
       whitelist,
       totalRequestCount,
@@ -627,7 +639,7 @@ function resultStreamUpdate(result, subscription, elementId) {
           // If speed index is satisfactory ==> show the test result and a list of suggested domains
           // Else don´t show test result but an error message
           if (isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])
-          || (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])
+            || (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])
             && isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView]))) {
             displayTestResults('competitor', competitorResult[dataView], testOptions);
             displayTestResults('speedKit', speedKitResult[dataView], testOptions);
@@ -668,7 +680,7 @@ function resultStreamUpdate(result, subscription, elementId) {
             }
 
             // Handle whitelist candidates and add them to the UI
-            handleWhitelistCandidates(competitorResult[dataView], testOverview.whitelist);
+            handleWhitelistCandidates(speedKitResult[dataView], testOverview.whitelist);
             $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
           } else {
             throw new Error('Bad result');
@@ -704,7 +716,7 @@ function resultStreamUpdate(result, subscription, elementId) {
         // Else don´t do anything
         if (!isServedRateSatisfactory(testResult.speedKit[dataView])) {
           // Handle whitelist candidates and add them to the UI
-          handleWhitelistCandidates(testResult.competitor[dataView], testOverview.whitelist);
+          handleWhitelistCandidates(testResult.speedKit[dataView], testOverview.whitelist);
           $('#servedRequests').text(calculateServedRequests(testResult.speedKit.firstView));
           e.message = 'Low served rate';
         }

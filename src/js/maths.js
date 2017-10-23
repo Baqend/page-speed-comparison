@@ -27,7 +27,7 @@ export function roundToHundredths(num) {
  * @return {string} A formatted percentage.
  */
 export function formatPercentage(float) {
-  return (float * 100).toFixed(0);
+  return Math.floor(float * 100).toFixed(0);
 }
 
 export function zeroSafeDiv(divisor, dividend) {

@@ -79,7 +79,7 @@ export function createWhitelistCandidates(domainArray, whitelist, totalRequestCo
 
         checkboxLabel.setAttribute('for', domainUrl);
         checkboxLabel.setAttribute('onclick', 'whitelistCandidateClicked(this.htmlFor)');
-        checkboxLabel.innerHTML = `${domainUrl} (${Math.round((100 / totalRequestCount) * domainObject.requests)}%)`;
+        checkboxLabel.innerHTML = `${domainUrl} (${Math.floor((100 / totalRequestCount) * domainObject.requests)}%)`;
         divContainer.appendChild(checkbox);
         divContainer.appendChild(checkboxLabel);
         $('#whitelistCandidates').append(divContainer);
