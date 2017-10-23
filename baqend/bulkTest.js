@@ -48,8 +48,7 @@ function factorize(db, competitor, speedKit) {
  * Checks whether a test overview is finished.
  */
 function hasTestOverviewFinished({ competitorTestResult, speedKitTestResult }) {
-  return (competitorTestResult.testDataMissing === true || competitorTestResult.firstView)
-    && (speedKitTestResult.testDataMissing === true || speedKitTestResult.firstView);
+  return competitorTestResult.hasFinished === true && speedKitTestResult.hasFinished === true;
 }
 
 /**

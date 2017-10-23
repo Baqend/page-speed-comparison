@@ -120,6 +120,7 @@ function startTest(
         db.log.warn(`Test failed, id: ${pendingTest.id}, testId: ${pendingTest.testId} script:\n${testScript}\n\n${e.stack}`);
         return pendingTest.ready().then(() => {
           pendingTest.testDataMissing = true;
+          pendingTest.hasFinished = true;
           return pendingTest.save();
         }).then(() => {
           if (callback) {
@@ -283,6 +284,7 @@ function createTestResult(db, originalObject, testResult, ttfb) {
   return createRun(db, testResult.runs['1'].firstView, ttfb).then((firstView) => {
     testObject.firstView = firstView;
     testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
+    testObject.hasFinished = true;
 
     if (!testResult.runs['1'].repeatView) {
       return testObject.save();

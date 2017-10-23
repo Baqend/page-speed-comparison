@@ -68,6 +68,11 @@
       "name": "videoFileRepeatView",
       "type": "/db/File",
       "order": 10
+    },
+    "hasFinished" : {
+      "name": "hasFinished",
+      "type": "/db/Boolean",
+      "order": 8
     }
   }
 }
