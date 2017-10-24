@@ -6,8 +6,7 @@ exports.countHits = function (data) {
     if (headers.indexOf('x-cache') !== -1 && headers.indexOf('x-cache-hits') !== -1
       && headers.indexOf('x-served-by') !== -1) {
       return headers.indexOf('x-cache: hit') !== -1 ? 'hit' : 'miss';
-    } else {
-      return 'other';
     }
+    return 'other';
   });
 };
