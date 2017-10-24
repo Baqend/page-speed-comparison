@@ -1,3 +1,6 @@
+# Credentials
+baqend/credentials.js
+
 # public and build directories are always built from sources:
 public
 dist
