@@ -1,7 +1,7 @@
 /* eslint-disable comma-dangle, function-paren-newline */
 /* eslint no-restricted-syntax: 0 */
 
-const { queueTest } = require('./queueTest');
+const { queueTest, DEFAULT_LOCATION } = require('./queueTest');
 const { getSpeedKitUrl } = require('./getSpeedKitUrl');
 
 const fields = ['speedIndex', 'firstMeaningfulPaint', 'ttfb', 'domLoaded', 'fullyLoaded', 'lastVisualChange'];
@@ -163,82 +163,104 @@ function updateBulkTest(db, bulkTestRef) {
   }).catch(() => updateBulkTest(db, bulkTest));
 }
 
+function createTestOverview(db, {
+  bulkTest,
+  location,
+  caching,
+  url,
+  speedKitUrl,
+  whitelist,
+}) {
+  const testOverview = new db.TestOverview();
+  testOverview.url = url;
+  testOverview.whitelist = whitelist;
+  testOverview.caching = caching;
+
+  Promise.all([
+    // Queue the test against the competitor's site
+    queueTest({
+      db,
+      location,
+      caching,
+      url,
+      isClone: false,
+      finish(testResult) {
+        testOverview.competitorTestResult = testResult;
+        if (testResult.testDataMissing !== true) {
+          testOverview.psiDomains = testResult.firstView.domains.length;
+          testOverview.psiRequests = testResult.firstView.requests;
+          testOverview.psiResponseSize = testResult.firstView.bytes;
+        }
+        testOverview.save();
+
+        updateBulkTest(db, bulkTest);
+      },
+    }),
+
+    // Queue the test against Speed Kit
+    queueTest({
+      db,
+      location,
+      caching,
+      url: speedKitUrl,
+      isClone: true,
+      finish(testResult) {
+        testOverview.speedKitTestResult = testResult;
+        testOverview.save();
+
+        updateBulkTest(db, bulkTest);
+      },
+    }),
+  ]).then(([competitor, speedKit]) => {
+    testOverview.competitorTestResult = competitor;
+    testOverview.speedKitTestResult = speedKit;
+    return testOverview.save();
+  });
+
+  return testOverview.save();
+}
+
+/**
+ * @param db The Baqend instance.
+ * @param {object} options
+ * @return {Promise}
+ */
+function createTestOverviews(db, options) {
+  const { runs } = options;
+  const promises = new Array(runs)
+    .fill(null)
+    .map(() => createTestOverview(db, options));
+
+  return Promise.all(promises);
+}
+
 /**
  * @param db The Baqend instance.
  * @param {string | null} createdBy A reference to the user who created the bulk test.
- * @param {string} url The URL under test.
- * @param {string} whitelist A whitelist to use for the test.
- * @param {string} location The server location to execute the test.
- * @param {number} runs The number of runs to execute.
- * @param {boolean} caching If true, browser caching will be used. Defaults to false.
- * @return {{ url: string, bulkTest: object }} An object containing bulk test information
+ * @param {object} options
+ * @param {string} options.url The URL under test.
+ * @param {string} options.whitelist A whitelist to use for the test.
+ * @param {string} options.location The server location to execute the test.
+ * @param {number} options.runs The number of runs to execute.
+ * @param {boolean} options.caching If true, browser caching will be used. Defaults to false.
+ * @return {Promise} An object containing bulk test information
  */
-function createBulkTest(db, createdBy, {
-  url,
-  whitelist,
-  location = 'eu-central-1:Chrome',
-  runs = 1,
-  caching = false,
-}) {
+function createBulkTest(db, createdBy, options = { runs: 1, caching: false, location: DEFAULT_LOCATION }) {
+  const { url, whitelist } = options;
   const speedKitUrl = getSpeedKitUrl(url, whitelist);
+
   const bulkTest = new db.BulkTest();
   bulkTest.url = url;
   bulkTest.createdBy = createdBy;
   bulkTest.hasFinished = false;
-  bulkTest.testOverviews = [];
 
-  for (let i = 0; i < runs; i += 1) {
-    const testOverview = new db.TestOverview();
-    testOverview.url = url;
-    testOverview.whitelist = whitelist;
-    testOverview.caching = caching;
-    testOverview.save()
-      .then(overview => bulkTest.testOverviews.push(overview))
-      .then(() => bulkTest.save())
-      .then(() => Promise.all([
-        // Queue the test against the competitor's site
-        queueTest({
-          db,
-          location,
-          caching,
-          url,
-          isClone: false,
-          finish(testResult) {
-            testOverview.competitorTestResult = testResult;
-            if (testResult.testDataMissing !== true) {
-              testOverview.psiDomains = testResult.firstView.domains.length;
-              testOverview.psiRequests = testResult.firstView.requests;
-              testOverview.psiResponseSize = testResult.firstView.bytes;
-            }
-            testOverview.save();
+  return bulkTest.save()
+    .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitUrl }, options)))
+    .then((overviews) => {
+      bulkTest.testOverviews = overviews;
 
-            updateBulkTest(db, bulkTest);
-          },
-        }),
-
-        // Queue the test against Speed Kit
-        queueTest({
-          db,
-          location,
-          caching,
-          url: speedKitUrl,
-          isClone: true,
-          finish(testResult) {
-            testOverview.speedKitTestResult = testResult;
-            testOverview.save();
-
-            updateBulkTest(db, bulkTest);
-          },
-        }),
-      ]))
-      .then(([competitor, speedKit]) => {
-        testOverview.competitorTestResult = competitor;
-        testOverview.speedKitTestResult = speedKit;
-        return testOverview.save();
-      });
-  }
-
-  return bulkTest.save();
+      return bulkTest.save();
+    });
 }
 
 exports.post = function bulkTestPost(db, req, res) {
