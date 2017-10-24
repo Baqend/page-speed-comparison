@@ -306,12 +306,12 @@ function createTestResult(db, originalObject, testResult, ttfb) {
  * @param data
  * @param {string} ttfb A TTFB to take instead
  */
-function createRun(db, data, ttfb = data.TTFB) {
+function createRun(db, data, ttfb) {
   const run = new db.Run();
   const nameToFind = 'firstMeaningfulPaintCandidate';
   const firstMeaningfulPaintObject = data.chromeUserTiming.reverse().find(entry => entry.name === nameToFind);
   run.loadTime = data.loadTime;
-  run.ttfb = ttfb;
+  run.ttfb = ttfb || data.TTFB;
   run.domLoaded = data.domContentLoadedEventStart;
   run.load = data.loadEventStart;
   run.fullyLoaded = data.fullyLoaded;
