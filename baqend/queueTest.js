@@ -308,24 +308,33 @@ function createTestResult(db, originalObject, testResult, ttfb) {
  */
 function createRun(db, data, ttfb) {
   const run = new db.Run();
-  const nameToFind = 'firstMeaningfulPaintCandidate';
-  const firstMeaningfulPaintObject = data.chromeUserTiming.reverse().find(entry => entry.name === nameToFind);
-  run.loadTime = data.loadTime;
+
+  // Copy fields
+  for (const field of ['loadTime', 'fullyLoaded', 'firstPaint', 'lastVisualChange', 'domElements']) {
+    run[field] = data[field];
+  }
+
+  // Search First Meaningful Paint from timing
+  const { chromeUserTiming = [] } = data;
+  const fmpField = 'firstMeaningfulPaintCandidate';
+  const firstMeaningfulPaintObject = chromeUserTiming.reverse().find(entry => entry.name === fmpField);
+  run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
+
+  // Set TTFB
   run.ttfb = ttfb || data.TTFB;
+
+  // Set other
   run.domLoaded = data.domContentLoadedEventStart;
   run.load = data.loadEventStart;
-  run.fullyLoaded = data.fullyLoaded;
-  run.firstPaint = data.firstPaint;
   run.startRender = data.render;
-  run.lastVisualChange = data.lastVisualChange;
   run.speedIndex = data.SpeedIndex;
-  run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
   run.requests = data.requests.length;
   run.failedRequests = createFailedRequestsCount(data);
   run.bytes = data.bytesIn;
   run.hits = new db.Hits(countHits(data));
-  run.domElements = data.domElements;
   run.basePageCDN = data.base_page_cdn;
+
+  // Set visual completeness
   const completeness = new db.Completeness();
   completeness.p85 = data.visualComplete85;
   completeness.p90 = data.visualComplete90;
