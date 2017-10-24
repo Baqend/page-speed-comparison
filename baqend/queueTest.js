@@ -8,7 +8,7 @@ const { getAdSet } = require('./adBlocker');
 const { toFile } = require('./download');
 const { countHits } = require('./countHits');
 
-const DEFAULT_LOCATION = 'eu-central-1:Chrome';
+const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
 const DEFAULT_ACTIVITY_TIMEOUT = 75;
 const DEFAULT_TIMEOUT = 30;
 const DEFAULT_TTL = 86000 / 2;
@@ -421,3 +421,4 @@ function queueTest({
 
 exports.startTest = startTest;
 exports.queueTest = queueTest;
+exports.DEFAULT_LOCATION = DEFAULT_LOCATION;
