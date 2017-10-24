@@ -112,16 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
   /**
    * @param {Event} event
    */
-  $('#contact_form').on('submit', (event) => {
+  $('.contact_form').on('submit', (event) => {
     event.preventDefault();
-    const $confirmContact = $('#confirmContact');
-    const $name = $('#c_name');
-    const $email = $('#c_email');
+    const $children = $(event.target).children();
+    const $confirmContact = $children.filter('#confirmContact');
+    const $name = $children.find('#c_name');
+    const $email = $children.find('#c_email');
+
     const data = {
       name: $name.val(),
       email: $email.val(),
       url: competitorUrl,
-      testOverviewId: testOverview.id || 'not existing',
+      testOverviewId: testOverview ? testOverview.id : 'not existing',
       subject: 'from page speed analyzer',
     };
 
