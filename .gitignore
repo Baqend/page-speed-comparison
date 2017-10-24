@@ -1,5 +1,9 @@
 # Credentials
 baqend/credentials.js
+baqend/schema/jobs.Definition.json
+baqend/schema/jobs.Status.json
+baqend/schema/speedKit.Asset.json
+baqend/schema/Means.json
 
 # public and build directories are always built from sources:
 public
