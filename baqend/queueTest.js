@@ -13,20 +13,38 @@ const DEFAULT_ACTIVITY_TIMEOUT = 75;
 const DEFAULT_TIMEOUT = 30;
 const DEFAULT_TTL = 86000 / 2;
 
-exports.call = function (db, data, req) {
+exports.call = function callQueueTest(db, data, req) {
   // Check if IP is rate-limited
   if (isRateLimited(req)) {
     throw new Abort({ message: 'Too many requests', status: 429 });
   }
 
-  const testResult = queueTest(Object.assign({}, { db }, data));
-  return { baqendId: testResult.key };
+  return queueTest(Object.assign({}, { db }, data))
+    .then(testResult => ({ baqendId: testResult.key }));
 };
 
 /**
  * @param db The Baqend instance.
+ * @param test The test which erred.
+ * @param {string} testScript The script which was executed.
+ * @param {Error} error The error thrown.
+ */
+function handleTestError(db, test, testScript, error) {
+  const testToUpdate = test;
+  db.log.warn(`Test failed, id: ${test.id}, testId: ${test.testId} script:\n${testScript}\n\n${error.stack}`);
+  return test.ready()
+    .then(() => {
+      // Save that test has finished without data
+      testToUpdate.testDataMissing = true;
+      testToUpdate.hasFinished = true;
+      return testToUpdate.save();
+    });
+}
+
+/**
+ * @param db The Baqend instance.
  * @param {string} testUrl
- * @param {string} testLocation
+ * @param {string} location
  * @param {boolean} isClone
  * @param {boolean} isCachingDisabled
  * @param {number} activityTimeout
@@ -39,7 +57,7 @@ exports.call = function (db, data, req) {
 function startTest(
   db,
   testUrl,
-  testLocation,
+  location,
   isClone,
   isCachingDisabled = true,
   activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
@@ -52,7 +70,6 @@ function startTest(
   pendingTest.id = db.util.uuid();
 
   const testOptions = {
-    location: testLocation,
     firstViewOnly: isCachingDisabled,
     runs: 1,
     video: true,
@@ -73,22 +90,22 @@ function startTest(
     block: 'favicon', // exclude favicons for fair comparison, as not handled by SWs
     jpegQuality: 100,
     poll: 1, // poll every second
-    timeout: 2 * DEFAULT_TIMEOUT // set timeout
+    timeout: 2 * DEFAULT_TIMEOUT, // set timeout
+    device: mobile ? 'iPhone6' : '',
+    mobile,
+    location,
   };
-
-  if (mobile) {
-    Object.assign(testOptions, {
-      mobile: true,
-      device: 'iPhone6',
-    });
-  }
 
   const requirePrewarm = isClone;
 
   const testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison);
 
-  Promise.resolve().then(() => {
-    if (requirePrewarm) {
+  Promise.resolve()
+    .then(() => {
+      if (!requirePrewarm) {
+        return null;
+      }
+
       const prewarmOptions = Object.assign({}, testOptions, {
         runs: 2,
         timeline: false,
@@ -97,40 +114,26 @@ function startTest(
         minimalResults: true,
       });
 
-      return API.runTest(testUrl, prewarmOptions, db).then((testId) => {
-        return getPrewarmResult(db, testId, isSpeedKitComparison);
-      });
-    }
-  }).then((ttfb) => {
-    return API.runTestWithoutWait(testScript, testOptions)
+      return API.runTest(testUrl, prewarmOptions, db)
+        .then(testId => getPrewarmResult(db, testId, isSpeedKitComparison));
+    })
+    .then(ttfbFromPrewarm => API.runTestWithoutWait(testScript, testOptions)
       .then((testId) => {
         db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
         pendingTest.testId = testId;
         pendingTest.save();
         return API.waitOnTest(testId, db);
       })
-      .then(testId => getTestResult(db, pendingTest, testId, ttfb))
-      .then((result) => {
-        if (callback) {
-          callback(result);
-        }
-        db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
-      })
-      .catch((e) => {
-        db.log.warn(`Test failed, id: ${pendingTest.id}, testId: ${pendingTest.testId} script:\n${testScript}\n\n${e.stack}`);
-        return pendingTest.ready().then(() => {
-          pendingTest.testDataMissing = true;
-          pendingTest.hasFinished = true;
-          return pendingTest.save();
-        }).then(() => {
-          if (callback) {
-            callback(pendingTest);
-          }
-        });
-      });
-  });
+      .then(testId => getTestResult(db, pendingTest, testId, ttfbFromPrewarm)))
+    .then((result) => {
+      db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
+      return result;
+    })
+    .catch(error => handleTestError(db, pendingTest, testScript, error))
+    // Trigger the callback
+    .then(updatedResult => callback && callback(updatedResult));
 
-  return pendingTest;
+  return pendingTest.save();
 }
 
 /**
@@ -301,14 +304,14 @@ function createTestResult(db, originalObject, testResult, ttfb) {
 /**
  * @param db The Baqend instance.
  * @param data
- * @param {string} ttfb
+ * @param {string} ttfb A TTFB to take instead
  */
-function createRun(db, data, ttfb) {
+function createRun(db, data, ttfb = data.TTFB) {
   const run = new db.Run();
   const nameToFind = 'firstMeaningfulPaintCandidate';
   const firstMeaningfulPaintObject = data.chromeUserTiming.reverse().find(entry => entry.name === nameToFind);
   run.loadTime = data.loadTime;
-  run.ttfb = ttfb || data.TTFB;
+  run.ttfb = ttfb;
   run.domLoaded = data.domContentLoadedEventStart;
   run.load = data.loadEventStart;
   run.fullyLoaded = data.fullyLoaded;

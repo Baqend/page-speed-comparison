@@ -192,50 +192,56 @@ function createBulkTest(db, createdBy, {
     testOverview.url = url;
     testOverview.whitelist = whitelist;
     testOverview.caching = caching;
+    testOverview.save()
+      .then(overview => bulkTest.testOverviews.push(overview))
+      .then(() => bulkTest.save())
+      .then(() => Promise.all([
+        // Queue the test against the competitor's site
+        queueTest({
+          db,
+          location,
+          caching,
+          url,
+          isClone: false,
+          finish(testResult) {
+            testOverview.competitorTestResult = testResult;
+            if (testResult.testDataMissing !== true) {
+              testOverview.psiDomains = testResult.firstView.domains.length;
+              testOverview.psiRequests = testResult.firstView.requests;
+              testOverview.psiResponseSize = testResult.firstView.bytes;
+            }
+            testOverview.save();
 
-    testOverview.competitorTestResult = queueTest({
-      db,
-      location,
-      caching,
-      url,
-      isClone: false,
-      finish(testResult) {
-        testOverview.competitorTestResult = testResult;
-        if (testResult.testDataMissing !== true) {
-          testOverview.psiDomains = testResult.firstView.domains.length;
-          testOverview.psiRequests = testResult.firstView.requests;
-          testOverview.psiResponseSize = testResult.firstView.bytes;
-        }
-        testOverview.save();
+            updateBulkTest(db, bulkTest);
+          },
+        }),
 
-        updateBulkTest(db, bulkTest);
-      },
-    });
+        // Queue the test against Speed Kit
+        queueTest({
+          db,
+          location,
+          caching,
+          url: speedKitUrl,
+          isClone: true,
+          finish(testResult) {
+            testOverview.speedKitTestResult = testResult;
+            testOverview.save();
 
-    testOverview.speedKitTestResult = queueTest({
-      db,
-      location,
-      caching,
-      url: speedKitUrl,
-      isClone: true,
-      finish(testResult) {
-        testOverview.speedKitTestResult = testResult;
-        testOverview.save();
-
-        updateBulkTest(db, bulkTest);
-      },
-    });
-
-    bulkTest.testOverviews.push(testOverview);
-    testOverview.save();
+            updateBulkTest(db, bulkTest);
+          },
+        }),
+      ]))
+      .then(([competitor, speedKit]) => {
+        testOverview.competitorTestResult = competitor;
+        testOverview.speedKitTestResult = speedKit;
+        return testOverview.save();
+      });
   }
 
-  bulkTest.save();
-  return { url, bulkTest };
+  return bulkTest.save();
 }
 
 exports.post = function bulkTestPost(db, req, res) {
-  const results = [];
   const { body } = req;
   const { createdBy = null } = body;
   let { tests } = body;
@@ -243,9 +249,6 @@ exports.post = function bulkTestPost(db, req, res) {
     tests = body;
   }
 
-  for (const entry of tests) {
-    const result = createBulkTest(db, createdBy, entry);
-    results.push(result);
-  }
-  res.send(results);
+  return Promise.all(tests.map(entry => createBulkTest(db, createdBy, entry)))
+    .then(results => res.send(results));
 };
