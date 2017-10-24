@@ -45,6 +45,86 @@ function factorize(db, competitor, speedKit) {
 }
 
 /**
+ * Gets the best result for a given field of the competitor or Speed Kit.
+ *
+ * @param bulkTest A bulk test to analyze.
+ * @param {'competitor' | 'speedKit'} resultFieldPrefix Either 'competitor' or 'speedKit'.
+ * @param {string} field The field to get the best result of.
+ * @return {number} Returns the result or NaN, if no result exists.
+ */
+function bestResult(bulkTest, resultFieldPrefix, field) {
+  const resultField = `${resultFieldPrefix}TestResult`;
+  const best = bulkTest.testOverviews.reduce((prev, { [resultField]: result }) => {
+    if (result.firstView) {
+      return Math.min(prev, result.firstView[field]);
+    }
+
+    return prev;
+  }, Infinity);
+
+  return Number.isFinite(best) ? best : NaN;
+}
+
+/**
+ * Gets the worst result for a given field of the competitor or Speed Kit.
+ *
+ * @param bulkTest A bulk test to analyze.
+ * @param {'competitor' | 'speedKit'} resultFieldPrefix Either 'competitor' or 'speedKit'.
+ * @param {string} field The field to get the worst result of.
+ * @return {number} Returns the result or NaN, if no result exists.
+ */
+function worstResult(bulkTest, resultFieldPrefix, field) {
+  const resultField = `${resultFieldPrefix}TestResult`;
+  const worst = bulkTest.testOverviews.reduce((prev, { [resultField]: result }) => {
+    if (result.firstView) {
+      return Math.max(prev, result.firstView[field]);
+    }
+
+    return prev;
+  }, -1);
+
+  return worst === -1 ? NaN : worst;
+}
+
+/**
+ * Calculates the best factors for a given bulk test.
+ *
+ * @param db The Baqend instance.
+ * @param bulkTest A bulk test to analyze.
+ * @return {object} The values of the best factor.
+ */
+function calcBestFactors(db, bulkTest) {
+  const result = new db.Mean();
+  for (const field of fields) {
+    const competitorWorst = worstResult(bulkTest, 'competitor', field);
+    const speedKitBest = bestResult(bulkTest, 'speedKit', field);
+
+    result[field] = (competitorWorst / speedKitBest) || null;
+  }
+
+  return result;
+}
+
+/**
+ * Calculates the worst factors for a given bulk test.
+ *
+ * @param db The Baqend instance.
+ * @param bulkTest A bulk test to analyze.
+ * @return {object} The values of the worst factor.
+ */
+function calcWorstFactors(db, bulkTest) {
+  const result = new db.Mean();
+  for (const field of fields) {
+    const competitorBest = bestResult(bulkTest, 'competitor', field);
+    const speedKitWorst = worstResult(bulkTest, 'speedKit', field);
+
+    result[field] = (competitorBest / speedKitWorst) || null;
+  }
+
+  return result;
+}
+
+/**
  * Checks whether a test overview is finished.
  */
 function hasTestOverviewFinished({ competitorTestResult, speedKitTestResult }) {
@@ -76,6 +156,8 @@ function updateBulkTest(db, bulkTestRef) {
     bulkTest.speedKitMeanValues = aggregate(db, pickResults(bulkTest, 'speedKit'));
     bulkTest.competitorMeanValues = aggregate(db, pickResults(bulkTest, 'competitor'));
     bulkTest.factors = factorize(db, bulkTest.competitorMeanValues, bulkTest.speedKitMeanValues);
+    bulkTest.bestFactors = calcBestFactors(db, bulkTest);
+    bulkTest.worstFactors = calcWorstFactors(db, bulkTest);
 
     return bulkTest.save();
   }).catch(() => updateBulkTest(db, bulkTest));

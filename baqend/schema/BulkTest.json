@@ -44,10 +44,20 @@
       "type": "/db/Mean",
       "order": 5
     },
+    "bestFactors": {
+      "name": "bestFactors",
+      "type": "/db/Mean",
+      "order": 6
+    },
+    "worstFactors": {
+      "name": "worstFactors",
+      "type": "/db/Mean",
+      "order": 7
+    },
     "createdBy": {
       "name": "createdBy",
       "type": "/db/String",
-      "order": 6
+      "order": 8
     }
   }
 }
