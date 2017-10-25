@@ -152,6 +152,34 @@ function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, 
     throw new Abort(`Invalid Url specified: ${e.message}`);
   }
 
+  // Patch for campaigns-business.sites.toyota.pl
+  if (testUrl && testUrl.includes('campaigns-business.sites.toyota.pl')) {
+    if (isClone) {
+      return `logData 0
+setDNSName  campaigns-business.sites.toyota.pl pl-clone.app.baqend.com
+overrideHost  campaigns-business.sites.toyota.pl pl-clone.app.baqend.com
+setHeader	Referer: https://campaigns-business.sites.toyota.pl/
+
+navigate	https://campaigns-business.sites.toyota.pl/speedKitInstaller.html
+navigate	about:blank
+logData 1
+navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
+    } else {
+      // Without DNS
+//       return `logData 0
+// setHeader Connection:close
+// navigate	https://campaigns-business.sites.toyota.pl/views/race-slider.html
+// navigate	https://static.sites.toyota.pl/projects/reliability/toy_no_1.png
+// navigate	about:blank
+// clearCache
+// resetHeaders
+// logData 1
+// navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
+      // With DNS
+      return `navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
+    }
+  }
+
   if (!isClone) {
     return `
       block /sw.js /sw.php
