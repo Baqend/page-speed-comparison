@@ -58,6 +58,21 @@
       "name": "createdBy",
       "type": "/db/String",
       "order": 8
+    },
+    "runs": {
+      "name": "runs",
+      "type": "/db/Integer",
+      "order": 9
+    },
+    "completedRuns": {
+      "name": "completedRuns",
+      "type": "/db/Integer",
+      "order": 10
+    },
+    "location": {
+      "name": "location",
+      "type": "/db/String",
+      "order": 11
     }
   }
 }
