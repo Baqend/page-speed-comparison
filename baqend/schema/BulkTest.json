@@ -73,6 +73,11 @@
       "name": "location",
       "type": "/db/String",
       "order": 11
+    },
+    "mobile": {
+      "name": "mobile",
+      "type": "/db/Boolean",
+      "order": 12
     }
   }
 }
