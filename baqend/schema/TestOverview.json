@@ -58,6 +58,16 @@
       "name": "whitelist",
       "type": "/db/String",
       "order": 8
+    },
+    "hasFinished": {
+      "name": "hasFinished",
+      "type": "/db/Boolean",
+      "order": 9
+    },
+    "factors": {
+      "name": "factors",
+      "type": "/db/Mean",
+      "order": 10
     }
   }
 }

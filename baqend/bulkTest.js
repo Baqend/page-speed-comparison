@@ -15,10 +15,10 @@ const fields = ['speedIndex', 'firstMeaningfulPaint', 'ttfb', 'domLoaded', 'full
  */
 function aggregate(db, runs) {
   const divideBy = runs.length;
-  const meanValues = runs.reduce((prev, curr) => {
+  const meanValues = runs.reduce((prev, run) => {
     const result = prev;
     for (const field of fields) {
-      result[field] = (prev[field] || 0) + (curr[field] / divideBy);
+      result[field] = (prev[field] || 0) + (run[field] / divideBy);
     }
 
     return result;
@@ -147,6 +147,17 @@ function pickResults(bulkTest, name) {
 }
 
 /**
+ * @param db The Baqend instance.
+ * @param subject A test overview to finish.
+ */
+function finishTestOverview(db, subject) {
+  const testOverview = subject;
+  const { competitorTestResult, speedKitTestResult } = subject;
+  testOverview.hasFinished = true;
+  testOverview.factors = factorize(db, competitorTestResult.firstView, speedKitTestResult.firstView);
+}
+
+/**
  * Updates aggregates on a bulk test.
  */
 function updateBulkTest(db, bulkTestRef) {
@@ -177,6 +188,7 @@ function createTestOverview(db, {
   testOverview.whitelist = whitelist;
   testOverview.caching = caching;
   testOverview.mobile = mobile;
+  testOverview.hasFinished = false;
 
   Promise.all([
     // Queue the test against the competitor's site
@@ -196,7 +208,7 @@ function createTestOverview(db, {
         }
 
         if (testOverview.speedKitTestResult.hasFinished) {
-          testOverview.hasFinished = true;
+          finishTestOverview(db, testOverview);
           bulkTest.completedRuns += 1;
         }
 
@@ -217,7 +229,7 @@ function createTestOverview(db, {
         testOverview.speedKitTestResult = testResult;
 
         if (testOverview.competitorTestResult.hasFinished) {
-          testOverview.hasFinished = true;
+          finishTestOverview(db, testOverview);
           bulkTest.completedRuns += 1;
         }
 
