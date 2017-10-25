@@ -98,7 +98,7 @@ function startTest(
 
   const requirePrewarm = isClone;
 
-  const testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison);
+  const testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, false);
 
   Promise.resolve()
     .then(() => {
@@ -124,7 +124,20 @@ function startTest(
         pendingTest.save();
         return API.waitOnTest(testId, db);
       })
-      .then(testId => getTestResult(db, pendingTest, testId, ttfbFromPrewarm)))
+      .then(testId => getTestResult(db, pendingTest, testId, ttfbFromPrewarm))
+      .catch(error => {
+        db.log.info(`First try failed. Second try for: ${pendingTest.testId}`);
+
+        const newTestScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, true);
+        return API.runTestWithoutWait(newTestScript, testOptions)
+          .then((testId) => {
+            db.log.info(`Second try started, testId: ${testId} script:\n${newTestScript}`);
+            pendingTest.testId = testId;
+            pendingTest.save();
+            return API.waitOnTest(testId, db);
+          })
+          .then(testId => getTestResult(db, pendingTest, testId, ttfbFromPrewarm));
+      }))
     .then((result) => {
       db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
       return result;
@@ -142,9 +155,10 @@ function startTest(
  * @param {boolean} isCachingDisabled
  * @param {number} activityTimeout
  * @param {boolean} isSpeedKitComparison
+ * @param {boolean} secondTry Whether this is the second try to execute the test.
  * @return {string}
  */
-function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison) {
+function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, secondTry) {
   let hostname;
   try {
     ({ hostname } = parse(testUrl));
@@ -200,7 +214,7 @@ navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
     logData 0
     setTimeout ${DEFAULT_TIMEOUT}
     ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
-    navigate ${installNavigation}
+    ${(!secondTry || isSpeedKitComparison) ? `navigate ${installNavigation}` : ''}
     ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
     navigate about:blank
     ${isCachingDisabled ? 'clearcache' : ''}
