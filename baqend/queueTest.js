@@ -121,7 +121,7 @@ function startTest(
       .then((testId) => {
         db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
         pendingTest.testId = testId;
-        pendingTest.save();
+        pendingTest.ready().then(() => pendingTest.save());
         return API.waitOnTest(testId, db);
       })
       .then(testId => getTestResult(db, pendingTest, testId, ttfbFromPrewarm)))
@@ -133,7 +133,7 @@ function startTest(
     // Trigger the callback
     .then(updatedResult => callback && callback(updatedResult));
 
-  return pendingTest.save();
+  return pendingTest.ready().then(() => pendingTest.save());
 }
 
 /**

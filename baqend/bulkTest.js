@@ -170,11 +170,13 @@ function createTestOverview(db, {
   url,
   speedKitUrl,
   whitelist,
+  mobile,
 }) {
   const testOverview = new db.TestOverview();
   testOverview.url = url;
   testOverview.whitelist = whitelist;
   testOverview.caching = caching;
+  testOverview.mobile = mobile;
 
   Promise.all([
     // Queue the test against the competitor's site
@@ -184,6 +186,7 @@ function createTestOverview(db, {
       caching,
       url,
       isClone: false,
+      mobile,
       finish(testResult) {
         testOverview.competitorTestResult = testResult;
         if (testResult.testDataMissing !== true) {
@@ -191,8 +194,13 @@ function createTestOverview(db, {
           testOverview.psiRequests = testResult.firstView.requests;
           testOverview.psiResponseSize = testResult.firstView.bytes;
         }
-        testOverview.save();
 
+        if (testOverview.speedKitTestResult.hasFinished) {
+          testOverview.hasFinished = true;
+          bulkTest.completedRuns += 1;
+        }
+
+        testOverview.ready().then(() => testOverview.save());
         updateBulkTest(db, bulkTest);
       },
     }),
@@ -204,9 +212,16 @@ function createTestOverview(db, {
       caching,
       url: speedKitUrl,
       isClone: true,
+      mobile,
       finish(testResult) {
         testOverview.speedKitTestResult = testResult;
-        testOverview.save();
+
+        if (testOverview.competitorTestResult.hasFinished) {
+          testOverview.hasFinished = true;
+          bulkTest.completedRuns += 1;
+        }
+
+        testOverview.ready().then(() => testOverview.save());
 
         updateBulkTest(db, bulkTest);
       },
@@ -214,7 +229,7 @@ function createTestOverview(db, {
   ]).then(([competitor, speedKit]) => {
     testOverview.competitorTestResult = competitor;
     testOverview.speedKitTestResult = speedKit;
-    return testOverview.save();
+    return testOverview.ready().then(() => testOverview.save());
   });
 
   return testOverview.save();
@@ -243,16 +258,30 @@ function createTestOverviews(db, options) {
  * @param {string} options.location The server location to execute the test.
  * @param {number} options.runs The number of runs to execute.
  * @param {boolean} options.caching If true, browser caching will be used. Defaults to false.
+ * @param {boolean} options.mobile If true, mobile version will be tested. Defaults to false.
  * @return {Promise} An object containing bulk test information
  */
-function createBulkTest(db, createdBy, options = { runs: 1, caching: false, location: DEFAULT_LOCATION }) {
-  const { url, whitelist } = options;
+function createBulkTest(db, createdBy, options = {
+  runs: 1, caching: false, location: DEFAULT_LOCATION, mobile: false
+}) {
+  const {
+    url,
+    whitelist,
+    runs,
+    location,
+    mobile
+  } = options;
+
   const speedKitUrl = getSpeedKitUrl(url, whitelist);
 
   const bulkTest = new db.BulkTest();
   bulkTest.url = url;
   bulkTest.createdBy = createdBy;
   bulkTest.hasFinished = false;
+  bulkTest.location = location;
+  bulkTest.mobile = mobile;
+  bulkTest.runs = runs;
+  bulkTest.completedRuns = 0;
 
   return bulkTest.save()
     .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitUrl }, options)))
