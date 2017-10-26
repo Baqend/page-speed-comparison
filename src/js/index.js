@@ -629,6 +629,10 @@ function resultStreamUpdate(result, subscription, elementId) {
     }
 
     try {
+      if (!entry.hasFinished && entry.retryRequired) {
+        throw new Error('Require retry');
+      }
+
       if (entry.testDataMissing) {
         throw new Error('test data missing');
       }
@@ -725,6 +729,10 @@ function resultStreamUpdate(result, subscription, elementId) {
         }
         verifyWarningMessage(e);
         resetViewAfterBadTestResult();
+      } else if (e.message === 'Require retry') {
+        if (testResult[elementId]) {
+          testResult[elementId] = null;
+        }
       } else {
         showComparisonError(e);
       }

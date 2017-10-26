@@ -133,7 +133,9 @@ function startTest(
           .then((testId) => {
             db.log.info(`Second try started, testId: ${testId} script:\n${testScript}`);
             pendingTest.testId = testId;
-            pendingTest.save();
+            pendingTest.hasFinished = false;
+            pendingTest.retryRequired = true;
+            pendingTest.ready().then(() => pendingTest.save());
             return API.waitOnTest(testId, db);
           })
           .then(testId => {
@@ -355,13 +357,13 @@ function createTestResult(db, originalObject, testResult, ttfb) {
     testObject.hasFinished = true;
 
     if (!testResult.runs['1'].repeatView) {
-      return testObject.save();
+      return testObject;
     }
 
     return createRun(db, testResult.runs['1'].repeatView, ttfb).then((repeatView) => {
       testObject.repeatView = repeatView;
       testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
-      return testObject.save();
+      return testObject;
     });
   });
 }
