@@ -98,7 +98,7 @@ function startTest(
 
   const requirePrewarm = isClone;
 
-  const testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, false);
+  let testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, false);
 
   Promise.resolve()
     .then(() => {
@@ -128,15 +128,18 @@ function startTest(
       .catch(error => {
         db.log.info(`First try failed. Second try for: ${pendingTest.testId}`);
 
-        const newTestScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, true);
-        return API.runTestWithoutWait(newTestScript, testOptions)
+        testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, true);
+        return API.runTestWithoutWait(testScript, testOptions)
           .then((testId) => {
-            db.log.info(`Second try started, testId: ${testId} script:\n${newTestScript}`);
+            db.log.info(`Second try started, testId: ${testId} script:\n${testScript}`);
             pendingTest.testId = testId;
             pendingTest.save();
             return API.waitOnTest(testId, db);
           })
-          .then(testId => getTestResult(db, pendingTest, testId, ttfbFromPrewarm));
+          .then(testId => {
+            db.log.info(`Getting Test result of second try: ${testId} script:\n${testScript}`);
+            return getTestResult(db, pendingTest, testId, ttfbFromPrewarm);
+          });
       }))
     .then((result) => {
       db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
@@ -194,6 +197,15 @@ navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
     }
   }
 
+  // Patch for campaigns-business.sites.toyota.pl
+  if (isClone && testUrl && testUrl.includes('de.mycs.com') && testUrl.includes('schraenke') && testUrl.includes('sideboards')) {
+      return `logData 0
+navigate	https://mycs-demo.app.baqend.com/speedKitInstaller.html
+navigate	about:blank
+logData 1
+navigate	https://mycs-demo.app.baqend.com/schraenke/sideboards/`;
+  }
+
   if (!isClone) {
     return `
       block /sw.js /sw.php
@@ -210,16 +222,27 @@ navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
   }
 
   // SW always needs to be installed
-  const installSW = `
+  let installSW = `
     logData 0
     setTimeout ${DEFAULT_TIMEOUT}
     ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
-    ${(!secondTry || isSpeedKitComparison) ? `navigate ${installNavigation}` : ''}
+    navigate ${installNavigation}
     ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
     navigate about:blank
     ${isCachingDisabled ? 'clearcache' : ''}
     logData 1
   `;
+
+  if (secondTry && !isSpeedKitComparison) {
+    installSW = `
+    logData 0
+    setTimeout ${DEFAULT_TIMEOUT}
+    navigate ${testUrl.substr(0, testUrl.indexOf('#'))}
+    navigate about:blank
+    ${isCachingDisabled ? 'clearcache' : ''}
+    logData 1
+  `;
+  }
 
   return `
     setActivityTimeout ${activityTimeout}
@@ -258,7 +281,7 @@ function getTestResult(db, originalResult, testId, ttfb) {
   const testResult = originalResult;
   db.log.info(`Pingback received for ${testId}`);
 
-  if (testResult.firstView) {
+  if (testResult.firstView && !testResult.testDataMissing) {
     db.log.info(`Result already exists for ${testId}`);
     return Promise.resolve(testResult);
   }
@@ -273,7 +296,7 @@ function getTestResult(db, originalResult, testId, ttfb) {
   };
 
   return API.getTestResults(testId, options).then((result) => {
-    db.log.info(`Saving test result for ${testId}`, result.data);
+    db.log.info(`Saving test result for ${testId}`);
     return createTestResult(db, testResult, result.data, ttfb);
   }).then(() => {
     if (testResult.testDataMissing) {
