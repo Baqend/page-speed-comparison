@@ -708,6 +708,7 @@ function resultStreamUpdate(result, subscription, elementId) {
             $('#speedKitLink').append(createLinkButton(getBaqendUrl(competitorUrl, testOverview.whitelist)));
           }
 
+          testOverview.hasFinished = true;
           resetViewAfterTest();
         }
         subscription.unsubscribe();

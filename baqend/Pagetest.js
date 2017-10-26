@@ -42,10 +42,10 @@ class Pagetest {
           return;
         }
 
-        if (result.statusCode !== 200) {
-          reject(new Error(result.statusText));
-          return;
-        }
+        /* if (result.statusCode !== 200) {
+         reject(new Error(result.statusText));
+         return;
+         } */
 
         const { testId } = result.data;
         this.waitPromises[testId] = new Promise((nestedResolve) => {
@@ -58,16 +58,16 @@ class Pagetest {
   }
 
   waitOnTest(testId, db) {
-    // Wait for 2 minutes and check if the pingback was already called
-    Promise.resolve().then(() => {
-      setTimeout(() => {
-        db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
-          if (!testResult || !testResult.firstView) {
-            this.resolveTest(testId);
-          }
-        });
-      }, 120000);
-    });
+    /* // Wait for 2 minutes and check if the pingback was already called
+     Promise.resolve().then(() => {
+     setTimeout(() => {
+     db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
+     if (!testResult || !testResult.firstView) {
+     this.resolveTest(testId);
+     }
+     });
+     }, 120000);
+     }); */
 
     const result = this.waitPromises[testId];
     delete this.waitPromises[testId];
