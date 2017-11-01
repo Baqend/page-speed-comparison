@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#showTestPool').on('click', () => {
     $('#showTestPool').addClass('hidden');
+    $('#whitelist').addClass('hidden');
     $('#boostWorthiness').addClass('hidden');
     $('#printButton').addClass('hidden');
     $('.hideOnError').addClass('hidden');

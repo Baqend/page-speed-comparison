@@ -323,6 +323,7 @@ function getTestResult(db, originalResult, testId, ttfb) {
       const [videoFirstView, videoRepeatView] = values;
       testResult.videoFileFirstView = videoFirstView;
       testResult.videoFileRepeatView = videoRepeatView;
+      testResult.hasFinished = true;
       return testResult.save();
     });
   });
@@ -354,7 +355,6 @@ function createTestResult(db, originalObject, testResult, ttfb) {
   return createRun(db, testResult.runs['1'].firstView, ttfb).then((firstView) => {
     testObject.firstView = firstView;
     testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
-    testObject.hasFinished = true;
 
     if (!testResult.runs['1'].repeatView) {
       return testObject;
