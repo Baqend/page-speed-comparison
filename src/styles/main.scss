@@ -8,6 +8,7 @@
 @import './print';
 @import './layout';
 @import './checkbox';
+@import './nav';
 
 body, html, .content {
   background: #f8f8f8;
@@ -332,7 +333,7 @@ img {
   padding-right: 56px;
   padding-left: 12px;
   position: relative;
-  z-index: 1000;
+  z-index: 1;
 }
 
 .contactInput{
@@ -387,6 +388,12 @@ img {
   height: 30px;
   padding-left: 32px;
   padding-right: 32px;
+}
+
+.img-wordpress {
+  width: auto;
+  height: 180px;
+  padding: 16px;
 }
 
 .footer {

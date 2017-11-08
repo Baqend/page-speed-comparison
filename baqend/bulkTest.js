@@ -2,7 +2,8 @@
 /* eslint no-restricted-syntax: 0 */
 
 const { queueTest, DEFAULT_LOCATION } = require('./queueTest');
-const { getSpeedKitUrl } = require('./getSpeedKitUrl');
+const { getSpeedKitUrl, getTLD } = require('./getSpeedKitUrl');
+const { generateUniqueId } = require('./generateUniqueId');
 
 const fields = ['speedIndex', 'firstMeaningfulPaint', 'ttfb', 'domLoaded', 'fullyLoaded', 'lastVisualChange'];
 
@@ -54,7 +55,7 @@ function factorize(db, competitor, speedKit) {
  */
 function bestResult(bulkTest, resultFieldPrefix, field) {
   const resultField = `${resultFieldPrefix}TestResult`;
-  const best = bulkTest.testOverviews.reduce((prev, { [resultField]: result }) => {
+  const best = bulkTest.testOverviews.reduce((prev, {[resultField]: result}) => {
     if (result.firstView) {
       return Math.min(prev, result.firstView[field]);
     }
@@ -75,7 +76,7 @@ function bestResult(bulkTest, resultFieldPrefix, field) {
  */
 function worstResult(bulkTest, resultFieldPrefix, field) {
   const resultField = `${resultFieldPrefix}TestResult`;
-  const worst = bulkTest.testOverviews.reduce((prev, { [resultField]: result }) => {
+  const worst = bulkTest.testOverviews.reduce((prev, {[resultField]: result}) => {
     if (result.firstView) {
       return Math.max(prev, result.firstView[field]);
     }
@@ -184,13 +185,17 @@ function createTestOverview(db, {
   mobile,
 }) {
   const testOverview = new db.TestOverview();
-  testOverview.url = url;
-  testOverview.whitelist = whitelist;
-  testOverview.caching = caching;
-  testOverview.mobile = mobile;
-  testOverview.hasFinished = false;
 
-  Promise.all([
+  return generateUniqueId(db, 'TestOverview').then((uniqueId) => {
+    testOverview.id = uniqueId + getTLD(url);
+    testOverview.url = url;
+    testOverview.whitelist = whitelist;
+    testOverview.caching = caching;
+    testOverview.mobile = mobile;
+    testOverview.hasFinished = false;
+
+    return testOverview.save();
+  }).then(() => Promise.all([
     // Queue the test against the competitor's site
     queueTest({
       db,
@@ -212,8 +217,9 @@ function createTestOverview(db, {
           bulkTest.completedRuns += 1;
         }
 
-        testOverview.ready().then(() => testOverview.save());
-        updateBulkTest(db, bulkTest);
+        testOverview.ready()
+          .then(() => testOverview.save())
+          .then(() => updateBulkTest(db, bulkTest));
       },
     }),
 
@@ -233,18 +239,17 @@ function createTestOverview(db, {
           bulkTest.completedRuns += 1;
         }
 
-        testOverview.ready().then(() => testOverview.save());
-
-        updateBulkTest(db, bulkTest);
+        testOverview.ready()
+          .then(() => testOverview.save())
+          .then(() => updateBulkTest(db, bulkTest));
       },
     }),
-  ]).then(([competitor, speedKit]) => {
+  ])
+  ).then(([competitor, speedKit]) => {
     testOverview.competitorTestResult = competitor;
     testOverview.speedKitTestResult = speedKit;
     return testOverview.ready().then(() => testOverview.save());
   });
-
-  return testOverview.save();
 }
 
 /**
@@ -296,7 +301,7 @@ function createBulkTest(db, createdBy, options = {
   bulkTest.completedRuns = 0;
 
   return bulkTest.save()
-    .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitUrl }, options)))
+    .then(() => createTestOverviews(db, Object.assign({bulkTest, speedKitUrl}, options)))
     .then((overviews) => {
       bulkTest.testOverviews = overviews;
 

@@ -7,6 +7,7 @@ const { isRateLimited } = require('./rateLimiter');
 const { getAdSet } = require('./adBlocker');
 const { toFile } = require('./download');
 const { countHits } = require('./countHits');
+const fetch = require('node-fetch');
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
 const DEFAULT_ACTIVITY_TIMEOUT = 75;
@@ -352,20 +353,25 @@ function createTestResult(db, originalObject, testResult, ttfb) {
   testObject.url = testResult.testUrl;
   testObject.summaryUrl = testResult.summary;
 
-  return createRun(db, testResult.runs['1'].firstView, ttfb).then((firstView) => {
-    testObject.firstView = firstView;
-    testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
+  return iskWordPress(testResult.testUrl)
+    .then((isWordPress) => {
+      testObject.isWordPress = isWordPress;
 
-    if (!testResult.runs['1'].repeatView) {
-      return testObject;
-    }
+      return createRun(db, testResult.runs['1'].firstView, ttfb).then((firstView) => {
+        testObject.firstView = firstView;
+        testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
 
-    return createRun(db, testResult.runs['1'].repeatView, ttfb).then((repeatView) => {
-      testObject.repeatView = repeatView;
-      testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
-      return testObject;
+        if (!testResult.runs['1'].repeatView) {
+          return testObject;
+        }
+
+        return createRun(db, testResult.runs['1'].repeatView, ttfb).then((repeatView) => {
+          testObject.repeatView = repeatView;
+          testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
+          return testObject;
+        });
+      });
     });
-  });
 }
 
 /**
@@ -413,6 +419,15 @@ function createRun(db, data, ttfb) {
   run.domains = [];
 
   return createDomainList(data, run);
+}
+
+/**
+ * Method to check whether the website with the given url is based on WordPress
+ * @param url
+ * @return {boolean}
+ */
+function iskWordPress(url) {
+  return fetch(url).then(res => res.text().then(text => text.indexOf('wp-content') !== -1));
 }
 
 function createFailedRequestsCount(data) {

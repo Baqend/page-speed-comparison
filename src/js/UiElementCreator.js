@@ -68,18 +68,21 @@ export function createWhitelistCandidates(domainArray, whitelist, totalRequestCo
         const checkbox = document.createElement('input');
         const checkboxLabel = document.createElement('label');
         const regex = new RegExp(`,?\\s?\\b${domainUrl}\\s?\\b,?`);
+        const rate = Math.floor((100 / totalRequestCount) * domainObject.requests);
 
         divContainer.setAttribute('class', 'col-lg-6 col-md-6 col-sm-12 col-xs-12 mt-16 p-8');
         checkbox.setAttribute('type', 'checkbox');
         checkbox.setAttribute('id', domainUrl);
+        checkboxLabel.innerHTML = domainUrl;
 
         if (regex.test(whitelist)) {
           checkbox.setAttribute('checked', 'checked');
+        } else {
+          checkboxLabel.innerHTML += rate > 0 ? ` (${rate}%)` : ' (<1%)';
         }
 
         checkboxLabel.setAttribute('for', domainUrl);
         checkboxLabel.setAttribute('onclick', 'whitelistCandidateClicked(this.htmlFor)');
-        checkboxLabel.innerHTML = `${domainUrl} (${Math.floor((100 / totalRequestCount) * domainObject.requests)}%)`;
         divContainer.appendChild(checkbox);
         divContainer.appendChild(checkboxLabel);
         $('#whitelistCandidates').append(divContainer);

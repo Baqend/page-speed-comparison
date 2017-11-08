@@ -29,6 +29,7 @@ export function resetView() {
   $('#boostWorthiness').addClass('hidden');
   $('#competitorLink').addClass('hidden').empty();
   $('#speedKitLink').addClass('hidden').empty();
+  $('#wordPress').addClass('hidden');
   $('#info').removeClass('hidden');
   $('#configInfo').removeClass('hidden');
   $('#competitor').empty();

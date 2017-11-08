@@ -144,6 +144,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+window.addEventListener('scroll', () => {
+  const stop = Math.round($(window).scrollTop());
+  if (stop > 50) {
+    $('body').addClass('scrolled');
+  } else {
+    $('body').removeClass('scrolled');
+  }
+});
+
 window.addEventListener('popstate', () => {
   window.history.pushState(null, document.title, window.location.href);
 });
@@ -257,6 +266,10 @@ function initTest() {
 
       if (!competitorResult[dataView] || !speedKitResult[dataView]) {
         throw new Error();
+      }
+
+      if (competitorResult.isWordPress) {
+        $('#wordPress').removeClass('hidden');
       }
 
       // If speed index is satisfactory ==> show the test result and a list of suggested domains
@@ -402,7 +415,9 @@ async function initComparison(normalizedUrl) {
   $('.center-vertical').animate({ marginTop: '0px' }, 500);
   const activityTimeout = parseInt($('.activityTimeout').val(), 10) || undefined;
 
+  const uniqueId = await db.modules.post('generateUniqueId', { entityClass: 'TestOverview' });
   testOverview = new db.TestOverview();
+  testOverview.id = uniqueId + getTLD(competitorUrl);
   testOverview.caching = testOptions.caching;
   testOverview.mobile = testOptions.mobile;
   testOverview.url = competitorUrl;
@@ -737,6 +752,10 @@ function resultStreamUpdate(result, subscription, elementId) {
       } else {
         showComparisonError(e);
       }
+    }
+
+    if (entry.isWordPress) {
+      $('#wordPress').removeClass('hidden');
     }
 
     testOverview.ready().then(() => testOverview.save()).then(() => {
