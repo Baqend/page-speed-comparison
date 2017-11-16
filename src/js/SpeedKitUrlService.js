@@ -21,8 +21,8 @@ export function getTLD(url) {
   const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
   const [, domain] = domainFilter.exec(hostname);
 
-  // remove the dor at the end of the string
-  return domain.substring(0, domain.length - 1);
+  // remove the dot at the end of the string
+  return domain;
 }
 
 /**
@@ -40,21 +40,13 @@ export function escapeRegExp(str) {
  *
  * @param {string} originalUrl The original URL to the site.
  * @param {string[]} whitelist An array of whitelist domains.
- * @return {string} A string representing the rules.
+ * @return {string} A regexp string representing the white listed domains
  */
 export function generateRules(originalUrl, whitelist) {
   const domain = getTLD(originalUrl);
 
-  // Replace TLD with a wildcard
-  const host = [`regexp:/^(?:[\\w-]*\\.){0,3}${domain}/`];
-
   // Create parts for the regexp
-  if (whitelist.length) {
-    host.push(`regexp:/^(?:[\\w-]*\\.){0,3}(?:${whitelist.map(item => escapeRegExp(item)).join('|')})/`);
-  }
-
-  // Create the final exp
-  return JSON.stringify([{ host }]);
+  return `/^(?:[\\w-]*\\.){0,3}(?:${[domain, ...whitelist].map(item => escapeRegExp(item)).join('|')})/`;
 }
 
 /**
@@ -65,7 +57,7 @@ export function generateRules(originalUrl, whitelist) {
  * @param {boolean} enableUserAgentDetection Enables the user agent detection in makefast
  * @return {string} A URL to send to Speed Kit.
  */
-export function getBaqendUrl(originalUrl, whitelistStr, enableUserAgentDetection) {
+export function generateSpeedKitConfig(originalUrl, whitelistStr, enableUserAgentDetection) {
   const whitelistDomains = whitelistStr
     .split(',')
     .map(item => item.trim())
@@ -73,20 +65,14 @@ export function getBaqendUrl(originalUrl, whitelistStr, enableUserAgentDetection
 
   const whitelist = generateRules(originalUrl, whitelistDomains);
 
-  let url = `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&whitelist=${encodeURIComponent(whitelist)}`;
-  if (enableUserAgentDetection) {
-    url += '&agentDetec=true';
-  }
+  return `{
+    appName: "${APP}",
+    whitelist: [{ host: [ ${whitelist} ] }],
+    userAgentDetection: ${enableUserAgentDetection},
+  }`;
+}
 
-  /* // add blacklist options
-  const blacklist = [
-    {
-      contentType: ['document'],
-    },
-  ];
-
-  url += `&blacklist=${encodeURIComponent(JSON.stringify(blacklist))}`;
-  */
-
-  return url;
+export function getBaqendUrl(originalUrl, whitelistStr, enableUserAgentDetection) {
+  const config = generateSpeedKitConfig(originalUrl, whitelistStr, enableUserAgentDetection);
+  return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&config=${encodeURIComponent(config)}`;
 }

@@ -44,35 +44,39 @@ function handleTestError(db, test, testScript, error) {
 
 /**
  * @param db The Baqend instance.
- * @param {string} testUrl
- * @param {string} location
- * @param {boolean} isClone
- * @param {boolean} isCachingDisabled
- * @param {number} activityTimeout
- * @param {boolean} isSpeedKitComparison
- * @param {boolean} mobile
- * @param {function} callback
+ * @param {string} url The URL to test.
+ * @param {boolean} isClone True, if this is the cloned page.
+ * @param {string} [location] The server location to execute the test.
+ * @param {boolean} [caching] True, if browser caching should be used.
+ * @param {number} [activityTimeout] The timeout when the test should be aborted.
+ * @param {boolean} [isSpeedKitComparison] True, if Speed Kit is already running on the tested site.
+ * @param {Object} [speedKitConfig] The speedKit configuration.
+ * @param {boolean} [mobile] True, if a mobile-only test should be made.
+ * @param {function} [finish] A callback which will be called when the test succeeds or fails.
  * @return {string}
- * @deprecated Use queueTest.
  */
-function startTest(
+function queueTest({
+  // Required parameters
   db,
-  testUrl,
-  location,
+  url,
   isClone,
-  isCachingDisabled = true,
+  // Optional parameters
+  location = DEFAULT_LOCATION,
+  caching = false,
   activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
   isSpeedKitComparison = false,
+  speedKitConfig = null,
   mobile = false,
-  callback = null
-) {
+  finish = null,
+}) {
   // Create a new test result
   const pendingTest = new db.TestResult();
   pendingTest.id = db.util.uuid();
-
+  db.log.info('flags: %s', createCommandLineFlags(url, isClone))
   const testOptions = {
-    firstViewOnly: isCachingDisabled,
-    runs: 1,
+    firstViewOnly: !caching,
+    runs: isClone ? 5 : 1,
+    commandLine: createCommandLineFlags(url, isClone),
     video: true,
     disableOptimization: true,
     pageSpeed: false,
@@ -88,6 +92,7 @@ function startTest(
     netLog: false,
     disableHTTPHeaders: true,
     disableScreenshot: true,
+    ignoreSSL: true,
     block: 'favicon', // exclude favicons for fair comparison, as not handled by SWs
     jpegQuality: 100,
     poll: 1, // poll every second
@@ -97,12 +102,11 @@ function startTest(
     location,
   };
 
-  const requirePrewarm = isClone;
-
-  let testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, false);
+  let testScript = createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, false,
+    speedKitConfig);
 
   Promise.resolve()
-    .then(() => {
+    /* .then(() => {
       if (!requirePrewarm) {
         return null;
       }
@@ -115,44 +119,62 @@ function startTest(
         minimalResults: true,
       });
 
-      return API.runTest(testUrl, prewarmOptions, db)
+      return API.runTest(url, prewarmOptions, db)
         .then(testId => getPrewarmResult(db, testId, isSpeedKitComparison));
+    }) */
+    .then(() => API.runTestWithoutWait(testScript, testOptions))
+    .then((testId) => {
+      db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
+      pendingTest.testId = testId;
+      pendingTest.ready().then(() => pendingTest.save());
+      return API.waitOnTest(testId, db);
     })
-    .then(ttfbFromPrewarm => API.runTestWithoutWait(testScript, testOptions)
-      .then((testId) => {
-        db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
-        pendingTest.testId = testId;
-        pendingTest.ready().then(() => pendingTest.save());
-        return API.waitOnTest(testId, db);
-      })
-      .then(testId => getTestResult(db, pendingTest, testId, ttfbFromPrewarm))
-      .catch(error => {
-        db.log.info(`First try failed. Second try for: ${pendingTest.testId}`);
+    .then(testId => getTestResult(db, pendingTest, testId))
+    .catch((e) => {
+      db.log.info(`First try failed. Second try for: ${pendingTest.testId}:\n ${e && e.stack}`);
 
-        testScript = createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, true);
-        return API.runTestWithoutWait(testScript, testOptions)
-          .then((testId) => {
-            db.log.info(`Second try started, testId: ${testId} script:\n${testScript}`);
-            pendingTest.testId = testId;
-            pendingTest.hasFinished = false;
-            pendingTest.retryRequired = true;
-            pendingTest.ready().then(() => pendingTest.save());
-            return API.waitOnTest(testId, db);
-          })
-          .then(testId => {
-            db.log.info(`Getting Test result of second try: ${testId} script:\n${testScript}`);
-            return getTestResult(db, pendingTest, testId, ttfbFromPrewarm);
-          });
-      }))
+      testScript = createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, true,
+        speedKitConfig);
+
+      return API.runTestWithoutWait(testScript, testOptions)
+        .then((testId) => {
+          db.log.info(`Second try started, testId: ${testId} script:\n${testScript}`);
+          pendingTest.testId = testId;
+          pendingTest.hasFinished = false;
+          pendingTest.retryRequired = true;
+          pendingTest.ready().then(() => pendingTest.save());
+          return API.waitOnTest(testId, db);
+        })
+        .then((testId) => {
+          db.log.info(`Getting Test result of second try: ${testId} script:\n${testScript}`);
+          return getTestResult(db, pendingTest, testId);
+        });
+    })
     .then((result) => {
       db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
       return result;
     })
     .catch(error => handleTestError(db, pendingTest, testScript, error))
     // Trigger the callback
-    .then(updatedResult => callback && callback(updatedResult));
+    .then(updatedResult => finish && finish(updatedResult));
 
   return pendingTest.ready().then(() => pendingTest.save());
+}
+
+/**
+ * @param {string} testUrl
+ * @param {boolean} isClone
+ * @return {string}
+ */
+function createCommandLineFlags(testUrl, isClone) {
+  const http = 'http://';
+  if (isClone && testUrl.startsWith(http)) {
+    // origin should looks like http://example.com - without any path components
+    const end = testUrl.indexOf('/', http.length);
+    const origin = testUrl.substring(0, end === -1 ? testUrl.length : end);
+    return `--unsafely-treat-insecure-origin-as-secure="${origin}"`;
+  }
+  return '';
 }
 
 /**
@@ -162,51 +184,16 @@ function startTest(
  * @param {number} activityTimeout
  * @param {boolean} isSpeedKitComparison
  * @param {boolean} secondTry Whether this is the second try to execute the test.
+ * @param {string} speedKitConfig The serialized speedkit config string
  * @return {string}
  */
-function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, secondTry) {
+function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, secondTry, speedKitConfig) {
   let hostname;
+  let protocol;
   try {
-    ({ hostname } = parse(testUrl));
+    ({ hostname, protocol } = parse(testUrl));
   } catch (e) {
     throw new Abort(`Invalid Url specified: ${e.message}`);
-  }
-
-  // Patch for campaigns-business.sites.toyota.pl
-  if (testUrl && testUrl.includes('campaigns-business.sites.toyota.pl')) {
-    if (isClone) {
-      return `logData 0
-setDNSName  campaigns-business.sites.toyota.pl pl-clone.app.baqend.com
-overrideHost  campaigns-business.sites.toyota.pl pl-clone.app.baqend.com
-setHeader	Referer: https://campaigns-business.sites.toyota.pl/
-
-navigate	https://campaigns-business.sites.toyota.pl/speedKitInstaller.html
-navigate	about:blank
-logData 1
-navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
-    } else {
-      // Without DNS
-//       return `logData 0
-// setHeader Connection:close
-// navigate	https://campaigns-business.sites.toyota.pl/views/race-slider.html
-// navigate	https://static.sites.toyota.pl/projects/reliability/toy_no_1.png
-// navigate	about:blank
-// clearCache
-// resetHeaders
-// logData 1
-// navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
-      // With DNS
-      return `navigate	https://campaigns-business.sites.toyota.pl/#/pl`;
-    }
-  }
-
-  // Patch for campaigns-business.sites.toyota.pl
-  if (isClone && testUrl && testUrl.includes('de.mycs.com') && testUrl.includes('schraenke') && testUrl.includes('sideboards')) {
-      return `logData 0
-navigate	https://mycs-demo.app.baqend.com/speedKitInstaller.html
-navigate	about:blank
-logData 1
-navigate	https://mycs-demo.app.baqend.com/schraenke/sideboards/`;
   }
 
   if (!isClone) {
@@ -219,20 +206,22 @@ navigate	https://mycs-demo.app.baqend.com/schraenke/sideboards/`;
     `;
   }
 
-  let installNavigation = `${testUrl}&noCaching=true&blockExternal=true`;
+  let installNavigation;
   if (!isCachingDisabled) {
     [installNavigation] = testUrl.split('#');
   }
+
+  installNavigation = `${protocol}//${hostname}/install-speed-kit?config=${encodeURIComponent(speedKitConfig)}`;
 
   // SW always needs to be installed
   let installSW = `
     logData 0
     setTimeout ${DEFAULT_TIMEOUT}
+    ${!isSpeedKitComparison ? `setDns ${hostname} 35.158.169.25` : ''}
     ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
     navigate ${installNavigation}
     ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
     navigate about:blank
-    ${isCachingDisabled ? 'clearcache' : ''}
     logData 1
   `;
 
@@ -277,10 +266,9 @@ function getPrewarmResult(db, testId, isSpeedKitComparison) {
  * @param db The Baqend instance.
  * @param originalResult
  * @param {string} testId
- * @param {string} ttfb
  * @return {Promise<object>} A promised test result.
  */
-function getTestResult(db, originalResult, testId, ttfb) {
+function getTestResult(db, originalResult, testId) {
   const testResult = originalResult;
   db.log.info(`Pingback received for ${testId}`);
 
@@ -300,28 +288,33 @@ function getTestResult(db, originalResult, testId, ttfb) {
 
   return API.getTestResults(testId, options).then((result) => {
     db.log.info(`Saving test result for ${testId}`);
-    return createTestResult(db, testResult, result.data, ttfb);
-  }).then(() => {
-    if (testResult.testDataMissing) {
-      throw new Error('Test Data Missing');
-    }
 
-    db.log.info(`creating video for ${testId}`);
-    return Promise.all([API.createVideo(`${testId}-r:1-c:0`), API.createVideo(`${testId}-r:1-c:1`)]);
-  }).then((result) => {
+    const lastRunIndex = Object.keys(result.data.runs).pop();
+
+    return createTestResult(db, testResult, result.data, lastRunIndex).then(() => {
+      if (testResult.testDataMissing) {
+        throw new Error('Test Data Missing');
+      }
+
+      db.log.info(`creating video for ${testId}`);
+      return Promise.all([
+        API.createVideo(`${testId}-r:${lastRunIndex}-c:0`),
+        API.createVideo(`${testId}-r:${lastRunIndex}-c:1`)
+      ]);
+    });
+  }).then(([firstVideResult, repeatedVideoResult]) => {
     db.log.info(`videos created for ${testId}`);
 
-    testResult.videoIdFirstView = result[0].data.videoId;
+    testResult.videoIdFirstView = firstVideResult.data.videoId;
     const videoFirstViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdFirstView), `/www/videoFirstView/${testId}.mp4`);
 
     let videoRepeatViewPromise = Promise.resolve(true);
-    if (result[1].data && result[1].data.videoId) {
-      testResult.videoIdRepeatedView = result[1].data.videoId;
+    if (repeatedVideoResult.data && repeatedVideoResult.data.videoId) {
+      testResult.videoIdRepeatedView = repeatedVideoResult.data.videoId;
       videoRepeatViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdRepeatedView), `/www/videoRepeatView/${testId}.mp4`);
     }
 
-    return Promise.all([videoFirstViewPromise, videoRepeatViewPromise]).then((values) => {
-      const [videoFirstView, videoRepeatView] = values;
+    return Promise.all([videoFirstViewPromise, videoRepeatViewPromise]).then(([videoFirstView, videoRepeatView]) => {
       testResult.videoFileFirstView = videoFirstView;
       testResult.videoFileRepeatView = videoRepeatView;
       testResult.hasFinished = true;
@@ -345,9 +338,9 @@ function constructVideoLink(testId, videoId) {
  * @param db The Baqend instance.
  * @param {object} originalObject
  * @param {object} testResult
- * @param {string} ttfb
+ * @param {string} runIndex the index of the run to use
  */
-function createTestResult(db, originalObject, testResult, ttfb) {
+function createTestResult(db, originalObject, testResult, runIndex) {
   const testObject = originalObject;
   testObject.location = testResult.location;
   testObject.url = testResult.testUrl;
@@ -357,15 +350,17 @@ function createTestResult(db, originalObject, testResult, ttfb) {
     .then((isWordPress) => {
       testObject.isWordPress = isWordPress;
 
-      return createRun(db, testResult.runs['1'].firstView, ttfb).then((firstView) => {
+      const lastRun = testResult.runs[runIndex];
+
+      return createRun(db, lastRun.firstView).then((firstView) => {
         testObject.firstView = firstView;
         testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
 
-        if (!testResult.runs['1'].repeatView) {
+        if (!lastRun.repeatView) {
           return testObject;
         }
 
-        return createRun(db, testResult.runs['1'].repeatView, ttfb).then((repeatView) => {
+        return createRun(db, lastRun.repeatView).then((repeatView) => {
           testObject.repeatView = repeatView;
           testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
           return testObject;
@@ -377,9 +372,8 @@ function createTestResult(db, originalObject, testResult, ttfb) {
 /**
  * @param db The Baqend instance.
  * @param data
- * @param {string} ttfb A TTFB to take instead
  */
-function createRun(db, data, ttfb) {
+function createRun(db, data) {
   const run = new db.Run();
 
   // Copy fields
@@ -394,7 +388,7 @@ function createRun(db, data, ttfb) {
   run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
 
   // Set TTFB
-  run.ttfb = ttfb || data.TTFB;
+  run.ttfb = data.TTFB;
 
   // Set other
   run.domLoaded = data.domContentLoadedEventStart;
@@ -474,40 +468,41 @@ function isAdDomain(url, adSet) {
 
 /**
  * @param db The Baqend instance.
- * @param {string} url The URL to test.
- * @param {boolean} isClone True, if this is the cloned page.
- * @param {string} [location] The server location to execute the test.
- * @param {boolean} [caching] True, if browser caching should be used.
- * @param {number} [activityTimeout] The timeout when the test should be aborted.
- * @param {boolean} [isSpeedKitComparison] True, if Speed Kit is already running on the tested site.
- * @param {boolean} [mobile] True, if a mobile-only test should be made.
- * @param {function} [finish] A callback which will be called when the test succeeds or fails.
+ * @param {string} testUrl
+ * @param {string} location
+ * @param {boolean} isClone
+ * @param {boolean} isCachingDisabled
+ * @param {number} activityTimeout
+ * @param {boolean} isSpeedKitComparison
+ * @param {boolean} mobile
+ * @param {function} callback
  * @return {string}
+ * @deprecated Use queueTest.
  */
-function queueTest({
-  // Required parameters
+function startTest(
   db,
   url,
+  location,
   isClone,
-  // Optional parameters
-  location = DEFAULT_LOCATION,
-  caching = false,
-  activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
-  isSpeedKitComparison = false,
-  mobile = false,
-  finish = null,
-}) {
-  return startTest(
+  isCachingDisabled,
+  activityTimeout,
+  isSpeedKitComparison,
+  mobile,
+  finish
+) {
+  return queueTest({
+    // Required parameters
     db,
     url,
-    location,
     isClone,
-    !caching,
+    // Optional parameters
+    location,
+    caching: !isCachingDisabled,
     activityTimeout,
     isSpeedKitComparison,
     mobile,
-    finish
-  );
+    finish,
+  });
 }
 
 exports.startTest = startTest;

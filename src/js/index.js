@@ -14,7 +14,7 @@ import {
   showInfoBox,
   startTest,
 } from './ResetVariablesService';
-import { getBaqendUrl, getTLD } from './SpeedKitUrlService';
+import { generateRules, generateSpeedKitConfig, getBaqendUrl, getTLD } from './SpeedKitUrlService';
 import {
   calculateFactors,
   calculateRevenueBoost,
@@ -406,10 +406,6 @@ async function initComparison(normalizedUrl) {
   isSpeedKitComparison = normalizedUrl.speedkit;
   competitorUrl = normalizedUrl.url;
 
-  const speedKitUrl = isSpeedKitComparison
-    ? competitorUrl
-    : getBaqendUrl(competitorUrl, $wListInput.val(), testOptions.mobile);
-
   // Show testing UI
   startTest();
   $('.center-vertical').animate({ marginTop: '0px' }, 500);
@@ -437,9 +433,10 @@ async function initComparison(normalizedUrl) {
       }),
       // Test the Makefast site
       db.modules.post('queueTest', {
-        url: speedKitUrl,
+        url: competitorUrl,
         activityTimeout,
         isSpeedKitComparison,
+        speedKitConfig: generateSpeedKitConfig(competitorUrl, $wListInput.val(), testOptions.mobile),
         location: testOptions.location,
         isClone: true,
         caching: testOptions.caching,
@@ -583,16 +580,16 @@ function handleWhitelistCandidates(resultData, whitelist) {
     const sortedDomains = sortArray(resultData, 'domains');
     const totalRequestCount = resultData.requests;
 
-    const domain = getTLD(competitorUrl);
+    const rules = generateRules(competitorUrl, whitelist);
+    const regexp = new RegExp(rules);
 
     createWhitelistCandidates(
       sortedDomains
-        .filter((domainObject) => {
-          const filter = domainObject.url.indexOf(domain) === -1
+        .filter(domainObject => (
+          !regexp.test(domainObject.url)
             && domainObject.url.indexOf('makefast') === -1
-            && !domainObject.isAdDomain;
-          return filter;
-        })
+            && !domainObject.isAdDomain
+        ))
         .splice(0, 6),
       whitelist,
       totalRequestCount,
