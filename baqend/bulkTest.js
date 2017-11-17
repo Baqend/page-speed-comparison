@@ -1,5 +1,5 @@
 /* eslint-disable comma-dangle, function-paren-newline */
-/* eslint no-restricted-syntax: 0 */
+/* eslint-disable no-restricted-syntax, no-param-reassign */
 
 const { queueTest, DEFAULT_LOCATION } = require('./queueTest');
 const { generateSpeedKitConfig, getTLD } = require('./getSpeedKitUrl');
@@ -278,6 +278,7 @@ function createTestOverviews(db, options) {
  * @param {number} options.runs The number of runs to execute.
  * @param {boolean} options.caching If true, browser caching will be used. Defaults to false.
  * @param {boolean} options.mobile If true, mobile version will be tested. Defaults to false.
+ * @param {boolean} options.speedKitConfig Configuration for the speed kit snippet.
  * @return {Promise} An object containing bulk test information
  */
 function createBulkTest(db, createdBy, options = {
@@ -288,10 +289,11 @@ function createBulkTest(db, createdBy, options = {
     whitelist,
     runs,
     location,
-    mobile
+    mobile,
+    speedKitConfig
   } = options;
 
-  const speedKitConfig = generateSpeedKitConfig(url, whitelist, mobile);
+  const config = speedKitConfig || generateSpeedKitConfig(url, whitelist, mobile);
 
   const bulkTest = new db.BulkTest();
   bulkTest.url = url;
@@ -303,7 +305,7 @@ function createBulkTest(db, createdBy, options = {
   bulkTest.completedRuns = 0;
 
   return bulkTest.save()
-    .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitConfig }, options)))
+    .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitConfig: config }, options)))
     .then((overviews) => {
       bulkTest.testOverviews = overviews;
 
