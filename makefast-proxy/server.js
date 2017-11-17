@@ -70,7 +70,16 @@ app.get('/install-speed-kit', (req, res) => {
 app.use((req, res) => {
   // Pipe all other requests to original URL
   const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-  req.pipe(request(url)).pipe(res);
+
+  if (debug) {
+    console.log(`Pipe URL (${req.method}): ${url}`);
+  }
+
+  req.pipe(request({ url, followRedirect: false }, (err) => {
+    if (err) {
+      console.log(`Error piping URL (${req.method}): ${url}`);
+    }
+  })).pipe(res);
 });
 
 

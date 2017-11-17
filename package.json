@@ -19,7 +19,8 @@
     "deploy:dev": "npm run build:dev && baqend deploy --file-dir dist makefast-dev",
     "deploy-code:dev": "baqend deploy --code makefast-dev",
     "deploy-code:staging": "baqend deploy --code makefast-staging",
-    "deploy-code:prod": "baqend deploy --code makefast"
+    "deploy-code:prod": "baqend deploy --code makefast",
+    "build-proxy": "cd makefast-proxy && node build.js"
   },
   "devDependencies": {
     "@types/bootstrap": "^3.3.36",

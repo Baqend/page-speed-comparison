@@ -2,8 +2,7 @@ version: '3'
 services:
   makefast:
     image: "docker.baqend.com/makefast/makefast-proxy:latest"
+    restart: always
     ports:
      - "80:80"
      - "443:443"
-    restart_policy:
-      condition: always
