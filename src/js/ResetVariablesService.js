@@ -30,6 +30,7 @@ export function resetView() {
   $('#competitorLink').addClass('hidden').empty();
   $('#speedKitLink').addClass('hidden').empty();
   $('#wordPress').addClass('hidden');
+  $('#suggestedDomains').addClass('hidden');
   $('#info').removeClass('hidden');
   $('#configInfo').removeClass('hidden');
   $('#competitor').empty();

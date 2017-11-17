@@ -73,6 +73,16 @@
       "name": "hasFinished",
       "type": "/db/Boolean",
       "order": 11
+    },
+    "retryRequired": {
+      "name": "retryRequired",
+      "type": "/db/Boolean",
+      "order": 12
+    },
+    "isWordPress": {
+      "name": "isWordPress",
+      "type": "/db/Boolean",
+      "order": 13
     }
   }
 }

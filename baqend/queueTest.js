@@ -33,7 +33,7 @@ exports.call = function callQueueTest(db, data, req) {
 function handleTestError(db, test, testScript, error) {
   const testToUpdate = test;
   db.log.warn(`Test failed, id: ${test.id}, testId: ${test.testId} script:\n${testScript}\n\n${error.stack}`);
-  return test.ready()
+  return testToUpdate.ready()
     .then(() => {
       // Save that test has finished without data
       testToUpdate.testDataMissing = true;
@@ -72,7 +72,7 @@ function queueTest({
   // Create a new test result
   const pendingTest = new db.TestResult();
   pendingTest.id = db.util.uuid();
-  db.log.info('flags: %s', createCommandLineFlags(url, isClone))
+  db.log.info('flags: %s', createCommandLineFlags(url, isClone));
   const testOptions = {
     firstViewOnly: !caching,
     runs: isClone ? 5 : 1,
@@ -102,8 +102,7 @@ function queueTest({
     location,
   };
 
-  let testScript = createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, false,
-    speedKitConfig);
+  const testScript = createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, speedKitConfig);
 
   Promise.resolve()
     /* .then(() => {
@@ -130,26 +129,26 @@ function queueTest({
       return API.waitOnTest(testId, db);
     })
     .then(testId => getTestResult(db, pendingTest, testId))
-    .catch((e) => {
-      db.log.info(`First try failed. Second try for: ${pendingTest.testId}:\n ${e && e.stack}`);
+    /* .catch((e) => {
+        db.log.info(`First try failed. Second try for: ${pendingTest.testId}:\n ${e && e.stack}`);
 
-      testScript = createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, true,
-        speedKitConfig);
+        testScript =
+          createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, true, speedKitConfig);
 
-      return API.runTestWithoutWait(testScript, testOptions)
-        .then((testId) => {
-          db.log.info(`Second try started, testId: ${testId} script:\n${testScript}`);
-          pendingTest.testId = testId;
-          pendingTest.hasFinished = false;
-          pendingTest.retryRequired = true;
-          pendingTest.ready().then(() => pendingTest.save());
-          return API.waitOnTest(testId, db);
-        })
-        .then((testId) => {
-          db.log.info(`Getting Test result of second try: ${testId} script:\n${testScript}`);
-          return getTestResult(db, pendingTest, testId);
-        });
-    })
+        return API.runTestWithoutWait(testScript, testOptions)
+          .then((testId) => {
+            db.log.info(`Second try started, testId: ${testId} script:\n${testScript}`);
+            pendingTest.testId = testId;
+            pendingTest.hasFinished = false;
+            pendingTest.retryRequired = true;
+            pendingTest.ready().then(() => pendingTest.save());
+            return API.waitOnTest(testId, db);
+          })
+          .then((testId) => {
+            db.log.info(`Getting Test result of second try: ${testId} script:\n${testScript}`);
+            return getTestResult(db, pendingTest, testId);
+          });
+      }) */
     .then((result) => {
       db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
       return result;
@@ -183,11 +182,17 @@ function createCommandLineFlags(testUrl, isClone) {
  * @param {boolean} isCachingDisabled
  * @param {number} activityTimeout
  * @param {boolean} isSpeedKitComparison
- * @param {boolean} secondTry Whether this is the second try to execute the test.
  * @param {string} speedKitConfig The serialized speedkit config string
  * @return {string}
  */
-function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, isSpeedKitComparison, secondTry, speedKitConfig) {
+function createTestScript(
+  testUrl,
+  isClone,
+  isCachingDisabled,
+  activityTimeout,
+  isSpeedKitComparison,
+  speedKitConfig
+) {
   let hostname;
   let protocol;
   try {
@@ -224,17 +229,6 @@ function createTestScript(testUrl, isClone, isCachingDisabled, activityTimeout, 
     navigate about:blank
     logData 1
   `;
-
-  if (secondTry && !isSpeedKitComparison) {
-    installSW = `
-    logData 0
-    setTimeout ${DEFAULT_TIMEOUT}
-    navigate ${testUrl.substr(0, testUrl.indexOf('#'))}
-    navigate about:blank
-    ${isCachingDisabled ? 'clearcache' : ''}
-    logData 1
-  `;
-  }
 
   return `
     setActivityTimeout ${activityTimeout}

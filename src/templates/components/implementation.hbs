@@ -41,18 +41,19 @@
                     <li>
                         <strong>Mobile:</strong> choose whether to measure the mobile or the desktop version
                     </li>
-                    <li><strong>Domains:</strong> provide a comma-separated list of domain patterns to tell Speed Kit
-                        which requests it should handle
+                    <li><strong>Domains:</strong> provide a comma-separated list of domains to tell Speed Kit
+                        which requests it should handle. By default, Speed Kit handles up to three subdomains of the
+                        input domain. If you want to suppress this behavior, the domain must be formulated more
+                        specifically. For example, by entering <strong>subdomain.domain.com</strong>, only requests
+                        from this domain level or a higher level are served.
                     </li>
                 </ul>
                 <p class="implementation-hidden">
+
                     Speed Kit achieves its performance through <strong>browser and CDN caching</strong> with new
                     algorithms for cache coherence. Watch our
-                    <strong>
-                        <a href="https://www.youtube.com/watch?v=lPGSFpiKBpg" target="_blank">
-                            podcast
-                        </a>
-                    </strong> to get more details on how Speed Kit works.
+                    <a href="https://www.youtube.com/watch?v=lPGSFpiKBpg" target="_blank">podcast</a>
+                    to get more details on how Speed Kit works.
                 </p>
             </div>
         </div>

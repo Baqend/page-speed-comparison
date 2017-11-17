@@ -74,10 +74,12 @@ class Pagetest {
     return result;
   }
 
-  resolveTest(testId) {
+  resolveTest(db, testId) {
     if (this.testResolver[testId]) {
       this.testResolver[testId].call(null, testId);
       delete this.testResolver[testId];
+    } else {
+        db.log.info('No resolver for test: ' + testId)
     }
   }
 

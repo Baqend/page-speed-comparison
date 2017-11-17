@@ -1,8 +1,6 @@
 const credentials = require('./credentials');
 const urlModule = require('url');
 
-const BAQEND_URL = `https://${credentials.app}.speed-kit.com/`;
-
 /**
  * Extracts the top level domain of a URL.
  *
@@ -40,21 +38,13 @@ function escapeRegExp(str) {
  *
  * @param {string} originalUrl The original URL to the site.
  * @param {string[]} whitelist An array of whitelist domains.
- * @return {string} A string representing the rules.
+ * @return {string} A regexp string representing the white listed domains
  */
 function generateRules(originalUrl, whitelist) {
   const domain = getTLD(originalUrl);
 
-  // Replace TLD with a wildcard
-  const host = [`regexp:/^(?:[\\w-]*\\.){0,3}${domain}/`];
-
   // Create parts for the regexp
-  if (whitelist.length) {
-    host.push(`regexp:/^(?:[\\w-]*\\.){0,3}(?:${whitelist.map(item => escapeRegExp(item)).join('|')})/`);
-  }
-
-  // Create the final exp
-  return JSON.stringify([{ host }]);
+  return `/^(?:[\\w-]*\\.){0,3}(?:${[domain, ...whitelist].map(item => escapeRegExp(item)).join('|')})/`;
 }
 
 /**
@@ -62,9 +52,10 @@ function generateRules(originalUrl, whitelist) {
  *
  * @param {string} originalUrl The URL to make fast. ;-)
  * @param {string} whitelistStr The whitelist string with comma-separated values.
+ * @param {boolean} enableUserAgentDetection Enables the user agent detection in makefast
  * @return {string} A URL to send to Speed Kit.
  */
-function getSpeedKitUrl(originalUrl, whitelistStr) {
+function generateSpeedKitConfig(originalUrl, whitelistStr, enableUserAgentDetection) {
   const whitelistDomains = whitelistStr
     .split(',')
     .map(item => item.trim())
@@ -72,8 +63,12 @@ function getSpeedKitUrl(originalUrl, whitelistStr) {
 
   const whitelist = generateRules(originalUrl, whitelistDomains);
 
-  return `${BAQEND_URL}#url=${encodeURIComponent(originalUrl)}&whitelist=${encodeURIComponent(whitelist)}`;
+  return `{
+    appName: "${credentials.app}",
+    whitelist: [{ host: [ ${whitelist} ] }],
+    userAgentDetection: ${enableUserAgentDetection},
+  }`;
 }
 
-exports.getSpeedKitUrl = getSpeedKitUrl;
+exports.generateSpeedKitConfig = generateSpeedKitConfig;
 exports.getTLD = getTLD;

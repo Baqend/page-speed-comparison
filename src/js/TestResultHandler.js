@@ -62,6 +62,7 @@ export function displayTestResultsById(testOptions, result) {
   }
 
   $('#caching_left').prop('checked', result.caching);
+  $('#mobile_right').prop('checked', !!result.mobile);
 
   displayTestResults('competitor', competitorResult[dataView], testOptions);
   $('#competitor').empty().append(createVideoElement('video-competitor', competitorResult[videoView].url));
