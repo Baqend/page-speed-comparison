@@ -58,9 +58,10 @@ export function createLinkButton(targetUrl) {
 }
 
 export function createWhitelistCandidates(domainArray, whitelist, totalRequestCount) {
+  $('#whitelist').removeClass('hidden');
+  $('#wListInput').val(whitelist);
   if (domainArray.length > 0) {
-    $('#whitelist').removeClass('hidden');
-    $('#wListInput').val(whitelist);
+    $('#suggestedDomains').removeClass('hidden');
     domainArray.forEach((domainObject) => {
       const domainUrl = domainObject.url;
       if (!document.getElementById(domainUrl) && document.getElementById('whitelistCandidates').children.length < 6) {

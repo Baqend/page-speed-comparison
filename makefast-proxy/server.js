@@ -3,10 +3,27 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 const request = require('request');
+const path = require('path');
 
 const httpPort = 80;
 const sslPort = 443;
 const app = express();
+
+function createPage(config, snippet) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Makefast Speed-Kit Installer</title>
+<script type="application/javascript">
+  var config = ${config};
+  ${snippet}
+</script>
+</head>
+<body>
+</body>
+</html>`;
+}
 
 // to debug this proxy:
 // - Create a /etc/hosts entry with `127.0.0.1     example.com`
@@ -46,9 +63,14 @@ app.get('/install-speed-kit', (req, res) => {
   }
 
   request('https://www.baqend.com/speed-kit/latest/snippet.js', (err, response, body) => {
-    /* eslint-disable no-use-before-define */
     res.send(createPage(config, body));
   });
+});
+
+app.use((req, res) => {
+  // Pipe all other requests to original URL
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  req.pipe(request(url)).pipe(res);
 });
 
 
@@ -56,26 +78,10 @@ const httpServer = http.createServer(app);
 httpServer.listen(httpPort);
 
 const sslServer = https.createServer({
-  key: fs.readFileSync(__dirname + '/key.pem'),
-  cert: fs.readFileSync(__dirname + '/cert.pem'),
+  key: fs.readFileSync(path.join(__dirname, 'key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
 }, app);
 sslServer.listen(sslPort);
 
 console.log(`Started makefast-proxy server on http: ${httpPort}, ssl: ${sslPort}`);
-
-function createPage(config, snippet) {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Makefast Speed-Kit Installer</title>
-<script type="application/javascript">
-  var config = ${config};
-  ${snippet}
-</script>
-</head>
-<body>
-</body>
-</html>`;
-}
 

@@ -412,8 +412,10 @@ async function initComparison(normalizedUrl) {
   const activityTimeout = parseInt($('.activityTimeout').val(), 10) || undefined;
 
   const uniqueId = await db.modules.post('generateUniqueId', { entityClass: 'TestOverview' });
+  const tld = getTLD(competitorUrl);
+
   testOverview = new db.TestOverview();
-  testOverview.id = uniqueId + getTLD(competitorUrl);
+  testOverview.id = uniqueId + tld.substring(0, tld.length - 1);
   testOverview.caching = testOptions.caching;
   testOverview.mobile = testOptions.mobile;
   testOverview.url = competitorUrl;

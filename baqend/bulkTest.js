@@ -2,7 +2,7 @@
 /* eslint no-restricted-syntax: 0 */
 
 const { queueTest, DEFAULT_LOCATION } = require('./queueTest');
-const { getSpeedKitUrl, getTLD } = require('./getSpeedKitUrl');
+const { generateSpeedKitConfig, getTLD } = require('./getSpeedKitUrl');
 const { generateUniqueId } = require('./generateUniqueId');
 
 const fields = ['speedIndex', 'firstMeaningfulPaint', 'ttfb', 'domLoaded', 'fullyLoaded', 'lastVisualChange'];
@@ -180,14 +180,15 @@ function createTestOverview(db, {
   location,
   caching,
   url,
-  speedKitUrl,
+  speedKitConfig,
   whitelist,
   mobile,
 }) {
   const testOverview = new db.TestOverview();
 
   return generateUniqueId(db, 'TestOverview').then((uniqueId) => {
-    testOverview.id = uniqueId + getTLD(url);
+    const tld = getTLD(url);
+    testOverview.id = uniqueId + tld.substring(0, tld.length - 1);
     testOverview.url = url;
     testOverview.whitelist = whitelist;
     testOverview.caching = caching;
@@ -228,7 +229,8 @@ function createTestOverview(db, {
       db,
       location,
       caching,
-      url: speedKitUrl,
+      url,
+      speedKitConfig,
       isClone: true,
       mobile,
       finish(testResult) {
@@ -289,7 +291,7 @@ function createBulkTest(db, createdBy, options = {
     mobile
   } = options;
 
-  const speedKitUrl = getSpeedKitUrl(url, whitelist);
+  const speedKitConfig = generateSpeedKitConfig(url, whitelist, mobile);
 
   const bulkTest = new db.BulkTest();
   bulkTest.url = url;
@@ -301,7 +303,7 @@ function createBulkTest(db, createdBy, options = {
   bulkTest.completedRuns = 0;
 
   return bulkTest.save()
-    .then(() => createTestOverviews(db, Object.assign({bulkTest, speedKitUrl}, options)))
+    .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitConfig }, options)))
     .then((overviews) => {
       bulkTest.testOverviews = overviews;
 
@@ -320,3 +322,5 @@ exports.post = function bulkTestPost(db, req, res) {
   return Promise.all(tests.map(entry => createBulkTest(db, createdBy, entry)))
     .then(results => res.send(results));
 };
+
+exports.createBulkTest = createBulkTest;
