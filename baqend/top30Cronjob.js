@@ -5,7 +5,7 @@ const request = require('request');
 // The maximum number of iterations to check the status of given bulk tests.
 const MAX_INTERVAL_ITERATIONS = 20;
 
-// Tthe number of milliseconds to wait until the next bulk test is created.
+// The number of milliseconds to wait until the next bulk test is created.
 const NEW_TEST_WAITING_MILLIS = 60000;
 
 // A list of test parameters to test.
@@ -16,7 +16,7 @@ const TOP_LIST =
       location: 'us-east-1:Chrome.Native',
       whitelist: 'i.alicdn.com, img.alicdn.com, sc01.alicdn.com, sc02.alicdn.com',
       isCachingEnabled: false,
-      runs: 5,
+      runs: 10,
       mobile: false,
     },
     {
@@ -24,7 +24,7 @@ const TOP_LIST =
       location: 'eu-central-1:Chrome.Native',
       whitelist: 'netdna-cdn.com',
       isCachingEnabled: false,
-      runs: 5,
+      runs: 10,
       mobile: false,
     },
     // { url: 'https://diply.com/', location: 'us-east-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
@@ -40,7 +40,21 @@ const TOP_LIST =
     // { url: 'https://www.theguardian.com/international', location: 'us-east-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
     // { url: 'https://www.tumblr.com/', location: 'us-east-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
     // { url: 'https://www.walmart.com/', location: 'us-east-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
-    // { url: 'https://www.yelp.com/sf', location: 'us-east-1:Chrome.Native', whitelist: 'yelpcdn.com', isCachingEnabled: false, runs: 10, mobile: false }
+    // { url: 'https://www.yelp.com/sf', location: 'us-east-1:Chrome.Native', whitelist: 'yelpcdn.com', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.ebay.com/', location: 'us-east-1:Chrome.Native', whitelist: 'i.ebayimg.com', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.office.com/', location: 'us-east-1:Chrome.Native', whitelist: 'weuofficehome.msocdn.com, assets.onestore.ms', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'http://www.imdb.com/', location: 'us-east-1:Chrome.Native', whitelist: 'ia.media-imdb.com, images-na.ssl-images-amazon.com', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.wellsfargo.com/', location: 'us-east-1:Chrome.Native', whitelist: 'wellsfargomedia.com', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'http://www.breitbart.com/', location: 'us-east-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.microsoft.com/en-us/', location: 'us-east-1:Chrome.Native', whitelist: 'img-prod-cms-rt-microsoft-com.akamaized.net', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.upworthy.com/', location: 'us-east-1:Chrome.Native', whitelist: 'f1.media.brightcove.com', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.wsj.com/news/us', location: 'us-east-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.usatoday.com/', location: 'us-east-1:Chrome.Native', whitelist: 'gannett-cdn.com', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.booking.com/', location: 'us-east-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'https://www.tripadvisor.com/', location: 'us-east-1:Chrome.Native', whitelist: 'static.tacdn.com', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'http://www.computerbild.de/', location: 'eu-central-1:Chrome.Native', whitelist: 'i.computer-bild.de', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'http://www.bild.de/', location: 'eu-central-1:Chrome.Native', whitelist: 'code.bildstatic.de', isCachingEnabled: false, runs: 10, mobile: false },
+    // { url: 'http://www.spiegel.de/', location: 'eu-central-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false }
   ];
 
 /**
@@ -48,7 +62,7 @@ const TOP_LIST =
  *
  * @param factor A number to be colored
  */
-function color(factor) {
+function factorColor(factor) {
   // very good result
   if (factor > 3) {
     return '#00cc66';
@@ -67,17 +81,41 @@ function color(factor) {
 }
 
 /**
+ * Verifies display color for a given diff
+ *
+ * @param diff A number to be colored
+ */
+function diffColor(diff) {
+  // very good result
+  if (diff > 1) {
+    return '#00cc66';
+  }
+  // good result
+  if (diff > 0.5) {
+    return '#86bc00';
+  }
+  // ok result
+  if (diff >= 0) {
+    return '#cc9a00';
+  }
+
+  // bad result
+  return '#ad0900';
+}
+
+/**
  * Create table data cell (td) with optional color style
  *
  * @param data The data to be displayed
- * @param withoutColor Boolean to decide whether to disyplay a colored result or not
+ * @param withoutColor Boolean to decide whether to display a colored result or not
+ * @param isFactor Boolean to decide how to generate the display color
  */
-function createTableDataCell(data, withoutColor) {
+function createTableDataCell(data, withoutColor = false, isFactor = true) {
   if (withoutColor) {
     return `<td>${data}</td>`;
   }
 
-  return `<td style="color: ${color(data)};">${data}</td>`;
+  return `<td style="color: ${isFactor ? factorColor(data) : diffColor(data)};">${data}</td>`;
 }
 
 /**
@@ -86,7 +124,7 @@ function createTableDataCell(data, withoutColor) {
  * @param bulkTestMap A mapping of new and previous bulkTest objects
  */
 function createMailTemplate(bulkTestMap) {
-  const totalValues = { SIPrevious: 0, SILatest: 0, FMPPrevious: 0, FMPPaintLatest: 0 };
+  const totalValues = { SIPrevious: 0, SILatest: 0, FMPPrevious: 0, FMPLatest: 0 };
   let templateString = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head>' +
     '<body><table border="1" width="100%"><tr><th>URL</th><th>SI Ø Previous</th><th>SI Ø Latest</th><th>SI ∆</th>' +
     '<th>FMP Ø Previous</th><th>FMP Ø Latest</th><th>FMP ∆</th></tr>';
@@ -103,34 +141,39 @@ function createMailTemplate(bulkTestMap) {
     totalValues.SIPrevious += ensurePrevious.factors.speedIndex || 0;
     totalValues.SILatest += latest.factors.speedIndex;
     totalValues.FMPPrevious += ensurePrevious.factors.firstMeaningfulPaint || 0;
-    totalValues.FMPPaintLatest += latest.factors.firstMeaningfulPaint;
+    totalValues.FMPLatest += latest.factors.firstMeaningfulPaint;
 
     templateString +=
       `<tr>
          ${createTableDataCell(latest.url, true)}
          ${ensurePrevious.factors.speedIndex ? createTableDataCell(previous.factors.speedIndex.toFixed(2)) : createTableDataCell('-', true)}
          ${createTableDataCell(latest.factors.speedIndex.toFixed(2))}
-         ${createTableDataCell(speedIndexDiff.toFixed(2), true)}
+         ${createTableDataCell(speedIndexDiff.toFixed(2), false, false)}
          ${ensurePrevious.factors.firstMeaningfulPaint ? createTableDataCell(previous.factors.firstMeaningfulPaint.toFixed(2)) : createTableDataCell('-', true)}
          ${createTableDataCell(latest.factors.firstMeaningfulPaint.toFixed(2))}
-         ${createTableDataCell(firstMeaningfulPaintDiff.toFixed(2), true)}
+         ${createTableDataCell(firstMeaningfulPaintDiff.toFixed(2), false, false)}
        </tr>`;
   });
 
-  const totalSpeedIndexDiff = totalValues.SILatest - totalValues.SIPrevious;
-  const totalFirstMeaningfulPaintDiff = totalValues.FMPPaintLatest - totalValues.FMPPrevious;
+  const totalSpedIndexPrevious = (totalValues.SIPrevious / bulkTestMap.size).toFixed(2);
+  const totalSpedIndexLatest = (totalValues.SILatest / bulkTestMap.size).toFixed(2);
+  const totalSpeedIndexDiff = (totalSpedIndexLatest - totalSpedIndexPrevious).toFixed(2);
+
+  const totalFMPPrevious = (totalValues.FMPPrevious / bulkTestMap.size).toFixed(2);
+  const totalFMPLatest = (totalValues.FMPLatest / bulkTestMap.size).toFixed(2);
+  const totalFirstMeaningfulPaintDiff = (totalFMPLatest - totalFMPPrevious).toFixed(2);
 
   templateString +=
     `<tr>
        <td>
          <strong>Total</strong>
        </td>
-       ${createTableDataCell((totalValues.SIPrevious / bulkTestMap.size).toFixed(2))}
-       ${createTableDataCell((totalValues.SILatest / bulkTestMap.size).toFixed(2))}
-       ${createTableDataCell(totalSpeedIndexDiff.toFixed(2), true)}
-       ${createTableDataCell((totalValues.FMPPrevious / bulkTestMap.size).toFixed(2))}
-       ${createTableDataCell((totalValues.FMPPaintLatest / bulkTestMap.size).toFixed(2))}
-       ${createTableDataCell(totalFirstMeaningfulPaintDiff.toFixed(2), true)}
+       ${createTableDataCell(totalSpedIndexPrevious)}
+       ${createTableDataCell(totalSpedIndexLatest)}
+       ${createTableDataCell(totalSpeedIndexDiff, false, false)}
+       ${createTableDataCell(totalFMPPrevious)}
+       ${createTableDataCell(totalFMPLatest)}
+       ${createTableDataCell(totalFirstMeaningfulPaintDiff, false, false)}
      </tr></table></body></html>`;
 
   return templateString;

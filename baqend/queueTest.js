@@ -125,7 +125,12 @@ function queueTest({
     .then((testId) => {
       db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
       pendingTest.testId = testId;
-      pendingTest.ready().then(() => pendingTest.save());
+      pendingTest.ready().then(() => {
+        if (credentials.app === 'makefast-staging'){
+          db.log.info(`Save testId for test: ${pendingTest.testId}`);
+        }
+        return pendingTest.save();
+      });
       return API.waitOnTest(testId, db);
     })
     .then(testId => getTestResult(db, pendingTest, testId))
@@ -230,6 +235,17 @@ function createTestScript(
     logData 1
   `;
 
+  /*  if (secondTry && !isSpeedKitComparison) {
+      installSW = `
+      logData 0
+      setTimeout ${DEFAULT_TIMEOUT}
+      navigate ${testUrl.substr(0, testUrl.indexOf('#'))}
+      navigate about:blank
+      ${isCachingDisabled ? 'clearcache' : ''}
+      logData 1
+    `;
+    } */
+
   return `
     setActivityTimeout ${activityTimeout}
     ${installSW}
@@ -243,7 +259,7 @@ function createTestScript(
  * @param {string} testId
  * @param {boolean} isSpeedKitComparison
  */
-function getPrewarmResult(db, testId, isSpeedKitComparison) {
+/* function getPrewarmResult(db, testId, isSpeedKitComparison) {
   return API.getTestResults(testId, {
     requests: false,
     breakdown: false,
@@ -254,7 +270,7 @@ function getPrewarmResult(db, testId, isSpeedKitComparison) {
     db.log.info(`TTFB of prewarm: ${ttfb} with testId ${testId}`, result.data.runs['1'].firstView);
     return ttfb;
   });
-}
+} */
 
 /**
  * @param db The Baqend instance.
