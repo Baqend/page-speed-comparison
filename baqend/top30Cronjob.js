@@ -40,7 +40,7 @@ const TOP_LIST =
     { url: 'https://www.tripadvisor.com/', location: 'us-east-1:Chrome.Native', whitelist: 'static.tacdn.com', isCachingEnabled: false, runs: 10, mobile: false },
     { url: 'http://www.computerbild.de/', location: 'eu-central-1:Chrome.Native', whitelist: 'i.computer-bild.de', isCachingEnabled: false, runs: 10, mobile: false },
     { url: 'http://www.bild.de/', location: 'eu-central-1:Chrome.Native', whitelist: 'code.bildstatic.de', isCachingEnabled: false, runs: 10, mobile: false },
-    { url: 'http://www.spiegel.de/', location: 'eu-central-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false }
+    { url: 'http://www.spiegel.de/', location: 'eu-central-1:Chrome.Native', whitelist: '', isCachingEnabled: false, runs: 10, mobile: false },
   ];
 
 /**

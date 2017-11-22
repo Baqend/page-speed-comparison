@@ -282,7 +282,7 @@ function getTestResult(db, originalResult, testId) {
   const testResult = originalResult;
   db.log.info(`Pingback received for ${testId}`);
 
-  if (testResult.firstView && !testResult.testDataMissing) {
+  if (testResult.hasFinished) {
     db.log.info(`Result already exists for ${testId}`);
     return Promise.resolve(testResult);
   }

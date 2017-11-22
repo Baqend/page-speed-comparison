@@ -213,7 +213,7 @@ function createTestOverview(db, {
           testOverview.psiResponseSize = testResult.firstView.bytes;
         }
 
-        if (testOverview.speedKitTestResult.hasFinished) {
+        if (testOverview.competitorTestResult.hasFinished && testOverview.speedKitTestResult.hasFinished) {
           finishTestOverview(db, testOverview);
           bulkTest.completedRuns += 1;
         }
@@ -236,7 +236,7 @@ function createTestOverview(db, {
       finish(testResult) {
         testOverview.speedKitTestResult = testResult;
 
-        if (testOverview.competitorTestResult.hasFinished) {
+        if (testOverview.speedKitTestResult.hasFinished && testOverview.competitorTestResult.hasFinished) {
           finishTestOverview(db, testOverview);
           bulkTest.completedRuns += 1;
         }
