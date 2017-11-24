@@ -118,25 +118,26 @@ function createMailTemplate(bulkTestMap) {
   bulkTestMap.forEach((previous, latest) => {
     // dummy object to ensure that factors is available
     const ensurePrevious = previous || { factors: {} };
+    const ensureLatest = latest || { factors: {} };
 
-    const speedIndexDiff = latest.factors.speedIndex - (ensurePrevious.factors.speedIndex || 0);
+    const speedIndexDiff = (ensureLatest.factors.speedIndex || 0) - (ensurePrevious.factors.speedIndex || 0);
     const firstMeaningfulPaintDiff =
-      latest.factors.firstMeaningfulPaint - (ensurePrevious.factors.firstMeaningfulPaint || 0);
+      (ensureLatest.factors.firstMeaningfulPaint || 0) - (ensurePrevious.factors.firstMeaningfulPaint || 0);
 
     // calculate total values
     totalValues.SIPrevious += ensurePrevious.factors.speedIndex || 0;
-    totalValues.SILatest += latest.factors.speedIndex || 0;
+    totalValues.SILatest += ensureLatest.factors.speedIndex || 0;
     totalValues.FMPPrevious += ensurePrevious.factors.firstMeaningfulPaint || 0;
-    totalValues.FMPLatest += latest.factors.firstMeaningfulPaint || 0;
+    totalValues.FMPLatest += ensureLatest.factors.firstMeaningfulPaint || 0;
 
     templateString +=
       `<tr>
          ${createTableDataCell(latest.url, true)}
-         ${ensurePrevious.factors.speedIndex ? createTableDataCell(previous.factors.speedIndex.toFixed(2)) : createTableDataCell('-', true)}
-         ${createTableDataCell(latest.factors.speedIndex.toFixed(2))}
+         ${ensurePrevious.factors.speedIndex ? createTableDataCell(ensurePrevious.factors.speedIndex.toFixed(2)) : createTableDataCell('-', true)}
+         ${ensureLatest.factors.speedIndex ? createTableDataCell(ensureLatest.factors.speedIndex.toFixed(2)) : createTableDataCell('-', true)}
          ${createTableDataCell(speedIndexDiff.toFixed(2), false, false)}
-         ${ensurePrevious.factors.firstMeaningfulPaint ? createTableDataCell(previous.factors.firstMeaningfulPaint.toFixed(2)) : createTableDataCell('-', true)}
-         ${createTableDataCell(latest.factors.firstMeaningfulPaint.toFixed(2))}
+         ${ensurePrevious.factors.firstMeaningfulPaint ? createTableDataCell(ensurePrevious.factors.firstMeaningfulPaint.toFixed(2)) : createTableDataCell('-', true)}
+         ${ensureLatest.factors.firstMeaningfulPaint ? createTableDataCell(ensureLatest.factors.firstMeaningfulPaint.toFixed(2)) : createTableDataCell('-', true)}
          ${createTableDataCell(firstMeaningfulPaintDiff.toFixed(2), false, false)}
        </tr>`;
   });

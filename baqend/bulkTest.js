@@ -155,7 +155,9 @@ function finishTestOverview(db, subject) {
   const testOverview = subject;
   const { competitorTestResult, speedKitTestResult } = subject;
   testOverview.hasFinished = true;
-  testOverview.factors = factorize(db, competitorTestResult.firstView, speedKitTestResult.firstView);
+  if (competitorTestResult.firstView && speedKitTestResult.firstView) {
+    testOverview.factors = factorize(db, competitorTestResult.firstView, speedKitTestResult.firstView);
+  }
 }
 
 /**
@@ -163,6 +165,7 @@ function finishTestOverview(db, subject) {
  */
 function updateBulkTest(db, bulkTestRef) {
   const bulkTest = bulkTestRef;
+  // We must not use the refresh option because we have the same db object when updating test results.
   return bulkTest.load({ depth: 2 }).then(() => {
     bulkTest.hasFinished = hasBulkTestFinished(bulkTest);
     bulkTest.speedKitMeanValues = aggregate(db, pickResults(bulkTest, 'speedKit'));
@@ -172,7 +175,11 @@ function updateBulkTest(db, bulkTestRef) {
     bulkTest.worstFactors = calcWorstFactors(db, bulkTest);
 
     return bulkTest.save();
-  }).catch(() => updateBulkTest(db, bulkTest));
+  }).catch((e) => {
+    db.log.error('Error while computing bulk test aggregate.', e);
+
+    return bulkTest;
+  });
 }
 
 function createTestOverview(db, {

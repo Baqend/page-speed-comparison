@@ -42,10 +42,10 @@ class Pagetest {
           return;
         }
 
-        /* if (result.statusCode !== 200) {
-         reject(new Error(result.statusText));
-         return;
-         } */
+        if (!result.data) {
+          db.log.error('Received no test id from WPT', {data: result});
+          reject(new Error('Received no test id from WPT'));
+        }
 
         const { testId } = result.data;
         this.waitPromises[testId] = new Promise((nestedResolve) => {
