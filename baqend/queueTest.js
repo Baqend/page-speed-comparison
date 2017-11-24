@@ -393,8 +393,11 @@ function createRun(db, data) {
 
   // Search First Meaningful Paint from timing
   const { chromeUserTiming = [] } = data;
-  const fmpField = 'firstMeaningfulPaintCandidate';
-  const firstMeaningfulPaintObject = chromeUserTiming.reverse().find(entry => entry.name === fmpField);
+  const firstMeaningfulPaintObject =
+    chromeUserTiming
+      .reverse()
+      .find(entry => entry.name === 'firstMeaningfulPaint' || entry.name === 'firstMeaningfulPaintCandidate');
+
   run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
 
   // Set TTFB
