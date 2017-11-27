@@ -59,26 +59,7 @@ class Pagetest {
   }
 
   waitOnTest(testId, db) {
-    Promise.resolve().then(() => {
-      const interval = setInterval(() => {
-        this.getTestStatus(testId).then((testStatus) => {
-          const { statusCode } = testStatus;
-          // 4XX status code indicates some error
-          if (!statusCode || statusCode >= 400) {
-            this.rejectTest(testId);
-            clearInterval(interval);
-            // 200 indicates test is completed
-          } else if (statusCode === 200) {
-            db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
-              if (!testResult || !testResult.firstView) {
-                this.resolveTest(testId);
-              }
-              clearInterval(interval);
-            });
-          }
-        });
-      }, 120000);
-    });
+    this.pingFallback(testId, db);
 
     const result = this.waitPromises[testId];
     delete this.waitPromises[testId];
@@ -98,12 +79,38 @@ class Pagetest {
 
   rejectTest(testId) {
     if (this.testRejecter[testId]) {
-      this.testRejecter[testId].call(null, testId);
+      this.testRejecter[testId].call(null, new Error(`Test rejected for testId: ${testId}`));
       delete this.testResolver[testId];
       delete this.testRejecter[testId];
     }
   }
 
+  pingFallback(testId, db) {
+    let executionCount = 0;
+    const interval = setInterval(() => {
+      if (executionCount >= 10) {
+        clearInterval(interval);
+      }
+
+      this.getTestStatus(testId).then((testStatus) => {
+        const { statusCode } = testStatus;
+        // 4XX status code indicates some error
+        if (!statusCode || statusCode >= 400) {
+          this.rejectTest(testId);
+          clearInterval(interval);
+          // 200 indicates test is completed
+        } else if (statusCode === 200) {
+          db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
+            if (!testResult || !testResult.firstView) {
+              this.resolveTest(testId);
+            }
+            clearInterval(interval);
+          });
+        }
+      });
+      executionCount += 1;
+    }, 120000);
+  }
   /**
    * Returns the current test status of the queued test.
    *
