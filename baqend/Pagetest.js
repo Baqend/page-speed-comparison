@@ -11,6 +11,7 @@ class Pagetest {
   constructor(url, apiKey) {
     this.wpt = new WebPageTest(url, apiKey);
     this.testResolver = {};
+    this.testRejecter = {};
     this.waitPromises = {};
   }
 
@@ -43,13 +44,13 @@ class Pagetest {
         }
 
         if (!result.data) {
-          db.log.error('Received no test id from WPT', {data: result});
           reject(new Error('Received no test id from WPT'));
         }
 
         const { testId } = result.data;
-        this.waitPromises[testId] = new Promise((nestedResolve) => {
+        this.waitPromises[testId] = new Promise((nestedResolve, nestedReject) => {
           this.testResolver[testId] = nestedResolve;
+          this.testRejecter[testId] = nestedReject;
         });
 
         resolve(testId);
@@ -58,16 +59,26 @@ class Pagetest {
   }
 
   waitOnTest(testId, db) {
-    /* // Wait for 2 minutes and check if the pingback was already called
-     Promise.resolve().then(() => {
-     setTimeout(() => {
-     db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
-     if (!testResult || !testResult.firstView) {
-     this.resolveTest(testId);
-     }
-     });
-     }, 120000);
-     }); */
+    Promise.resolve().then(() => {
+      const interval = setInterval(() => {
+        this.getTestStatus(testId).then((testStatus) => {
+          const { statusCode } = testStatus;
+          // 4XX status code indicates some error
+          if (!statusCode || statusCode >= 400) {
+            this.rejectTest(testId);
+            clearInterval(interval);
+            // 200 indicates test is completed
+          } else if (statusCode === 200) {
+            db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
+              if (!testResult || !testResult.firstView) {
+                this.resolveTest(testId);
+              }
+              clearInterval(interval);
+            });
+          }
+        });
+      }, 120000);
+    });
 
     const result = this.waitPromises[testId];
     delete this.waitPromises[testId];
@@ -79,8 +90,17 @@ class Pagetest {
       db.log.info(`Resolver found for test: ${testId}`);
       this.testResolver[testId].call(null, testId);
       delete this.testResolver[testId];
+      delete this.testRejecter[testId];
     } else {
       db.log.info(`No resolver for test: ${testId}`);
+    }
+  }
+
+  rejectTest(testId) {
+    if (this.testRejecter[testId]) {
+      this.testRejecter[testId].call(null, testId);
+      delete this.testResolver[testId];
+      delete this.testRejecter[testId];
     }
   }
 
