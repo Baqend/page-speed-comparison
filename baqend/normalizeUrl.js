@@ -3,9 +3,13 @@ const urlModule = require('url');
 
 const mobileUserAgentString = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_0_2 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13A452 Safari/601.1 PTST/396';
 
-function fetchUrl(url, mobile, redirects) {
-  const limit = redirects || 0;
-
+/**
+ * @param {string} url
+ * @param {boolean} mobile
+ * @param {number} limit
+ * @return {*}
+ */
+function fetchUrl(url, mobile, limit = 0) {
   const options = {
     redirect: 'manual',
     headers: {},
@@ -24,30 +28,61 @@ function fetchUrl(url, mobile, redirects) {
 
       return fetchUrl(location, mobile, limit + 1);
     }
-    return { url, isBaqendApp: via === 'baqend' || url.lastIndexOf('baqend') !== -1 };
+    const isBaqendApp = via === 'baqend' || url.lastIndexOf('baqend') !== -1;
+    const isSecured = url.startsWith('https://');
+    return { url, isBaqendApp, isSecured };
   });
 }
 
-exports.call = (db, data) => {
-  const urlInput = data.urls;
-  const mobile = data.mobile === 'true';
-  const inputArray = Array.isArray(urlInput) ? urlInput : [urlInput];
+/**
+ * @param {string} url
+ * @return {Promise}
+ */
+function testForSpeedKit(url) {
+  const parsedUrl = urlModule.parse(url);
+  const swUrl = urlModule.format(Object.assign({}, parsedUrl, { pathname: '/sw.js' }));
+  const error = { speedkit: false, speedkitVersion: null };
 
-  const fetchPromises = inputArray.map((url) => {
-    const hasProtocol = /^https?:\/\//.test(url);
-    url = hasProtocol ? url : `http://${url}`;
+  return fetch(swUrl).then((res) => {
+    if (!res.ok) { return error; }
 
-    return fetchUrl(url, mobile).then((fetchRes) => {
-      const parsedUrl = urlModule.parse(fetchRes.url);
-      const swUrl = urlModule.format(Object.assign({}, parsedUrl, { pathname: '/sw.js' }));
+    return res.text().then((text) => {
+      const matches = /\/\* ! speed-kit ([\d.]+) \|/.exec(text);
+      if (matches) {
+        const [, speedkitVersion] = matches;
+        return { speedkit: true, speedkitVersion };
+      }
+      return error;
+    });
+  }).catch(() => (error));
+}
 
-      return fetch(swUrl).then((res) => {
-        if (!res.ok) { return false; }
+/**
+ * @param {string} url
+ * @return {string}
+ */
+function addSchema(url) {
+  const hasProtocol = /^https?:\/\//.test(url);
+  return hasProtocol ? url : `http://${url}`;
+}
 
-        return res.text().then(text => text.indexOf('speed-kit') !== -1);
-      }).catch(() => false).then(speedkit => ({ url: fetchRes.url, isBaqendApp: fetchRes.isBaqendApp, speedkit }));
-    }).catch(() => Promise.resolve(null));
-  });
+/**
+ * @param {string|string[]} urls The URLs to test.
+ * @param {boolean} mobile Whether to test the mobile variant.
+ * @return {Promise}
+ */
+function normalizeUrl({ urls, mobile }) {
+  const inputArray = Array.isArray(urls) ? urls : [urls];
+
+  const fetchPromises = inputArray.map(urlUnderTest => fetchUrl(addSchema(urlUnderTest), mobile)
+    .then((fetchRes) => {
+      const { url, isBaqendApp, isSecured } = fetchRes;
+      return testForSpeedKit(url)
+        .then(({ speedkit, speedkitVersion }) => ({ url, isBaqendApp, isSecured, speedkit, speedkitVersion }));
+    })
+    .catch(() => Promise.resolve(null)));
 
   return Promise.all(fetchPromises);
-};
+}
+
+exports.call = (db, { urls, mobile }) => normalizeUrl({ urls, mobile: mobile === 'true' });
