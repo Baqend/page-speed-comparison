@@ -57,13 +57,19 @@ function testForSpeedKit(url) {
   }).catch(() => (error));
 }
 
+function flatten(array) {
+  return Array.prototype.concat.apply([], array);
+}
+
 /**
- * @param {string} url
- * @return {string}
+ * @param {string[]} urls
+ * @return {string[]}
  */
-function addSchema(url) {
-  const hasProtocol = /^https?:\/\//.test(url);
-  return hasProtocol ? url : `http://${url}`;
+function addSchema(urls) {
+  return flatten(urls.map((url) => {
+    const hasProtocol = /^https?:\/\//.test(url);
+    return hasProtocol ? [{ urlUnderTest: url, query: url }] : [{ urlUnderTest: `https://${url}`, query: url }, { urlUnderTest: `http://${url}`, query: url }];
+  }));
 }
 
 /**
@@ -74,15 +80,23 @@ function addSchema(url) {
 function normalizeUrl({ urls, mobile }) {
   const inputArray = Array.isArray(urls) ? urls : [urls];
 
-  const fetchPromises = inputArray.map(urlUnderTest => fetchUrl(addSchema(urlUnderTest), mobile)
+  const fetchPromises = addSchema(inputArray).map(({ urlUnderTest, query }) => fetchUrl(urlUnderTest, mobile)
     .then((fetchRes) => {
       const { url, isBaqendApp, isSecured } = fetchRes;
       return testForSpeedKit(url)
-        .then(({ speedkit, speedkitVersion }) => ({ url, isBaqendApp, isSecured, speedkit, speedkitVersion }));
+        .then(({ speedkit, speedkitVersion }) => ({ query, url, isBaqendApp, isSecured, speedkit, speedkitVersion }));
     })
     .catch(() => Promise.resolve(null)));
 
-  return Promise.all(fetchPromises);
+  return Promise.all(fetchPromises)
+    // Reduce duplicates from same hostname
+    .then(all => all.reduce((prev, curr) => {
+      if (prev.some(it => it.isSecured && it.query === curr.query)) {
+        return prev;
+      }
+
+      return prev.concat(curr);
+    }, []));
 }
 
 exports.call = (db, { urls, mobile }) => normalizeUrl({ urls, mobile: mobile === 'true' });
