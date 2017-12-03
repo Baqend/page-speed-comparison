@@ -227,7 +227,7 @@ function createTestScript(
   let installSW = `
     logData 0
     setTimeout ${DEFAULT_TIMEOUT}
-    ${!isSpeedKitComparison ? `setDns ${hostname} 35.158.169.25` : ''}
+    ${!isSpeedKitComparison ? `setDns ${hostname} ${credentials.makefast_ip}` : ''}
     ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
     navigate ${installNavigation}
     ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
