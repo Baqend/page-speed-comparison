@@ -11,8 +11,8 @@ const mobileUserAgentString = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_0_2 like Mac
  */
 function analyzeType(response) {
   const via = response.headers.get('via');
-  if (via === 'baqend' || response.url.lastIndexOf('baqend') !== -1) {
-    return 'baqend';
+  if (via === 'baqend' || response.url.includes('www.baqend.com')) {
+    return Promise.resolve('baqend');
   }
 
   const xGenerator = response.headers.get('x-generator');
