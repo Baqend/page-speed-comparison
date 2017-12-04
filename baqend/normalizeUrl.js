@@ -1,3 +1,4 @@
+/* global Abort */
 const fetch = require('node-fetch');
 const urlModule = require('url');
 
@@ -91,7 +92,7 @@ function normalizeUrl({ urls, mobile }) {
   return Promise.all(fetchPromises)
     // Reduce duplicates from same hostname
     .then(all => all.reduce((prev, curr) => {
-      if (prev.some(it => it.isSecured && it.query === curr.query)) {
+      if (curr === null || prev.some(it => it.isSecured && it.query === curr.query)) {
         return prev;
       }
 
