@@ -69,13 +69,23 @@ app.get('/install-speed-kit', (req, res) => {
 
 app.use((req, res) => {
   // Pipe all other requests to original URL
-  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  const host = req.get('host');
+
+  // Prevent infinite loop
+  const makefastHeader = 'X-From-Makefast';
+  if (req.get(makefastHeader)) {
+    res.send('makefast-proxy');
+    return;
+  }
+
+  const url = `${req.protocol}://${host}${req.originalUrl}`;
 
   if (debug) {
     console.log(`Pipe URL (${req.method}): ${url}`);
   }
 
-  req.pipe(request({ url, followRedirect: false }, (err) => {
+  const headers = {[makefastHeader]: 'true'};
+  req.pipe(request({ url, followRedirect: false, headers }, (err) => {
     if (err) {
       console.log(`Error piping URL (${req.method}): ${url}`);
     }
