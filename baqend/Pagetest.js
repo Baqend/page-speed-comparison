@@ -45,6 +45,7 @@ class Pagetest {
 
         if (!result.data) {
           reject(new Error('Received no test id from WPT'));
+          return;
         }
 
         const { testId } = result.data;
@@ -102,7 +103,7 @@ class Pagetest {
         } else if (statusCode === 200) {
           db.TestResult.find().equal('testId', testId).singleResult((testResult) => {
             if (!testResult || !testResult.firstView) {
-              this.resolveTest(testId);
+              this.resolveTest(db, testId);
             }
             clearInterval(interval);
           });
