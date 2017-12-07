@@ -1,8 +1,7 @@
 /* global Abort */
 const fetch = require('node-fetch');
 const { parse, format } = require('url');
-
-const mobileUserAgentString = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_0_2 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13A452 Safari/601.1 PTST/396';
+const { toUnicode } = require('punycode');
 
 /**
  * Analyzes the website's type.
@@ -62,43 +61,6 @@ function analyzeType(response) {
 
 /**
  * @param {string} url
- * @param {boolean} mobile
- * @param {number} limit
- * @return {*}
- */
-function fetchUrl(url, mobile, limit = 0) {
-  const options = {
-    redirect: 'manual',
-    headers: {},
-  };
-
-  if (mobile) {
-    options.headers['User-Agent'] = mobileUserAgentString;
-  }
-
-  return fetch(url, options)
-    .then((response) => {
-      const location = response.headers.get('location');
-
-      // Redirect if location header found
-      if (location) {
-        if (limit > 20) {
-          throw new Abort('The URL resolves in too many redirects.');
-        }
-
-        return fetchUrl(location, mobile, limit + 1);
-      }
-
-      // Retrieve properties of that domain
-      const secured = url.startsWith('https://');
-      return analyzeType(response)
-        .then(type => ({ url, type, secured }))
-        .then(opts => Object.assign(opts, { supported: opts.enabled || opts.type === 'wordpress' }));
-    });
-}
-
-/**
- * @param {string} url
  * @return {Promise}
  */
 function testForSpeedKit(url) {
@@ -121,53 +83,90 @@ function testForSpeedKit(url) {
 }
 
 /**
- * Flattens an array.
- *
- * @param {Array} array An array to flatten.
- * @return {Array} A flattened array.
+ * @param {string} url
+ * @return {string}
  */
-function flatten(array) {
-  return Array.prototype.concat.apply([], array);
+function urlToUnicode(url) {
+  const { hostname, protocol, search, query, port, pathname } = parse(url);
+  const obj = { hostname: toUnicode(hostname), protocol, search, query, port, pathname };
+  return format(obj);
 }
 
 /**
- * @param {string[]} urls The URLs to add a schema to.
- * @return {string[]} An array of URLs with schema.
+ * @param {string} url
+ * @param {number} limit
+ * @return {Promise<*>}
  */
-function addSchema(urls) {
-  return flatten(urls.map((query) => {
-    if (/^https?:\/\//.test(query)) {
-      return [{ urlUnderTest: query, query }];
-    }
-    return [{ urlUnderTest: `https://${query}`, query }, { urlUnderTest: `http://${query}`, query }];
-  }));
-}
+function fetchUrl(url, limit = 0) {
+  return fetch(url, { redirect: 'manual', headers: {} })
+    .then((response) => {
+      const location = response.headers.get('location');
 
-/**
- * @param {string|string[]} urls The URLs to test.
- * @param {boolean} mobile Whether to test the mobile variant.
- * @return {Promise}
- */
-function analyzeUrl({ urls, mobile }) {
-  const inputArray = Array.isArray(urls) ? urls : [urls];
+      // Redirect if location header found
+      if (location) {
+        if (limit > 20) {
+          throw new Abort('The URL resolves in too many redirects.');
+        }
 
-  const fetchPromises = addSchema(inputArray).map(({ urlUnderTest, query }) => fetchUrl(urlUnderTest, mobile)
-    .then((fetchRes) => {
-      const { url } = fetchRes;
-      return testForSpeedKit(url)
-        .then(({ enabled, version }) => Object.assign(fetchRes, { query, enabled, version }));
-    })
-    .catch(() => Promise.resolve(null)));
-
-  return Promise.all(fetchPromises)
-    // Reduce duplicates from same hostname
-    .then(all => all.reduce((prev, curr) => {
-      if (curr === null || prev.some(it => it.secured && it.query === curr.query)) {
-        return prev;
+        return fetchUrl(location, limit + 1);
       }
 
-      return prev.concat(curr);
-    }, []));
+      // Retrieve properties of that domain
+      const secured = url.startsWith('https://');
+      const displayUrl = urlToUnicode(url);
+      return analyzeType(response).then(type => ({ url, displayUrl, type, secured }));
+    })
+    .then(opts => Object.assign(opts, { supported: opts.enabled || opts.type === 'wordpress' }))
+    .then(opts => testForSpeedKit(url).then(speedKit => Object.assign(opts, speedKit)))
+    .catch(() => null);
 }
 
-exports.call = (db, { urls, mobile }) => analyzeUrl({ urls, mobile: mobile === 'true' });
+/**
+ * @param {string} query The URL to add a schema to.
+ * @return {string[]} An array of URLs with schema.
+ */
+function addSchema(query) {
+  if (/^https?:\/\//.test(query)) {
+    return [query];
+  }
+
+  return [`https://${query}`, `http://${query}`];
+}
+
+/**
+ * @param {T[]} results The results to find the best one of.
+ * @return {T|undefined} The best matching result or undefined, if none such exists.
+ * @type T
+ */
+function findBestResult(results) {
+  if (results.length === 1) return results[0];
+  if (results.length > 1) return results.find(result => result.secured);
+  return undefined;
+}
+
+/**
+ * @param {string} query The URL to test.
+ * @return {Promise}
+ */
+function analyzeUrl(query) {
+  const urlsToTest = addSchema(query);
+
+  const fetchPromises = urlsToTest.map(url => fetchUrl(url));
+
+  return Promise.all(fetchPromises)
+    // Remove all nulls from the result
+    // .then(results => results.filter(result => result ))
+    // Find best result to use
+    .then(results => findBestResult(results) || null)
+    // Wrap it with the query
+    .then(result => [query, result]);
+}
+
+/**
+ * @param {string[]} urls
+ */
+function analyzeUrls(urls) {
+  return Promise.all(urls.map(url => analyzeUrl(url)));
+}
+
+exports.call = (db, { urls }) => analyzeUrls([].concat(urls));
