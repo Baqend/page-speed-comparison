@@ -24,4 +24,8 @@ function isRateLimited(req, reqPerMinute = 8) {
     return !limiter.tryRemoveTokens(1);
 }
 
+exports.call = function callQueueTest(db, data, req) {
+  return { isRateLimited: isRateLimited(req) };
+};
+
 exports.isRateLimited = isRateLimited;
