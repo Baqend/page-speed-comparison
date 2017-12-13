@@ -3,6 +3,8 @@ const fetch = require('node-fetch');
 const { parse, format } = require('url');
 const { toUnicode } = require('punycode');
 
+const MOBILE_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_0_2 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13A452 Safari/601.1 PTST/396';
+
 /**
  * Analyzes the website's type.
  *
@@ -94,27 +96,29 @@ function urlToUnicode(url) {
 
 /**
  * @param {string} url
- * @param {number} limit
+ * @param {boolean} mobile Whether to fetch the mobile variant of the site.
+ * @param {number} redirectsPerformed The count of redirects performed so far.
  * @return {Promise<*>}
  */
-function fetchUrl(url, limit = 0) {
-  return fetch(url, { redirect: 'manual', timeout: 12000 })
+function fetchUrl(url, mobile, redirectsPerformed = 0) {
+  const userAgent = mobile ? MOBILE_USER_AGENT : undefined;
+  return fetch(url, { redirect: 'manual', headers: { 'User-Agent': userAgent }, timeout: 12000 })
     .then((response) => {
       const location = response.headers.get('location');
 
       // Redirect if location header found
       if (location) {
-        if (limit > 20) {
+        if (redirectsPerformed > 20) {
           throw new Abort('The URL resolves in too many redirects.');
         }
 
-        return fetchUrl(location, limit + 1);
+        return fetchUrl(location, mobile, redirectsPerformed + 1);
       }
 
       // Retrieve properties of that domain
       const secured = url.startsWith('https://');
       const displayUrl = urlToUnicode(url);
-      return analyzeType(response).then(type => ({ url, displayUrl, type, secured }));
+      return analyzeType(response).then(type => ({ url, displayUrl, type, secured, mobile }));
     })
     .then(opts => Object.assign(opts, { supported: opts.enabled || opts.type === 'wordpress' }))
     .then(opts => testForSpeedKit(url).then(speedKit => Object.assign(opts, speedKit)))
@@ -134,39 +138,47 @@ function addSchema(query) {
 }
 
 /**
- * @param {T[]} results The results to find the best one of.
- * @return {T|undefined} The best matching result or undefined, if none such exists.
- * @type T
+ * @param {Array<Promise<null|T>>} resultPromises The results to race.
+ * @return {Promise<null|T>} The best raced result.
+ * @type T The result type.
  */
-function findBestResult(results) {
-  if (results.length === 1) return results[0];
-  if (results.length > 1) return results.find(result => result && result.secured);
-  return undefined;
+function raceBestResult(resultPromises) {
+  return new Promise((resolveOuter) => {
+    const promises = resultPromises.map(p => p.then((result) => {
+      if (result && result.secured) {
+        resolveOuter(result);
+        return null;
+      }
+
+      return result;
+    }));
+
+    // Fallback to best matching result
+    Promise.all(promises).then(results => results.reduce((p, r) => p || r, null)).then(resolveOuter);
+  });
 }
 
 /**
  * @param {string} query The URL to test.
+ * @param {boolean} mobile Whether to fetch the mobile variant of the site.
  * @return {Promise}
  */
-function analyzeUrl(query) {
+function analyzeUrl(query, mobile) {
   const urlsToTest = addSchema(query);
+  const fetchPromises = urlsToTest.map(url => fetchUrl(url, mobile));
 
-  const fetchPromises = urlsToTest.map(url => fetchUrl(url));
-
-  return Promise.all(fetchPromises)
-    // Remove all nulls from the result
-    // .then(results => results.filter(result => result ))
-    // Find best result to use
-    .then(results => findBestResult(results) || null)
-    // Wrap it with the query
-    .then(result => [query, result]);
+  // Race for the best result
+  return raceBestResult(fetchPromises).then(result => [query, result]);
 }
 
 /**
- * @param {string[]} urls
+ * @param {string[]} urls The URL to fetch.
+ * @param {boolean} mobile Whether to fetch the mobile variant of the site.
  */
-function analyzeUrls(urls) {
-  return Promise.all(urls.map(url => analyzeUrl(url)));
+function analyzeUrls(urls, mobile) {
+  return Promise.all(urls.map(url => analyzeUrl(url, mobile)));
 }
 
-exports.call = (db, { urls }) => analyzeUrls([].concat(urls));
+exports.analyzeUrl = analyzeUrl;
+exports.analyzeUrls = analyzeUrls;
+exports.call = (db, { urls, mobile }) => analyzeUrls([].concat(urls), mobile === true || mobile === 'true');
