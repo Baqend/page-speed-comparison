@@ -14,6 +14,7 @@ function fetchUrl(url, mobile, limit = 0) {
   const options = {
     redirect: 'manual',
     headers: {},
+    timeout: 12000,
   };
 
   if (mobile) {

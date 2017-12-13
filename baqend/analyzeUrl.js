@@ -98,7 +98,7 @@ function urlToUnicode(url) {
  * @return {Promise<*>}
  */
 function fetchUrl(url, limit = 0) {
-  return fetch(url, { redirect: 'manual', headers: {} })
+  return fetch(url, { redirect: 'manual', timeout: 12000 })
     .then((response) => {
       const location = response.headers.get('location');
 
@@ -140,7 +140,7 @@ function addSchema(query) {
  */
 function findBestResult(results) {
   if (results.length === 1) return results[0];
-  if (results.length > 1) return results.find(result => result.secured);
+  if (results.length > 1) return results.find(result => result && result.secured);
   return undefined;
 }
 
