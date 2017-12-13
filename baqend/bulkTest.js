@@ -1,32 +1,12 @@
 /* eslint-disable comma-dangle, function-paren-newline */
 /* eslint-disable no-restricted-syntax, no-param-reassign */
 
+const { aggregateFields } = require('./helpers');
 const { queueTest, DEFAULT_LOCATION } = require('./queueTest');
 const { generateSpeedKitConfig, getTLD } = require('./getSpeedKitUrl');
 const { generateUniqueId } = require('./generateUniqueId');
 
 const fields = ['speedIndex', 'firstMeaningfulPaint', 'ttfb', 'domLoaded', 'fullyLoaded', 'lastVisualChange'];
-
-/**
- * Aggregates an array of runs.
- *
- * @param db The Baqend instance.
- * @param runs An array of test runs.
- * @return A mean containing the aggregated values.
- */
-function aggregate(db, runs) {
-  const divideBy = runs.length;
-  const meanValues = runs.reduce((prev, run) => {
-    const result = prev;
-    for (const field of fields) {
-      result[field] = (prev[field] || 0) + (run[field] / divideBy);
-    }
-
-    return result;
-  }, {});
-
-  return new db.Mean(meanValues);
-}
 
 /**
  * Calculates the factors of two mean test result values.
@@ -144,7 +124,7 @@ function hasBulkTestFinished(bulkTest) {
  */
 function pickResults(bulkTest, name) {
   const field = `${name}TestResult`;
-  return bulkTest.testOverviews.map(it => it[field] && it[field].firstView).filter(it => it);
+  return bulkTest.testOverviews.map(overview => overview[field] && overview[field].firstView).filter(it => !!it);
 }
 
 /**
@@ -168,8 +148,8 @@ function updateBulkTest(db, bulkTestRef) {
   // We must not use the refresh option because we have the same db object when updating test results.
   return bulkTest.load({ depth: 2 }).then(() => {
     bulkTest.hasFinished = hasBulkTestFinished(bulkTest);
-    bulkTest.speedKitMeanValues = aggregate(db, pickResults(bulkTest, 'speedKit'));
-    bulkTest.competitorMeanValues = aggregate(db, pickResults(bulkTest, 'competitor'));
+    bulkTest.speedKitMeanValues = new db.Mean(aggregateFields(pickResults(bulkTest, 'speedKit'), fields));
+    bulkTest.competitorMeanValues = new db.Mean(aggregateFields(pickResults(bulkTest, 'competitor'), fields));
     bulkTest.factors = factorize(db, bulkTest.competitorMeanValues, bulkTest.speedKitMeanValues);
     bulkTest.bestFactors = calcBestFactors(db, bulkTest);
     bulkTest.worstFactors = calcWorstFactors(db, bulkTest);

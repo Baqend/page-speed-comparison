@@ -411,7 +411,7 @@ function createRun(db, data) {
   run.requests = data.requests.length;
   run.failedRequests = createFailedRequestsCount(data);
   run.bytes = data.bytesIn;
-  run.hits = new db.Hits(countHits(data));
+  run.hits = new db.Hits(countHits(data.requests));
   run.basePageCDN = data.base_page_cdn;
 
   // Set visual completeness
