@@ -35,7 +35,7 @@ function factorize(db, competitor, speedKit) {
  */
 function bestResult(bulkTest, resultFieldPrefix, field) {
   const resultField = `${resultFieldPrefix}TestResult`;
-  const best = bulkTest.testOverviews.reduce((prev, {[resultField]: result}) => {
+  const best = bulkTest.testOverviews.reduce((prev, { [resultField]: result }) => {
     if (result.firstView) {
       return Math.min(prev, result.firstView[field]);
     }
@@ -56,7 +56,7 @@ function bestResult(bulkTest, resultFieldPrefix, field) {
  */
 function worstResult(bulkTest, resultFieldPrefix, field) {
   const resultField = `${resultFieldPrefix}TestResult`;
-  const worst = bulkTest.testOverviews.reduce((prev, {[resultField]: result}) => {
+  const worst = bulkTest.testOverviews.reduce((prev, { [resultField]: result }) => {
     if (result.firstView) {
       return Math.max(prev, result.firstView[field]);
     }
@@ -258,28 +258,25 @@ function createTestOverviews(db, options) {
 /**
  * @param db The Baqend instance.
  * @param {string | null} createdBy A reference to the user who created the bulk test.
- * @param {object} options
- * @param {string} options.url The URL under test.
- * @param {string} options.whitelist A whitelist to use for the test.
- * @param {string} options.location The server location to execute the test.
- * @param {number} options.runs The number of runs to execute.
- * @param {boolean} options.caching If true, browser caching will be used. Defaults to false.
- * @param {boolean} options.mobile If true, mobile version will be tested. Defaults to false.
- * @param {boolean} options.speedKitConfig Configuration for the speed kit snippet.
+ * @param {string} url The URL under test.
+ * @param {string} whitelist A whitelist to use for the test.
+ * @param {boolean} speedKitConfig Configuration for the speed kit snippet.
+ * @param {string} [location] The server location to execute the test.
+ * @param {number} [runs] The number of runs to execute.
+ * @param {boolean} [caching] If true, browser caching will be used. Defaults to false.
+ * @param {boolean} [mobile] If true, mobile version will be tested. Defaults to false.
  * @return {Promise} An object containing bulk test information
  */
-function createBulkTest(db, createdBy, options = {
-  runs: 1, caching: false, location: DEFAULT_LOCATION, mobile: false
+function createBulkTest(db, createdBy, {
+  url,
+  whitelist,
+  speedKitConfig,
+  runs = 1,
+  // eslint-disable-next-line no-unused-vars
+  caching = false,
+  location = DEFAULT_LOCATION,
+  mobile = false,
 }) {
-  const {
-    url,
-    whitelist,
-    runs,
-    location,
-    mobile,
-    speedKitConfig
-  } = options;
-
   const config = speedKitConfig || generateSpeedKitConfig(url, whitelist, mobile);
 
   const bulkTest = new db.BulkTest();
@@ -290,6 +287,10 @@ function createBulkTest(db, createdBy, options = {
   bulkTest.mobile = mobile;
   bulkTest.runs = runs;
   bulkTest.completedRuns = 0;
+
+  // Get all options in the object
+  // eslint-disable-next-line prefer-rest-params
+  const options = arguments[2];
 
   return bulkTest.save()
     .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitConfig: config }, options)))
