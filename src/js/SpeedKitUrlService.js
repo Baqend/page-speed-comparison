@@ -46,7 +46,9 @@ export function generateRules(originalUrl, whitelist) {
   const domain = getTLD(originalUrl);
 
   // Create parts for the regexp
-  return `/^(?:[\\w-]*\\.){0,3}(?:${[domain, ...whitelist].map(item => escapeRegExp(item)).join('|')})/`;
+  return `/^(?:[\\w-]*\\.){0,3}(?:${[domain, ...whitelist]
+    .filter(item => item !== null)
+    .map(item => escapeRegExp(item)).join('|')})/`;
 }
 
 /**
