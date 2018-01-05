@@ -191,6 +191,7 @@ function createTestOverview(db, {
       caching,
       url,
       isClone: false,
+      isBulkTest: true,
       mobile,
       finish(testResult) {
         testOverview.competitorTestResult = testResult;
@@ -219,6 +220,7 @@ function createTestOverview(db, {
       url,
       speedKitConfig,
       isClone: true,
+      isBulkTest: true,
       mobile,
       finish(testResult) {
         testOverview.speedKitTestResult = testResult;

@@ -52,6 +52,7 @@ function handleTestError(db, test, testScript, error) {
  * @param {boolean} [isSpeedKitComparison] True, if Speed Kit is already running on the tested site.
  * @param {Object} [speedKitConfig] The speedKit configuration.
  * @param {boolean} [mobile] True, if a mobile-only test should be made.
+ * @param {boolean} [isBulkTest] True, if the test belongs to a bulk test.
  * @param {function} [finish] A callback which will be called when the test succeeds or fails.
  * @return {string}
  */
@@ -67,6 +68,7 @@ function queueTest({
   isSpeedKitComparison = false,
   speedKitConfig = null,
   mobile = false,
+  isBulkTest = false,
   finish = null,
 }) {
   // Create a new test result
@@ -86,7 +88,7 @@ function queueTest({
     saveResponseBodies: false,
     tcpDump: false,
     timeline: true, // TODO: only for debugging
-    priority: 0,
+    priority: isBulkTest ? 9 : 0,
     minimumDuration: 1, // capture at least one second
     chromeTrace: false,
     netLog: false,
