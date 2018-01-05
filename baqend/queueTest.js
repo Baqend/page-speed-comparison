@@ -314,10 +314,10 @@ function getTestResult(db, originalResult, testId) {
         API.createVideo(`${testId}-r:${lastRunIndex}-c:1`)
       ]);
     });
-  }).then(([firstVideResult, repeatedVideoResult]) => {
+  }).then(([firstVideoResult, repeatedVideoResult]) => {
     db.log.info(`videos created for ${testId}`);
 
-    testResult.videoIdFirstView = firstVideResult.data.videoId;
+    testResult.videoIdFirstView = firstVideoResult.data.videoId;
     const videoFirstViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdFirstView), `/www/videoFirstView/${testId}.mp4`);
 
     let videoRepeatViewPromise = Promise.resolve(true);
