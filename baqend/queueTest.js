@@ -1,18 +1,17 @@
 /* eslint-disable comma-dangle, no-use-before-define, no-restricted-syntax */
 /* global Abort */
-const { parse } = require('url');
 const { API } = require('./Pagetest');
 const credentials = require('./credentials');
 const { isRateLimited } = require('./rateLimiter');
 const { getAdSet } = require('./adBlocker');
 const { toFile } = require('./download');
 const { countHits } = require('./countHits');
+const { createTestScript } = require('./createTestScript');
 const fetch = require('node-fetch');
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
 const DEFAULT_ACTIVITY_TIMEOUT = 75;
 const DEFAULT_TIMEOUT = 30;
-const DEFAULT_TTL = 86000 / 2;
 
 exports.call = function callQueueTest(db, data, req) {
   // Check if IP is rate-limited
@@ -104,7 +103,7 @@ function queueTest({
     location,
   };
 
-  const testScript = createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, speedKitConfig);
+  const testScript = createTestScript(url, isClone, isSpeedKitComparison, speedKitConfig, activityTimeout);
 
   Promise.resolve()
     /* .then(() => {
@@ -181,79 +180,6 @@ function createCommandLineFlags(testUrl, isClone) {
     return `--unsafely-treat-insecure-origin-as-secure="${origin}"`;
   }
   return '';
-}
-
-/**
- * @param {string} testUrl
- * @param {boolean} isClone
- * @param {boolean} isCachingDisabled
- * @param {number} activityTimeout
- * @param {boolean} isSpeedKitComparison
- * @param {string} speedKitConfig The serialized speedkit config string
- * @return {string}
- */
-function createTestScript(
-  testUrl,
-  isClone,
-  isCachingDisabled,
-  activityTimeout,
-  isSpeedKitComparison,
-  speedKitConfig
-) {
-  let hostname;
-  let protocol;
-  try {
-    ({ hostname, protocol } = parse(testUrl));
-  } catch (e) {
-    throw new Abort(`Invalid Url specified: ${e.message}`);
-  }
-
-  if (!isClone) {
-    return `
-      block /sw.js /sw.php
-      setActivityTimeout ${activityTimeout}
-      setTimeout ${DEFAULT_TIMEOUT}
-      #expireCache ${DEFAULT_TTL} 
-      navigate ${testUrl}
-    `;
-  }
-
-  let installNavigation;
-  if (!isCachingDisabled) {
-    [installNavigation] = testUrl.split('#');
-  }
-
-  installNavigation = `${protocol}//${hostname}/install-speed-kit?config=${encodeURIComponent(speedKitConfig)}`;
-
-  // SW always needs to be installed
-  let installSW = `
-    logData 0
-    setTimeout ${DEFAULT_TIMEOUT}
-    ${!isSpeedKitComparison ? `setDns ${hostname} ${credentials.makefast_ip}` : ''}
-    ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
-    navigate ${installNavigation}
-    ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
-    navigate about:blank
-    logData 1
-  `;
-
-  /*  if (secondTry && !isSpeedKitComparison) {
-      installSW = `
-      logData 0
-      setTimeout ${DEFAULT_TIMEOUT}
-      navigate ${testUrl.substr(0, testUrl.indexOf('#'))}
-      navigate about:blank
-      ${isCachingDisabled ? 'clearcache' : ''}
-      logData 1
-    `;
-    } */
-
-  return `
-    setActivityTimeout ${activityTimeout}
-    ${installSW}
-    setTimeout ${DEFAULT_TIMEOUT}
-    navigate ${testUrl}
-  `;
 }
 
 /**
