@@ -1,6 +1,5 @@
-const targetDB = require('baqend');
+let targetDB = require('baqend');
 const download = require('./download');
-
 
 /*
  * Migrates the given test from this Baqend app to the specified one.
@@ -34,12 +33,10 @@ exports.call = function(db, data, req) {
 };
 
 function connectDB(app) {
-  if (targetDB.ready()) {
-    targetDB.clear();
-    return Promise.resolve(targetDB);
-  }
-
-  return targetDB.connect(app);
+  const emf = new targetDB.EntityManagerFactory();
+  targetDB = emf.createEntityManager(true);
+  emf.connect(app);
+  return targetDB.ready();
 }
 
 function copyTestOverview(test, skResult, compResult) {
