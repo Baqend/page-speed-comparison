@@ -52,8 +52,8 @@ function copyTestOverview(test, skResult, compResult) {
   copy.caching = test.caching;
   copy.mobile = test.mobile;
   copy.url = test.url;
-  copy.competitorTestResult = skResult;
-  copy.speedKitTestResult = compResult;
+  copy.competitorTestResult = compResult;
+  copy.speedKitTestResult = skResult;
   copy.whitelist = test.whitelist;
   copy.hasFinished = test.hasFinished;
   copy.factors = test.factors;
@@ -66,10 +66,10 @@ function copyTestResult(result) {
   copy.testId = result.testId;
   copy.location = result.location;
   if (result.firstView) {
-    copy.firstView = new targetDB.Run(result.firstView.toJSON());
+    copy.firstView = copyRun(result.firstView);
   }
   if (result.repeatView) {
-    copy.repeatView = new targetDB.Run(result.repeatView.toJSON());
+    copy.repeatView = copyRun(result.repeatView);
   }
   copy.url = result.url;
   copy.summaryUrl = result.summaryUrl;
@@ -82,8 +82,18 @@ function copyTestResult(result) {
   copy.retryRequired = result.retryRequired;
   copy.isWordPress = result.isWordPress;
 
-
   return copy.save();
+}
+
+function copyRun(run) {
+  const newRun = new targetDB.Run(run.toJSON());
+  if (run.visualCompleteness) {
+    newRun.visualCompleteness = new targetDB.Completeness();
+  }
+  if (run.hits) {
+    newRun.hits = new targetDB.Hits();
+  }
+  return newRun
 }
 
 function copyFile(file) {
