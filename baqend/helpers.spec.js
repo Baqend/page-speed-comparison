@@ -10,6 +10,7 @@ const {
 describe('helpers', () => {
   it('meanValue', () => {
     expect(meanValue([1, 2, 3])).to.eql(2);
+    expect(meanValue([1])).to.eql(1);
   });
 
   it('finites', () => {
@@ -18,9 +19,11 @@ describe('helpers', () => {
 
   it('mergeConcat', () => {
     expect(mergeConcat([{ a: 1 }, { a: 2 }, { a: 3 }])).to.eql({ a: [1, 2, 3] });
+    expect(mergeConcat([{ a: 1 }])).to.eql({ a: [1] });
   });
 
   it('aggregateFields', () => {
     expect(aggregateFields([{ a: 1 }, { a: 2, b: 4 }, { a: null }, { a: 3, c: 1 }, null], ['a', 'c'])).to.eql({ a: 2, c: 1 });
+    expect(aggregateFields([{ a: 1 }], ['a'])).to.eql({ a: 1 });
   });
 });
