@@ -20,7 +20,11 @@
     "deploy-code:dev": "baqend deploy --code makefast-dev",
     "deploy-code:staging": "baqend deploy --code makefast-staging",
     "deploy-code:prod": "baqend deploy --code makefast",
-    "build-proxy": "cd makefast-proxy && node build.js"
+    "build-proxy": "cd makefast-proxy && node build.js",
+    "schema-download:dev": "baqend schema download makefast-dev && baqend typings makefast-dev",
+    "schema-upload:dev": "baqend schema upload makefast-dev",
+    "schema-upload:staging": "baqend schema upload makefast-staging",
+    "schema-upload:prod": "baqend schema upload makefast"
   },
   "devDependencies": {
     "@types/bootstrap": "^3.3.36",
