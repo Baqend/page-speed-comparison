@@ -61,7 +61,7 @@ function createSpeedKitTestScript(url, speedKitConfig, {
     protocol,
     host,
     pathname: '/install-speed-kit',
-    search: `config=${encodeURIComponent(JSON.stringify(speedKitConfig))}`
+    search: `config=${encodeURIComponent(isSpeedKitComparison ? JSON.stringify(speedKitConfig) : speedKitConfig)}`
   });
 
   // SW always needs to be installed
@@ -71,9 +71,7 @@ function createSpeedKitTestScript(url, speedKitConfig, {
     logData 0
     setTimeout ${timeout}
     setDns ${hostname} ${credentials.makefast_ip}
-    ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
     navigate ${installSpeedKitUrl}
-    ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
     
     navigate about:blank
     logData 1
