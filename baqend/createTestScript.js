@@ -1,7 +1,6 @@
 /* eslint-disable comma-dangle */
 /* global Abort */
 const URL = require('url');
-const { analyzeSpeedKit } = require('./analyzeSpeedKit');
 const credentials = require('./credentials');
 
 const DEFAULT_TIMEOUT = 30;
@@ -89,7 +88,7 @@ function createSpeedKitTestScript(url, speedKitConfig, {
  * @param {string} speedKitConfig         The serialized speedkit config string.
  * @param {number} activityTimeout        The activity timeout.
  * @param {number} timeout                The timeout.
- * @return {Promise<string>}              The created Web Page Test script.
+ * @return {string}                       The created Web Page Test script.
  */
 function createTestScript(
   url,
@@ -100,16 +99,11 @@ function createTestScript(
   timeout = DEFAULT_TIMEOUT
 ) {
   // Resolve Speed Kit config
-  let promise = Promise.resolve(speedKitConfig);
-  if (isSpeedKitComparison) {
-    promise = analyzeSpeedKit(url);
-  }
-
   if (isTestWithSpeedKit) {
-    return promise.then(config => createSpeedKitTestScript(url, config, { activityTimeout, timeout }));
+    return createSpeedKitTestScript(url, speedKitConfig, { activityTimeout, timeout });
   }
 
-  return promise.then(config => createCompetitorTestScript(url, config, { activityTimeout, timeout }));
+  return createCompetitorTestScript(url, speedKitConfig, { activityTimeout, timeout });
 }
 
 exports.createTestScript = createTestScript;

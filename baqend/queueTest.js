@@ -7,6 +7,7 @@ const { getAdSet } = require('./adBlocker');
 const { toFile } = require('./download');
 const { countHits } = require('./countHits');
 const { createTestScript } = require('./createTestScript');
+const { analyzeSpeedKit } = require('./analyzeSpeedKit');
 const fetch = require('node-fetch');
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
@@ -26,12 +27,12 @@ exports.call = function callQueueTest(db, data, req) {
 /**
  * @param db The Baqend instance.
  * @param test The test which erred.
- * @param {string} testScript The script which was executed.
+ * @param {string|null} testScript The script which was executed.
  * @param {Error} error The error thrown.
  */
 function handleTestError(db, test, testScript, error) {
   const testToUpdate = test;
-  db.log.warn(`Test failed, id: ${test.id}, testId: ${test.testId} script:\n${testScript}\n\n${error.stack}`);
+  db.log.warn(`Test failed, id: ${test.id}, testId: ${test.testId} ${testScript !== null ? `script:\n${testScript}` : ''}\n\n${error.stack}`);
   return testToUpdate.ready()
     .then(() => {
       // Save that test has finished without data
@@ -110,8 +111,11 @@ function queueTest({
     location,
   };
 
-  Promise.resolve()
-    .then(() => createTestScript(url, isClone, isSpeedKitComparison, speedKitConfig, activityTimeout))
+  // Get the Speed Kit config from the page if it is already running Speed Kit
+  const promise = isSpeedKitComparison ? analyzeSpeedKit(url) : Promise.resolve(speedKitConfig);
+
+  promise
+    .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))
     /* .then(() => {
       if (!requirePrewarm) {
         return null;
@@ -166,6 +170,7 @@ function queueTest({
         return result;
       })
       .catch(error => handleTestError(db, pendingTest, testScript, error)))
+    .catch(error => handleTestError(db, pendingTest, null, error))
     // Trigger the callback
     .then(updatedResult => finish && finish(updatedResult));
 

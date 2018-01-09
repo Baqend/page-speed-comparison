@@ -272,55 +272,58 @@ function initTest() {
         $('#wordPress').removeClass('hidden');
       }
 
+      const isSatisfactory =
+        isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])
+        || (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])
+            && isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView]));
+
       // If speed index is satisfactory ==> show the test result and a list of suggested domains
       // Else don´t show test result but an error message
-      if (isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])
-        || (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])
-        && isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView]))) {
-        testOptions.speedKit = result.speedKit;
-        testOptions.caching = result.caching;
-        testOptions.mobile = !!result.mobile;
-        testOptions.location = competitorResult.location;
-
-        displayTestResultsById(testOptions, result);
-
-        calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
-        $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
-
-        // if served rate is not satisfactory ==> show warning message and list of suggested domains
-        // else don´t do anything
-        if (!isServedRateSatisfactory(speedKitResult[dataView])) {
-          verifyWarningMessage(new Error('Low served rate'));
-        }
-
-        // Check whether the speed index should be replaced by the first meaningful paint
-        // only when the FMP is satisfactory
-        if (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView]) &&
-          isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
-          $('.showSpeedIndex').addClass('hidden');
-          $('.showFirstMeaningfulPaint').removeClass('hidden');
-          verifyWarningMessage(new Error('Show FMC'));
-          calculateRevenueBoost(
-            competitorResult[dataView].firstMeaningfulPaint,
-            speedKitResult[dataView].firstMeaningfulPaint,
-          );
-        } else {
-          $('.showSpeedIndex').removeClass('hidden');
-          $('.showFirstMeaningfulPaint').addClass('hidden');
-
-          // check if firstMeaningfulPaint metric was computed (for legacy tests)
-          if (!competitorResult[dataView].firstMeaningfulPaint || !speedKitResult[dataView].firstMeaningfulPaint) {
-            $('.firstMeaningfulPaintMissing').addClass('hidden');
-          }
-
-          calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
-        }
-
-        // Handle whitelist candidates and add them to the UI
-        handleWhitelistCandidates(speedKitResult[dataView], whitelist);
-      } else {
+      if (!isSpeedKitComparison && !isSatisfactory) {
         throw new Error('Bad result');
       }
+
+      testOptions.speedKit = result.speedKit;
+      testOptions.caching = result.caching;
+      testOptions.mobile = !!result.mobile;
+      testOptions.location = competitorResult.location;
+
+      displayTestResultsById(testOptions, result);
+
+      calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
+      $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
+
+      // if served rate is not satisfactory ==> show warning message and list of suggested domains
+      // else don´t do anything
+      if (!isServedRateSatisfactory(speedKitResult[dataView])) {
+        verifyWarningMessage(new Error('Low served rate'));
+      }
+
+      // Check whether the speed index should be replaced by the first meaningful paint
+      // only when the FMP is satisfactory
+      if (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView]) &&
+        isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
+        $('.showSpeedIndex').addClass('hidden');
+        $('.showFirstMeaningfulPaint').removeClass('hidden');
+        verifyWarningMessage(new Error('Show FMC'));
+        calculateRevenueBoost(
+          competitorResult[dataView].firstMeaningfulPaint,
+          speedKitResult[dataView].firstMeaningfulPaint,
+        );
+      } else {
+        $('.showSpeedIndex').removeClass('hidden');
+        $('.showFirstMeaningfulPaint').addClass('hidden');
+
+        // check if firstMeaningfulPaint metric was computed (for legacy tests)
+        if (!competitorResult[dataView].firstMeaningfulPaint || !speedKitResult[dataView].firstMeaningfulPaint) {
+          $('.firstMeaningfulPaintMissing').addClass('hidden');
+        }
+
+        calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
+      }
+
+      // Handle whitelist candidates and add them to the UI
+      handleWhitelistCandidates(speedKitResult[dataView], whitelist);
 
       // If served rate is not satisfactory ==> show warning message and list of suggested domains
       // Else don´t do anything
@@ -385,7 +388,8 @@ async function submitComparison(url = $('#currentVendorUrl').val()) {
 /**
  * Initializes the comparison of a website.
  *
- * @param {{ url: string, speedkit: boolean }} normalizedUrl The normalized URL to compare.
+ * @param {{ url: string, speedkit: boolean, speedkitVersion: string, type: string }} normalizedUrl
+ *        The normalized URL to compare.
  * @return {Promise<void>} A promise which resolves when the test is done.
  */
 async function initComparison(normalizedUrl) {
@@ -405,6 +409,8 @@ async function initComparison(normalizedUrl) {
 
   isSpeedKitComparison = normalizedUrl.speedkit;
   competitorUrl = normalizedUrl.url;
+  $('#skVersionCol').toggleClass('hidden', !isSpeedKitComparison);
+  $('.skVersion').text(normalizedUrl.speedkitVersion);
 
   // Show testing UI
   startTest();
@@ -471,6 +477,10 @@ async function initComparison(normalizedUrl) {
 
       if (now === testInstance) {
         $('#compareContent').removeClass('hidden');
+        $('.hideOnWithSpeedKit').toggleClass('hidden', isSpeedKitComparison);
+        $('.hideOnWoSpeedKit').toggleClass('hidden', !isSpeedKitComparison);
+        $('#whitelist').toggleClass('hidden', isSpeedKitComparison);
+
         // Check whether the container elements don´t have any content (e.g. video already created)
         if ($competitor.children().length < 1 && $speedKit.children().length < 1) {
           $competitor.append(
@@ -659,53 +669,54 @@ function resultStreamUpdate(result, subscription, elementId) {
           const speedKitResult = testResult.speedKit;
           // If speed index is satisfactory ==> show the test result and a list of suggested domains
           // Else don´t show test result but an error message
-          if (isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])
+          const isSatisfactory = isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])
             || (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])
-            && isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView]))) {
-            displayTestResults('competitor', competitorResult[dataView], testOptions);
-            displayTestResults('speedKit', speedKitResult[dataView], testOptions);
-            calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
-
-            // Compensate missing psi metrics with wpt metrics
-            if (pageSpeedInsightFailed) {
-              const pageSpeedMetrics = {
-                domains: competitorResult.firstView.domains.length,
-                requests: competitorResult.firstView.requests,
-                bytes: competitorResult.firstView.bytes,
-              };
-              setPageSpeedMetrics(pageSpeedMetrics);
-              $('#compareContent').removeClass('hidden');
-            }
-
-            // Check whether the speed index should be replaced by the first meaningful paint
-            // only when the FMP is satisfactory
-            if (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView]) &&
-              isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
-              $('.showSpeedIndex').addClass('hidden');
-              $('.showFirstMeaningfulPaint').removeClass('hidden');
-              verifyWarningMessage(new Error('Show FMC'));
-              calculateRevenueBoost(
-                competitorResult[dataView].firstMeaningfulPaint,
-                speedKitResult[dataView].firstMeaningfulPaint,
-              );
-            } else {
-              $('.showSpeedIndex').removeClass('hidden');
-              $('.showFirstMeaningfulPaint').addClass('hidden');
-              calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
-            }
-
-            // If served rate is not satisfactory ==> show warning message and list of suggested domains
-            // Else don´t do anything
-            if (!isServedRateSatisfactory(speedKitResult[dataView])) {
-              verifyWarningMessage(new Error('Low served rate'));
-            }
-
-            // Handle whitelist candidates and add them to the UI
-            handleWhitelistCandidates(speedKitResult[dataView], testOverview.whitelist);
-            $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
-          } else {
+              && isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView]));
+          if (!isSpeedKitComparison && !isSatisfactory) {
             throw new Error('Bad result');
           }
+
+          displayTestResults('competitor', competitorResult[dataView], testOptions);
+          displayTestResults('speedKit', speedKitResult[dataView], testOptions);
+          calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
+
+          // Compensate missing psi metrics with wpt metrics
+          if (pageSpeedInsightFailed) {
+            const pageSpeedMetrics = {
+              domains: competitorResult.firstView.domains.length,
+              requests: competitorResult.firstView.requests,
+              bytes: competitorResult.firstView.bytes,
+            };
+            setPageSpeedMetrics(pageSpeedMetrics);
+            $('#compareContent').removeClass('hidden');
+          }
+
+          // Check whether the speed index should be replaced by the first meaningful paint
+          // only when the FMP is satisfactory
+          if (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView]) &&
+            isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView])) {
+            $('.showSpeedIndex').addClass('hidden');
+            $('.showFirstMeaningfulPaint').removeClass('hidden');
+            verifyWarningMessage(new Error('Show FMC'));
+            calculateRevenueBoost(
+              competitorResult[dataView].firstMeaningfulPaint,
+              speedKitResult[dataView].firstMeaningfulPaint,
+            );
+          } else {
+            $('.showSpeedIndex').removeClass('hidden');
+            $('.showFirstMeaningfulPaint').addClass('hidden');
+            calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
+          }
+
+          // If served rate is not satisfactory ==> show warning message and list of suggested domains
+          // Else don´t do anything
+          if (!isServedRateSatisfactory(speedKitResult[dataView])) {
+            verifyWarningMessage(new Error('Low served rate'));
+          }
+
+          // Handle whitelist candidates and add them to the UI
+          handleWhitelistCandidates(speedKitResult[dataView], testOverview.whitelist);
+          $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
         }
       }
 

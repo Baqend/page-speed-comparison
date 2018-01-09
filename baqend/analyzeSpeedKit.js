@@ -11,10 +11,11 @@ function analyzeSpeedKit(urlToTest) {
     search: `url=${encodeURIComponent(urlToTest)}`,
   };
 
-  return fetch(URL.format(url))
+  const urlString = URL.format(url);
+  return fetch(urlString)
     .then((res) => {
       if (res.status === 404) {
-        throw new Error(`Not a valid Speed Kit URL: ${url}`);
+        throw new Error(`Not a valid Speed Kit URL: ${urlString}`);
       }
 
       return res.json();

@@ -135,14 +135,23 @@
                     <h4 class="numberOfBytes noPadding"></h4>
                 </div>
             </div>
+            <div id="skVersionCol">
+                <div class="tooltipInfo" data-toggle="tooltip" data-container="body"
+                     title="The Speed Kit version your website is currently running on.">
+                        <span class="fa-stack">
+                          <i class="fa fa-archive"></i>
+                        </span>Speed Kit<br>
+                    <h4 class="skVersion noPadding"></h4>
+                </div>
+            </div>
         </div>
         <div class="row p-16 pt-32 pb-0 hideOnError">
             <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 media-columns text-center">
-                <h4 class="noPadding">Your Website <span id="competitorLink" class="hidden"></span></h4>
+                <h4 class="noPadding">Your Website <span class="hideOnWoSpeedKit">without Speed Kit</span> <span id="competitorLink" class="hidden"></span></h4>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 metric-column text-center hidden-md hidden-sm hidden-xs"></div>
             <div class="col-lg-4 col-md-6 col-sm-6 col-xs-6 media-columns text-center">
-                <h4 class="noPadding">Your Website with Speed Kit <span id="speedKitLink" class="hidden"></span></h4>
+                <h4 class="noPadding">Your Website <span class="hideOnWithSpeedKit">with Speed Kit</span> <span id="speedKitLink" class="hidden"></span></h4>
             </div>
         </div>
         <div class="row p-16 pb-32 flex hideOnError">

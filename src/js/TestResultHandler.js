@@ -100,7 +100,7 @@ export function verifyWarningMessage(error) {
           return 'Because your website uses a lot of asynchronous resources, we replaced the speed index metric ' +
             'by the first meaningful paint!';
         default:
-          return 'An error occurred while running the test. Please try the test again or contact our ' +
+          return 'An error occurred while running the test. Please retry the test or contact our ' +
             'web performance experts for further information and assistance!';
       }
     });
