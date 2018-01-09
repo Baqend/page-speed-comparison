@@ -105,11 +105,15 @@ const wsConnectClient = (wsServer, req, secure) => (
   new Promise((resolve) => {
     const { host } = req.headers;
     const url = `${secure ? 'wss' : 'ws'}://${host}${req.url}`;
-    const wsClient = new WebSocket(url, {
-      headers: {
-        cookie: req.headers.cookie,
-      },
-    });
+    let options;
+    if (req.headers.cookie) {
+      options = {
+        headers: {
+          cookie: req.headers.cookie,
+        },
+      };
+    }
+    const wsClient = new WebSocket(url, options);
 
     wsClient.on('message', msg => wsServer.readyState === 1 && wsServer.send(msg));
     wsClient.on('close', wsServer.close);
