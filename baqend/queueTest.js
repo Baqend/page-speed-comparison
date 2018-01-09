@@ -103,9 +103,8 @@ function queueTest({
     location,
   };
 
-  const testScript = createTestScript(url, isClone, isSpeedKitComparison, speedKitConfig, activityTimeout);
-
   Promise.resolve()
+    .then(() => createTestScript(url, isClone, isSpeedKitComparison, speedKitConfig, activityTimeout))
     /* .then(() => {
       if (!requirePrewarm) {
         return null;
@@ -122,20 +121,20 @@ function queueTest({
       return API.runTest(url, prewarmOptions, db)
         .then(testId => getPrewarmResult(db, testId, isSpeedKitComparison));
     }) */
-    .then(() => API.runTestWithoutWait(testScript, testOptions))
-    .then((testId) => {
-      db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
-      pendingTest.testId = testId;
-      pendingTest.ready().then(() => {
-        if (credentials.app === 'makefast-staging'){
-          db.log.info(`Save testId for test: ${pendingTest.testId}`);
-        }
-        return pendingTest.save();
-      });
-      return API.waitOnTest(testId, db);
-    })
-    .then(testId => getTestResult(db, pendingTest, testId))
-    /* .catch((e) => {
+    .then(testScript => API.runTestWithoutWait(testScript, testOptions)
+      .then((testId) => {
+        db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
+        pendingTest.testId = testId;
+        pendingTest.ready().then(() => {
+          if (credentials.app === 'makefast-staging') {
+            db.log.info(`Save testId for test: ${pendingTest.testId}`);
+          }
+          return pendingTest.save();
+        });
+        return API.waitOnTest(testId, db);
+      })
+      .then(testId => getTestResult(db, pendingTest, testId))
+      /* .catch((e) => {
         db.log.info(`First try failed. Second try for: ${pendingTest.testId}:\n ${e && e.stack}`);
 
         testScript =
@@ -155,11 +154,11 @@ function queueTest({
             return getTestResult(db, pendingTest, testId);
           });
       }) */
-    .then((result) => {
-      db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
-      return result;
-    })
-    .catch(error => handleTestError(db, pendingTest, testScript, error))
+      .then((result) => {
+        db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
+        return result;
+      })
+      .catch(error => handleTestError(db, pendingTest, testScript, error)))
     // Trigger the callback
     .then(updatedResult => finish && finish(updatedResult));
 
