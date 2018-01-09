@@ -1,89 +1,125 @@
-import {binding, GeoPoint} from "baqend";
+import {binding} from "baqend";
 
-declare module "baqend" {
+interface Device extends binding.Entity {
+  deviceOs: string;
+}
 
-  interface baqend {
-    Test2: binding.EntityFactory<model.Test2>;
-    TestOverview: binding.EntityFactory<model.TestOverview>;
-    TestResult: binding.EntityFactory<model.TestResult>;
-    Completeness: binding.ManagedFactory<model.Completeness>;
-    Run: binding.ManagedFactory<model.Run>;
-    Hits: binding.ManagedFactory<model.Hits>;
-  }
+interface Testseries extends binding.Entity {
+  url: string;
+  cronpattern: string;
+  end: Date;
+  start: Date;
+  runs: number;
+  location: string;
+  whitelist: string;
+  speedKitConfig: {};
+  mobile: boolean;
+  testEntries: Array<TestEntry>;
+}
 
-  namespace model {
-    interface Device extends binding.Entity {
-      deviceOs: string;
-    }
+interface BulkTest extends binding.Entity {
+  url: string;
+  hasFinished: boolean;
+  testOverviews: Array<TestOverview>;
+  speedKitMeanValues: Mean;
+  competitorMeanValues: Mean;
+  factors: Mean;
+  bestFactors: Mean;
+  worstFactors: Mean;
+  createdBy: string;
+  runs: number;
+  completedRuns: number;
+  location: string;
+  mobile: boolean;
+  priority: number;
+}
 
-    interface User extends binding.Entity {
-    }
+interface TestOverview extends binding.Entity {
+  psiDomains: number;
+  psiRequests: number;
+  psiResponseSize: string;
+  location: string;
+  caching: boolean;
+  mobile: boolean;
+  url: string;
+  competitorTestResult: TestResult;
+  speedKitTestResult: TestResult;
+  whitelist: string;
+  hasFinished: boolean;
+  factors: Mean;
+}
 
-    interface Test2 extends binding.Entity {
-    }
+interface User extends binding.Entity {
+}
 
-    interface TestOverview extends binding.Entity {
-      psiDomains: number;
-      psiRequests: number;
-      psiResponseSize: string;
-      caching: boolean;
-      mobile: boolean;
-      competitorTestResult: TestResult;
-      speedKitTestResult: TestResult;
-      whitelist: string;
-      speedKit: any;
-    }
+interface Role extends binding.Entity {
+  name: string;
+  users: Set<User>;
+}
 
-    interface TestResult extends binding.Entity {
-      testId: string;
-      firstView: Run;
-      repeatView: Run;
-      location: string;
-      url: string;
-      summaryUrl: string;
-      videoIdFirstView: string;
-      videoIdRepeatedView: string;
-      testDataMissing: boolean;
-      videoFileFirstView: undefined;
-      videoFileRepeatView: undefined;
-    }
+interface TestResult extends binding.Entity {
+  testId: string;
+  location: string;
+  firstView: Run;
+  repeatView: Run;
+  url: string;
+  summaryUrl: string;
+  videoIdFirstView: string;
+  videoIdRepeatedView: string;
+  testDataMissing: boolean;
+  videoFileFirstView: undefined;
+  videoFileRepeatView: undefined;
+  hasFinished: boolean;
+  retryRequired: boolean;
+  isWordPress: boolean;
+  priority: number;
+}
 
-    interface Role extends binding.Entity {
-      name: string;
-      users: Set<User>;
-    }
+interface Hits extends binding.Managed {
+  hit: number;
+  miss: number;
+  other: number;
+}
 
-    interface Completeness extends binding.Managed {
-      p85: number;
-      p90: number;
-      p95: number;
-      p99: number;
-      p100: number;
-    }
+interface TestEntry extends binding.Managed {
+  test: BulkTest;
+  time: Date;
+}
 
-    interface Run extends binding.Managed {
-      loadTime: number;
-      ttfb: number;
-      domLoaded: number;
-      load: number;
-      fullyLoaded: number;
-      firstPaint: number;
-      startRender: number;
-      lastVisualChange: number;
-      speedIndex: number;
-      requests: number;
-      bytes: number;
-      domElements: number;
-      basePageCDN: string;
-      visualCompleteness: Completeness;
-      hits: Hits;
-    }
+interface Completeness extends binding.Managed {
+  p85: number;
+  p90: number;
+  p95: number;
+  p99: number;
+  p100: number;
+}
 
-    interface Hits extends binding.Managed {
-      hit: number;
-      miss: number;
-      other: number;
-    }
+interface Mean extends binding.Managed {
+  speedIndex: number;
+  firstMeaningfulPaint: number;
+  ttfb: number;
+  domLoaded: number;
+  fullyLoaded: number;
+  lastVisualChange: number;
+}
 
-  }
+interface Run extends binding.Managed {
+  loadTime: number;
+  ttfb: number;
+  domLoaded: number;
+  load: number;
+  fullyLoaded: number;
+  firstPaint: number;
+  startRender: number;
+  speedIndex: number;
+  firstMeaningfulPaint: number;
+  lastVisualChange: number;
+  requests: number;
+  failedRequests: number;
+  domains: object[];
+  bytes: number;
+  domElements: number;
+  basePageCDN: string;
+  visualCompleteness: Completeness;
+  hits: Hits;
 }

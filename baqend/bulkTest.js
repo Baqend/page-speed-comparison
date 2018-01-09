@@ -170,6 +170,7 @@ function createTestOverview(db, {
   speedKitConfig,
   whitelist,
   mobile,
+  priority,
 }) {
   const testOverview = new db.TestOverview();
 
@@ -190,9 +191,9 @@ function createTestOverview(db, {
       location,
       caching,
       url,
-      isClone: false,
-      isBulkTest: true,
+      priority,
       mobile,
+      isClone: false,
       finish(testResult) {
         testOverview.competitorTestResult = testResult;
         if (testResult.testDataMissing !== true) {
@@ -219,9 +220,9 @@ function createTestOverview(db, {
       caching,
       url,
       speedKitConfig,
-      isClone: true,
-      isBulkTest: true,
+      priority,
       mobile,
+      isClone: true,
       finish(testResult) {
         testOverview.speedKitTestResult = testResult;
 
@@ -267,6 +268,7 @@ function createTestOverviews(db, options) {
  * @param {number} [runs] The number of runs to execute.
  * @param {boolean} [caching] If true, browser caching will be used. Defaults to false.
  * @param {boolean} [mobile] If true, mobile version will be tested. Defaults to false.
+ * @param {number} [priority=9] Defines the test's priority, from 0 (highest) to 9 (lowest).
  * @return {Promise} An object containing bulk test information
  */
 function createBulkTest(db, createdBy, {
@@ -278,6 +280,7 @@ function createBulkTest(db, createdBy, {
   caching = false,
   location = DEFAULT_LOCATION,
   mobile = false,
+  priority = 9,
 }) {
   const config = speedKitConfig || generateSpeedKitConfig(url, whitelist, mobile);
 
@@ -288,6 +291,7 @@ function createBulkTest(db, createdBy, {
   bulkTest.location = location;
   bulkTest.mobile = mobile;
   bulkTest.runs = runs;
+  bulkTest.priority = priority;
   bulkTest.completedRuns = 0;
 
   // Get all options in the object

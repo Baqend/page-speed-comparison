@@ -51,9 +51,9 @@ function handleTestError(db, test, testScript, error) {
  * @param {boolean} [isSpeedKitComparison] True, if Speed Kit is already running on the tested site.
  * @param {Object} [speedKitConfig] The speedKit configuration.
  * @param {boolean} [mobile] True, if a mobile-only test should be made.
- * @param {boolean} [isBulkTest] True, if the test belongs to a bulk test.
+ * @param {number} [priority=0] Defines the test's priority, from 0 (highest) to 9 (lowest).
  * @param {function} [finish] A callback which will be called when the test succeeds or fails.
- * @return {string}
+ * @return {Promise<TestResult>} A promise resolving when the test has been created.
  */
 function queueTest({
   // Required parameters
@@ -67,17 +67,24 @@ function queueTest({
   isSpeedKitComparison = false,
   speedKitConfig = null,
   mobile = false,
-  isBulkTest = false,
+  priority = 0,
   finish = null,
 }) {
   // Create a new test result
+  /** @var {TestResult} pendingTest */
   const pendingTest = new db.TestResult();
   pendingTest.id = db.util.uuid();
-  db.log.info('flags: %s', createCommandLineFlags(url, isClone));
+  pendingTest.hasFinished = false;
+  pendingTest.url = url;
+  pendingTest.priority = priority;
+
+  const commandLine = createCommandLineFlags(url, isClone);
+  db.log.info('flags: %s', commandLine);
+  const runs = isClone ? 5 : 1;
   const testOptions = {
     firstViewOnly: !caching,
-    runs: isClone ? 5 : 1,
-    commandLine: createCommandLineFlags(url, isClone),
+    runs,
+    commandLine,
     video: true,
     disableOptimization: true,
     pageSpeed: false,
@@ -87,7 +94,6 @@ function queueTest({
     saveResponseBodies: false,
     tcpDump: false,
     timeline: true, // TODO: only for debugging
-    priority: isBulkTest ? 9 : 0,
     minimumDuration: 1, // capture at least one second
     chromeTrace: false,
     netLog: false,
@@ -99,6 +105,7 @@ function queueTest({
     poll: 1, // poll every second
     timeout: 2 * DEFAULT_TIMEOUT, // set timeout
     device: mobile ? 'iPhone6' : '',
+    priority,
     mobile,
     location,
   };
@@ -201,7 +208,7 @@ function createCommandLineFlags(testUrl, isClone) {
 
 /**
  * @param db The Baqend instance.
- * @param originalResult
+ * @param {TestResult} originalResult
  * @param {string} testId
  * @return {Promise<object>} A promised test result.
  */
@@ -236,7 +243,7 @@ function getTestResult(db, originalResult, testId) {
       db.log.info(`creating video for ${testId}`);
       return Promise.all([
         API.createVideo(`${testId}-r:${lastRunIndex}-c:0`),
-        API.createVideo(`${testId}-r:${lastRunIndex}-c:1`)
+        API.createVideo(`${testId}-r:${lastRunIndex}-c:1`),
       ]);
     });
   }).then(([firstVideoResult, repeatedVideoResult]) => {
@@ -273,11 +280,13 @@ function constructVideoLink(testId, videoId) {
 
 /**
  * @param db The Baqend instance.
- * @param {object} originalObject
- * @param {object} testResult
+ * @param {TestResult} originalObject
+ * @param {{ location: string, testUrl: string, summary: string, runs: Object<string, object> }} testResult
  * @param {string} runIndex the index of the run to use
+ * @return {Promise<TestResult>} A promise resolving with the created test result.
  */
 function createTestResult(db, originalObject, testResult, runIndex) {
+  /** @var {TestResult} testObject */
   const testObject = originalObject;
   testObject.location = testResult.location;
   testObject.url = testResult.testUrl;
@@ -303,14 +312,17 @@ function createTestResult(db, originalObject, testResult, runIndex) {
           return testObject;
         });
       });
-    });
+    })
+    .then(() => testObject);
 }
 
 /**
  * @param db The Baqend instance.
- * @param data
+ * @param {object} data The data to create the run of.
+ * @return {Promise<Run>} A promise resolving with the created run.
  */
 function createRun(db, data) {
+  /** @var {Run} run */
   const run = new db.Run();
 
   // Copy fields
@@ -375,6 +387,11 @@ function createFailedRequestsCount(data) {
   return failedRequests;
 }
 
+/**
+ * @param {{ domains: Object<string, object> }} data
+ * @param {Run} run The run to create the domain list for.
+ * @return {Promise<Run>} Passing through `run`.
+ */
 function createDomainList(data, run) {
   return getAdSet().then((adSet) => {
     for (const key of Object.keys(data.domains)) {
