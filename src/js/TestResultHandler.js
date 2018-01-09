@@ -88,19 +88,19 @@ export function verifyWarningMessage(error) {
           return 'You reached the maximum number of running tests. Please wait at least one ' +
             'minute until you start further tests!';
         case 'Baqend app detected':
-          return 'Your website already uses baqend´s technology. Please choose another website ' +
+          return 'Your website already uses Baqend’s technology. Please choose another website ' +
             'to be tested!';
         case 'Low served rate':
-          return 'The number of resources served by the Speed Kit is quite low. Choose some of the suggested ' +
+          return 'The amount of resources served by Speed Kit is quite low. Choose some of the suggested ' +
             'domains to improve the test result.';
         case 'Bad result':
-          return 'It looks like some fine-tuning or configuration is required to measure your site. Please contact our ' +
+          return 'It looks like some fine tuning or configuration is required to measure your site. Please contact our ' +
             'web performance experts for further information and assistance!';
         case 'Show FMC':
           return 'Because your website uses a lot of asynchronous resources, we replaced the speed index metric ' +
             'by the first meaningful paint!';
         default:
-          return 'While running the test an error occurred. Please retry the test or contact our ' +
+          return 'An error occurred while running the test. Please try the test again or contact our ' +
             'web performance experts for further information and assistance!';
       }
     });
