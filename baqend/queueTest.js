@@ -1,18 +1,17 @@
 /* eslint-disable comma-dangle, no-use-before-define, no-restricted-syntax */
 /* global Abort */
-const { parse } = require('url');
 const { API } = require('./Pagetest');
 const credentials = require('./credentials');
 const { isRateLimited } = require('./rateLimiter');
 const { getAdSet } = require('./adBlocker');
 const { toFile } = require('./download');
 const { countHits } = require('./countHits');
+const { createTestScript } = require('./createTestScript');
 const fetch = require('node-fetch');
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
 const DEFAULT_ACTIVITY_TIMEOUT = 75;
 const DEFAULT_TIMEOUT = 30;
-const DEFAULT_TTL = 86000 / 2;
 
 exports.call = function callQueueTest(db, data, req) {
   // Check if IP is rate-limited
@@ -104,9 +103,8 @@ function queueTest({
     location,
   };
 
-  const testScript = createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, speedKitConfig);
-
   Promise.resolve()
+    .then(() => createTestScript(url, isClone, isSpeedKitComparison, speedKitConfig, activityTimeout))
     /* .then(() => {
       if (!requirePrewarm) {
         return null;
@@ -123,20 +121,20 @@ function queueTest({
       return API.runTest(url, prewarmOptions, db)
         .then(testId => getPrewarmResult(db, testId, isSpeedKitComparison));
     }) */
-    .then(() => API.runTestWithoutWait(testScript, testOptions))
-    .then((testId) => {
-      db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
-      pendingTest.testId = testId;
-      pendingTest.ready().then(() => {
-        if (credentials.app === 'makefast-staging'){
-          db.log.info(`Save testId for test: ${pendingTest.testId}`);
-        }
-        return pendingTest.save();
-      });
-      return API.waitOnTest(testId, db);
-    })
-    .then(testId => getTestResult(db, pendingTest, testId))
-    /* .catch((e) => {
+    .then(testScript => API.runTestWithoutWait(testScript, testOptions)
+      .then((testId) => {
+        db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
+        pendingTest.testId = testId;
+        pendingTest.ready().then(() => {
+          if (credentials.app === 'makefast-staging') {
+            db.log.info(`Save testId for test: ${pendingTest.testId}`);
+          }
+          return pendingTest.save();
+        });
+        return API.waitOnTest(testId, db);
+      })
+      .then(testId => getTestResult(db, pendingTest, testId))
+      /* .catch((e) => {
         db.log.info(`First try failed. Second try for: ${pendingTest.testId}:\n ${e && e.stack}`);
 
         testScript =
@@ -156,11 +154,11 @@ function queueTest({
             return getTestResult(db, pendingTest, testId);
           });
       }) */
-    .then((result) => {
-      db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
-      return result;
-    })
-    .catch(error => handleTestError(db, pendingTest, testScript, error))
+      .then((result) => {
+        db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
+        return result;
+      })
+      .catch(error => handleTestError(db, pendingTest, testScript, error)))
     // Trigger the callback
     .then(updatedResult => finish && finish(updatedResult));
 
@@ -181,79 +179,6 @@ function createCommandLineFlags(testUrl, isClone) {
     return `--unsafely-treat-insecure-origin-as-secure="${origin}"`;
   }
   return '';
-}
-
-/**
- * @param {string} testUrl
- * @param {boolean} isClone
- * @param {boolean} isCachingDisabled
- * @param {number} activityTimeout
- * @param {boolean} isSpeedKitComparison
- * @param {string} speedKitConfig The serialized speedkit config string
- * @return {string}
- */
-function createTestScript(
-  testUrl,
-  isClone,
-  isCachingDisabled,
-  activityTimeout,
-  isSpeedKitComparison,
-  speedKitConfig
-) {
-  let hostname;
-  let protocol;
-  try {
-    ({ hostname, protocol } = parse(testUrl));
-  } catch (e) {
-    throw new Abort(`Invalid Url specified: ${e.message}`);
-  }
-
-  if (!isClone) {
-    return `
-      block /sw.js /sw.php
-      setActivityTimeout ${activityTimeout}
-      setTimeout ${DEFAULT_TIMEOUT}
-      #expireCache ${DEFAULT_TTL} 
-      navigate ${testUrl}
-    `;
-  }
-
-  let installNavigation;
-  if (!isCachingDisabled) {
-    [installNavigation] = testUrl.split('#');
-  }
-
-  installNavigation = `${protocol}//${hostname}/install-speed-kit?config=${encodeURIComponent(speedKitConfig)}`;
-
-  // SW always needs to be installed
-  let installSW = `
-    logData 0
-    setTimeout ${DEFAULT_TIMEOUT}
-    ${!isSpeedKitComparison ? `setDns ${hostname} ${credentials.makefast_ip}` : ''}
-    ${isSpeedKitComparison ? `blockDomainsExcept ${hostname}` : ''}
-    navigate ${installNavigation}
-    ${isSpeedKitComparison ? 'blockDomainsExcept' : ''}
-    navigate about:blank
-    logData 1
-  `;
-
-  /*  if (secondTry && !isSpeedKitComparison) {
-      installSW = `
-      logData 0
-      setTimeout ${DEFAULT_TIMEOUT}
-      navigate ${testUrl.substr(0, testUrl.indexOf('#'))}
-      navigate about:blank
-      ${isCachingDisabled ? 'clearcache' : ''}
-      logData 1
-    `;
-    } */
-
-  return `
-    setActivityTimeout ${activityTimeout}
-    ${installSW}
-    setTimeout ${DEFAULT_TIMEOUT}
-    navigate ${testUrl}
-  `;
 }
 
 /**
@@ -314,10 +239,10 @@ function getTestResult(db, originalResult, testId) {
         API.createVideo(`${testId}-r:${lastRunIndex}-c:1`)
       ]);
     });
-  }).then(([firstVideResult, repeatedVideoResult]) => {
+  }).then(([firstVideoResult, repeatedVideoResult]) => {
     db.log.info(`videos created for ${testId}`);
 
-    testResult.videoIdFirstView = firstVideResult.data.videoId;
+    testResult.videoIdFirstView = firstVideoResult.data.videoId;
     const videoFirstViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdFirstView), `/www/videoFirstView/${testId}.mp4`);
 
     let videoRepeatViewPromise = Promise.resolve(true);
