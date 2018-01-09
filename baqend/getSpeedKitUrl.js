@@ -56,7 +56,7 @@ function generateRules(originalUrl, whitelist) {
  * @return {string} A URL to send to Speed Kit.
  */
 function generateSpeedKitConfig(originalUrl, whitelistStr, enableUserAgentDetection) {
-  const whitelistDomains = whitelistStr
+  const whitelistDomains = (whitelistStr || '')
     .split(',')
     .map(item => item.trim())
     .filter(item => !!item);

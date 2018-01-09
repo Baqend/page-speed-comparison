@@ -25,6 +25,9 @@ function finites(numbers) {
  * @type T
  */
 function mergeConcat(objects) {
+  if (objects.length === 1) {
+    return mapValues(objects[0], a => [a]);
+  }
   return mergeWith(...objects, (a, b) => concat(a, b));
 }
 

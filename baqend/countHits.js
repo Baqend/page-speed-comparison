@@ -6,10 +6,13 @@ const { countBy } = require('lodash');
  */
 function countHits(requests) {
   return countBy(requests, (req) => {
-    const headers = req.headers.response.join(' ').toLowerCase();
-    if (headers.indexOf('x-cache') !== -1 && headers.indexOf('x-cache-hits') !== -1
-      && headers.indexOf('x-served-by') !== -1) {
-      return headers.indexOf('x-cache: hit') !== -1 ? 'hit' : 'miss';
+    const headers = req.headers;
+    if (headers) {
+      const resHeaders = headers.response.join(' ').toLowerCase();
+      if (resHeaders.indexOf('x-cache') !== -1 && resHeaders.indexOf('x-cache-hits') !== -1
+        && resHeaders.indexOf('x-served-by') !== -1) {
+        return resHeaders.indexOf('x-cache: hit') !== -1 ? 'hit' : 'miss';
+      }
     }
     return 'other';
   });
