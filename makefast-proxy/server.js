@@ -4,10 +4,20 @@ const https = require('https');
 const express = require('express');
 const request = require('request');
 const path = require('path');
+const WebSocket = require('ws');
 
 const httpPort = 80;
 const sslPort = 443;
 const app = express();
+
+const httpServer = http.createServer(app);
+const sslServer = https.createServer({
+  key: fs.readFileSync(path.join(__dirname, 'key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
+}, app);
+
+const ws = new WebSocket.Server({ server: httpServer });
+const wss = new WebSocket.Server({ server: sslServer });
 
 function createPage(config, snippet) {
   return `<!DOCTYPE html>
@@ -68,9 +78,6 @@ app.get('/install-speed-kit', (req, res) => {
 });
 
 app.use((req, res) => {
-  // Pipe all other requests to original URL
-  const host = req.get('host');
-
   // Prevent infinite loop
   const makefastHeader = 'X-From-Makefast';
   if (req.get(makefastHeader)) {
@@ -78,28 +85,59 @@ app.use((req, res) => {
     return;
   }
 
+  // Pipe all other requests to original URL
+  const host = req.get('host');
   const url = `${req.protocol}://${host}${req.originalUrl}`;
 
   if (debug) {
     console.log(`Pipe URL (${req.method}): ${url}`);
   }
 
-  const headers = {[makefastHeader]: 'true'};
+  const headers = { [makefastHeader]: 'true' };
   req.pipe(request({ url, followRedirect: false, headers }, (err) => {
     if (err) {
-      console.log(`Error piping URL (${req.method}): ${url}`);
+      console.log(`Error piping URL (${req.method}) ${url}:`, err);
     }
   })).pipe(res);
 });
 
+const wsConnectClient = (wsServer, req, secure) => (
+  new Promise((resolve) => {
+    const { host } = req.headers;
+    const url = `${secure ? 'wss' : 'ws'}://${host}${req.url}`;
+    const wsClient = new WebSocket(url, {
+      headers: {
+        cookie: req.headers.cookie,
+      },
+    });
 
-const httpServer = http.createServer(app);
+    wsClient.on('message', msg => wsServer.readyState === 1 && wsServer.send(msg));
+    wsClient.on('close', wsServer.close);
+    wsClient.on('error', (error) => {
+      console.log('WebSocket error from server', error);
+      wsServer.terminate();
+    });
+    wsClient.on('open', () => resolve(wsClient));
+  })
+);
+
+const wsFactory = secure => (
+  (wsServer, req) => {
+    const wsClientConnect = wsConnectClient(wsServer, req, secure);
+
+    wsServer.on('message', async message => (await wsClientConnect).send(message));
+    wsServer.on('close', async (code, reason) => (await wsClientConnect).close(code, reason));
+    wsServer.on('error', async (error) => {
+      console.log('WebSocket error from client', error);
+      (await wsClientConnect).terminate();
+    });
+  }
+);
+
+ws.on('connection', wsFactory(false));
+wss.on('connection', wsFactory(true));
+
 httpServer.listen(httpPort);
-
-const sslServer = https.createServer({
-  key: fs.readFileSync(path.join(__dirname, 'key.pem')),
-  cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
-}, app);
 sslServer.listen(sslPort);
 
 console.log(`Started makefast-proxy server on http: ${httpPort}, ssl: ${sslPort}`);
