@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /**
    * @param {Event} event
    */
+
   $('#implementation-toggle').on('click', (event) => {
     event.preventDefault();
     $('#implementation-toggle').hide();
@@ -196,17 +197,16 @@ window.handleMobileChange = (radioButton) => {
  * @param {HTMLVideoElement} videoElement
  */
 window.playVideos = (videoElement) => {
+  const firstVideo = videoElement;
+  firstVideo.currentTime = 0;
+  const playPromise = firstVideo.play();
   if (!isDeviceIOS()) {
     /** @type {HTMLVideoElement} */
     const secondVideo = document.getElementById(videoElement.id === 'video-speedKit' ? 'video-competitor' : 'video-speedKit');
 
     secondVideo.currentTime = 0;
-    secondVideo.play();
+    playPromise.then(() => secondVideo.play()).catch(() => {});
   }
-
-  // eslint-disable-next-line no-param-reassign
-  videoElement.currentTime = 0;
-  videoElement.play();
 };
 
 window.handleTestExampleClick = (testId) => {
@@ -260,6 +260,9 @@ function initTest() {
       speedKitResult = result.speedKitTestResult;
       // eslint-disable-next-line prefer-destructuring
       whitelist = result.whitelist;
+
+      $('#skVersionCol').toggleClass('hidden', !result.isSpeedKitComparison);
+      $('.skVersion').text(result.speedkitVersion);
 
       competitorUrl = result.competitorTestResult.url;
       $('#currentVendorUrl').val(competitorUrl);
@@ -426,6 +429,8 @@ async function initComparison(normalizedUrl) {
   testOverview.mobile = testOptions.mobile;
   testOverview.url = competitorUrl;
   testOverview.whitelist = $wListInput.val();
+  testOverview.isSpeedKitComparison = isSpeedKitComparison;
+  testOverview.speedKitVersion = normalizedUrl.speedkitVersion;
 
   try {
     const [competitorResult, speedKitResult] = await Promise.all([

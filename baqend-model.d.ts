@@ -47,6 +47,8 @@ interface TestOverview extends binding.Entity {
   whitelist: string;
   hasFinished: boolean;
   factors: Mean;
+  isSpeedKitComparison: boolean;
+  speedKitVersion: string;
 }
 
 interface User extends binding.Entity {
