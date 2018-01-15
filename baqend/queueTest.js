@@ -81,7 +81,7 @@ function queueTest({
 
   const commandLine = createCommandLineFlags(url, isClone);
   db.log.info('flags: %s', commandLine);
-  const runs = isClone ? 5 : 1;
+  const runs = isClone ? 3 : 1;
   const testOptions = {
     firstViewOnly: !caching,
     runs,
@@ -132,6 +132,11 @@ function queueTest({
       return API.runTest(url, prewarmOptions, db)
         .then(testId => getPrewarmResult(db, testId, isSpeedKitComparison));
     }) */
+    .then(testScript => {
+      return new Promise((res, rej) => {
+        setTimeout(() => res(testScript), isClone ? 5000 : 0);
+      });
+    })
     .then(testScript => API.runTestWithoutWait(testScript, testOptions)
       .then((testId) => {
         db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
