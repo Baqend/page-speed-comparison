@@ -1,10 +1,15 @@
+/* eslint-disable no-restricted-syntax, no-console */
+
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const express = require('express');
+const chalk = require('chalk');
 const request = require('request');
 const path = require('path');
 const WebSocket = require('ws');
+const { chrome } = require('./chrome');
+const { analyzeSpeedKit } = require('./analyzeSpeedKit');
 
 const httpPort = 80;
 const sslPort = 443;
@@ -44,9 +49,20 @@ function createPage(config, snippet) {
 const debug = process.argv[2] === '--debug';
 
 app.use((req, res, next) => {
-  if (debug) {
-    console.log(req.url);
-  }
+  console.log(chalk`{gray [Express      ]} {bold {yellow [${req.method}]}} ${req.url}`);
+  const { end } = res;
+  res.end = (chunk, encoding) => {
+    if (debug) {
+      if (res.statusCode >= 400) {
+        console.log(chalk`{gray [Express      ]} {bold {red [${res.statusCode}]}} ${req.url}`);
+      } else {
+        console.log(chalk`{gray [Express      ]} {bold {green [${res.statusCode}]}} ${req.url}`);
+      }
+    }
+
+    res.end = end;
+    res.end(chunk, encoding);
+  };
   next();
 });
 
@@ -75,6 +91,24 @@ app.get('/install-speed-kit', (req, res) => {
   request('https://www.baqend.com/speed-kit/latest/snippet.js', (err, response, body) => {
     res.send(createPage(config, body));
   });
+});
+
+app.get('/config', async (req, res) => {
+  const { url = null } = req.query;
+  if (url === null) {
+    res.status(400).json({ error: 'You have to provide `url` as query parameter.', status: 400 });
+    return;
+  }
+
+  try {
+    const { config, http2, speedKit } = await chrome(client => analyzeSpeedKit(client, url));
+
+    res.json({
+      config, url, http2, speedKit,
+    });
+  } catch (e) {
+    res.status(404).json({ error: e.message, status: 404 });
+  }
 });
 
 app.use((req, res) => {
@@ -141,8 +175,9 @@ const wsFactory = secure => (
 ws.on('connection', wsFactory(false));
 wss.on('connection', wsFactory(true));
 
-httpServer.listen(httpPort);
-sslServer.listen(sslPort);
-
-console.log(`Started makefast-proxy server on http: ${httpPort}, ssl: ${sslPort}`);
-
+httpServer.listen(httpPort, () => {
+  console.log(chalk`{green Listening HTTP}  on  http://0.0.0.0:${httpPort}/`);
+});
+sslServer.listen(sslPort, () => {
+  console.log(chalk`{green Listening HTTPS} on https://0.0.0.0:${sslPort}/`);
+});
