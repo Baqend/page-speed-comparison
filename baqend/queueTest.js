@@ -112,7 +112,7 @@ function queueTest({
   };
 
   // Get the Speed Kit config from the page if it is already running Speed Kit
-  const promise = isSpeedKitComparison ? analyzeSpeedKit(url) : Promise.resolve(speedKitConfig);
+  const promise = isSpeedKitComparison ? analyzeSpeedKit(url).then(it => it.config) : Promise.resolve(speedKitConfig);
 
   promise
     .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))

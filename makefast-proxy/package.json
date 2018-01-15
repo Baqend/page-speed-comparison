@@ -3,7 +3,10 @@
   "description": "",
   "version": "1.0.0",
   "dependencies": {
+    "chalk": "^2.3.0",
+    "chrome-remote-interface": "^0.25.5",
     "express": "^4.16.2",
+    "node-fetch": "^1.7.3",
     "request": "^2.83.0",
     "ws": "^4.0.0"
   },
