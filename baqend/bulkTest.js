@@ -276,7 +276,6 @@ function createBulkTest(db, createdBy, {
   whitelist,
   speedKitConfig,
   runs = 1,
-  // eslint-disable-next-line no-unused-vars
   caching = false,
   location = DEFAULT_LOCATION,
   mobile = false,
@@ -294,12 +293,10 @@ function createBulkTest(db, createdBy, {
   bulkTest.priority = priority;
   bulkTest.completedRuns = 0;
 
-  // Get all options in the object
-  // eslint-disable-next-line prefer-rest-params
-  const options = arguments[2];
-
   return bulkTest.save()
-    .then(() => createTestOverviews(db, Object.assign({ bulkTest, speedKitConfig: config }, options)))
+    .then(() => createTestOverviews(db, {
+      bulkTest, url, whitelist, runs, caching, location, mobile, priority, speedKitConfig: config,
+    }))
     .then((overviews) => {
       bulkTest.testOverviews = overviews;
 
