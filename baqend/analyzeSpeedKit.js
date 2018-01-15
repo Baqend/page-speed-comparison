@@ -1,7 +1,8 @@
 const fetch = require('node-fetch');
 const URL = require('url');
+const credentials = require('./credentials');
 
-const ORIGIN = '18.195.228.187';
+const ORIGIN = credentials.makefast_ip;
 
 function analyzeSpeedKit(urlToTest) {
   const url = {
