@@ -601,6 +601,7 @@ function handleWhitelistCandidates(resultData, whitelist) {
         .filter(domainObject => (
           !regexp.test(domainObject.url)
             && domainObject.url.indexOf('makefast') === -1
+            && domainObject.url.indexOf('app.baqend') === -1
             && !domainObject.isAdDomain
         ))
         .splice(0, 6),

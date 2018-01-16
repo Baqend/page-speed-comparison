@@ -5,6 +5,7 @@ const { aggregateFields } = require('./helpers');
 const { queueTest, DEFAULT_LOCATION } = require('./queueTest');
 const { generateSpeedKitConfig, getTLD } = require('./getSpeedKitUrl');
 const { generateUniqueId } = require('./generateUniqueId');
+const { analyzeUrl } = require('./analyzeUrl');
 
 const fields = ['speedIndex', 'firstMeaningfulPaint', 'ttfb', 'domLoaded', 'fullyLoaded', 'lastVisualChange'];
 
@@ -168,6 +169,8 @@ function createTestOverview(db, {
   caching,
   url,
   speedKitConfig,
+  isSpeedKitComparison,
+  speedKitVersion,
   whitelist,
   mobile,
   priority,
@@ -182,6 +185,8 @@ function createTestOverview(db, {
     testOverview.caching = caching;
     testOverview.mobile = mobile;
     testOverview.hasFinished = false;
+    testOverview.isSpeedKitComparison = isSpeedKitComparison;
+    testOverview.speedKitVersion = speedKitVersion;
 
     return testOverview.save();
   }).then(() => Promise.all([
@@ -192,6 +197,7 @@ function createTestOverview(db, {
       caching,
       url,
       priority,
+      isSpeedKitComparison,
       mobile,
       isClone: false,
       finish(testResult) {
@@ -219,6 +225,7 @@ function createTestOverview(db, {
       location,
       caching,
       url,
+      isSpeedKitComparison,
       speedKitConfig,
       priority,
       mobile,
@@ -294,8 +301,19 @@ function createBulkTest(db, createdBy, {
   bulkTest.completedRuns = 0;
 
   return bulkTest.save()
-    .then(() => createTestOverviews(db, {
-      bulkTest, url, whitelist, runs, caching, location, mobile, priority, speedKitConfig: config,
+    .then(() => analyzeUrl(url))
+    .then(analyzedUrl => createTestOverviews(db, {
+      bulkTest,
+      url,
+      whitelist,
+      runs,
+      caching,
+      location,
+      mobile,
+      priority,
+      speedKitConfig: config,
+      isSpeedKitComparison: analyzedUrl.enabled,
+      speedKitVersion: analyzedUrl.version,
     }))
     .then((overviews) => {
       bulkTest.testOverviews = overviews;
