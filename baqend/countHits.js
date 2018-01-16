@@ -9,8 +9,7 @@ function countHits(requests) {
     const headers = req.headers;
     if (headers) {
       const resHeaders = headers.response.join(' ').toLowerCase();
-      if (resHeaders.indexOf('x-cache') !== -1 && resHeaders.indexOf('x-cache-hits') !== -1
-        && resHeaders.indexOf('x-served-by') !== -1) {
+      if (resHeaders.indexOf('via: baqend') !== -1) {
         return resHeaders.indexOf('x-cache: hit') !== -1 ? 'hit' : 'miss';
       }
     }

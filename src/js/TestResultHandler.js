@@ -156,7 +156,8 @@ export function calculateServedRequests(data) {
  * @param {*} speedKitData
  */
 export function isServedRateSatisfactory(speedKitData) {
-  return calculateServedRequests(speedKitData) >= 30;
+  const servedRate = calculateServedRequests(speedKitData);
+  return parseInt(servedRate, 10) >= 30;
 }
 
 /**

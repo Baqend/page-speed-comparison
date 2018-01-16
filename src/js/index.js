@@ -262,7 +262,7 @@ function initTest() {
       whitelist = result.whitelist;
 
       $('#skVersionCol').toggleClass('hidden', !result.isSpeedKitComparison);
-      $('.skVersion').text(result.speedkitVersion);
+      $('.skVersion').text(result.speedKitVersion);
 
       competitorUrl = result.competitorTestResult.url;
       $('#currentVendorUrl').val(competitorUrl);
@@ -282,7 +282,7 @@ function initTest() {
 
       // If speed index is satisfactory ==> show the test result and a list of suggested domains
       // Else don´t show test result but an error message
-      if (!isSpeedKitComparison && !isSatisfactory) {
+      if (!isSatisfactory) {
         throw new Error('Bad result');
       }
 
@@ -677,7 +677,8 @@ function resultStreamUpdate(result, subscription, elementId) {
           const isSatisfactory = isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])
             || (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])
               && isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView]));
-          if (!isSpeedKitComparison && !isSatisfactory) {
+
+          if (!isSatisfactory) {
             throw new Error('Bad result');
           }
 
