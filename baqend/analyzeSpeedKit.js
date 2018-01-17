@@ -13,7 +13,7 @@ function analyzeSpeedKit(urlToTest, db) {
   };
 
   const urlString = URL.format(url);
-  db.log.info(`Analyzing Speed Kit Website via ${url}`);
+  db.log.info(`Analyzing Speed Kit Website via ${urlString}`);
 
   const start = Date.now();
   return fetch(urlString)
