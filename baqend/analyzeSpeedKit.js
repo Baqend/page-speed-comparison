@@ -4,7 +4,7 @@ const credentials = require('./credentials');
 
 const ORIGIN = credentials.makefast_ip;
 
-function analyzeSpeedKit(urlToTest) {
+function analyzeSpeedKit(urlToTest, db) {
   const url = {
     protocol: 'http',
     host: ORIGIN,
@@ -13,7 +13,9 @@ function analyzeSpeedKit(urlToTest) {
   };
 
   const urlString = URL.format(url);
-  const now = Date.now();
+  db.log.info(`Analyzing Speed Kit Website via ${url}`);
+
+  const start = Date.now();
   return fetch(urlString)
     .then((res) => {
       if (res.status === 404) {

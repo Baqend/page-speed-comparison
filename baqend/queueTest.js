@@ -114,15 +114,11 @@ function queueTest({
   };
 
   // Get the Speed Kit config from the page if it is already running Speed Kit
-  const promise = isSpeedKitComparison ? analyzeSpeedKit(url).then(it => it.config) : Promise.resolve(speedKitConfig);
+  const promise = isSpeedKitComparison ? analyzeSpeedKit(url, db).then(it => it.config) : Promise.resolve(speedKitConfig);
 
   promise
     .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))
-    .then(testScript => {
-      return new Promise((res, rej) => {
-        setTimeout(() => res(testScript), isClone ? 5000 : 0);
-      });
-    })
+    .then(testScript => delay(testScript, isClone ? 5000 : 0))
     .then(testScript => API.runTestWithoutWait(testScript, testOptions)
       .then((testId) => {
         db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
@@ -146,6 +142,12 @@ function queueTest({
     .then(updatedResult => finish && finish(updatedResult));
 
   return pendingTest.ready().then(() => pendingTest.save());
+}
+
+function delay(value, timeout) {
+  return new Promise(function(resolve) {
+    setTimeout(resolve.bind(null, value), timeout)
+  });
 }
 
 /**
