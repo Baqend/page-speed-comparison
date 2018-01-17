@@ -262,7 +262,7 @@ function initTest() {
       whitelist = result.whitelist;
 
       $('#skVersionCol').toggleClass('hidden', !result.isSpeedKitComparison);
-      $('.skVersion').text(result.speedkitVersion);
+      $('.skVersion').text(result.speedKitVersion);
 
       competitorUrl = result.competitorTestResult.url;
       $('#currentVendorUrl').val(competitorUrl);
@@ -282,7 +282,7 @@ function initTest() {
 
       // If speed index is satisfactory ==> show the test result and a list of suggested domains
       // Else don´t show test result but an error message
-      if (!isSpeedKitComparison && !isSatisfactory) {
+      if (!isSatisfactory) {
         throw new Error('Bad result');
       }
 
@@ -327,26 +327,22 @@ function initTest() {
 
       // Handle whitelist candidates and add them to the UI
       handleWhitelistCandidates(speedKitResult[dataView], whitelist);
+      $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
 
       // If served rate is not satisfactory ==> show warning message and list of suggested domains
       // Else don´t do anything
       if (!isServedRateSatisfactory(speedKitResult[dataView])) {
-        calculateFactors(competitorResult[dataView], speedKitResult[dataView], testOptions);
-        $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
-
-        // Handle whitelist candidates and add them to the UI
-        handleWhitelistCandidates(speedKitResult[dataView], whitelist);
-
         verifyWarningMessage(new Error('Low served rate'));
       }
     }).catch((e) => {
       if (e.message === 'Bad result') {
+        // Handle whitelist candidates and add them to the UI
+        handleWhitelistCandidates(speedKitResult[dataView], whitelist);
+        $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
+
         // If served rate is not satisfactory ==> show warning message and list of suggested domains
         // Else don´t do anything
         if (!isServedRateSatisfactory(speedKitResult[dataView])) {
-          // Handle whitelist candidates and add them to the UI
-          handleWhitelistCandidates(speedKitResult[dataView], whitelist);
-          $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
           e.message = 'Low served rate';
         }
         verifyWarningMessage(e);
@@ -605,6 +601,7 @@ function handleWhitelistCandidates(resultData, whitelist) {
         .filter(domainObject => (
           !regexp.test(domainObject.url)
             && domainObject.url.indexOf('makefast') === -1
+            && domainObject.url.indexOf('app.baqend') === -1
             && !domainObject.isAdDomain
         ))
         .splice(0, 6),
@@ -677,7 +674,8 @@ function resultStreamUpdate(result, subscription, elementId) {
           const isSatisfactory = isSpeedIndexSatisfactory(competitorResult[dataView], speedKitResult[dataView])
             || (shouldShowFirstMeaningfulPaint(competitorResult[dataView], speedKitResult[dataView])
               && isFMPSatisfactory(competitorResult[dataView], speedKitResult[dataView]));
-          if (!isSpeedKitComparison && !isSatisfactory) {
+
+          if (!isSatisfactory) {
             throw new Error('Bad result');
           }
 
@@ -713,15 +711,15 @@ function resultStreamUpdate(result, subscription, elementId) {
             calculateRevenueBoost(competitorResult[dataView].speedIndex, speedKitResult[dataView].speedIndex);
           }
 
+          // Handle whitelist candidates and add them to the UI
+          handleWhitelistCandidates(speedKitResult[dataView], testOverview.whitelist);
+          $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
+
           // If served rate is not satisfactory ==> show warning message and list of suggested domains
           // Else don´t do anything
           if (!isServedRateSatisfactory(speedKitResult[dataView])) {
             verifyWarningMessage(new Error('Low served rate'));
           }
-
-          // Handle whitelist candidates and add them to the UI
-          handleWhitelistCandidates(speedKitResult[dataView], testOverview.whitelist);
-          $('#servedRequests').text(calculateServedRequests(speedKitResult.firstView));
         }
       }
 
@@ -750,12 +748,13 @@ function resultStreamUpdate(result, subscription, elementId) {
       }
     } catch (e) {
       if (e.message === 'Bad result') {
+        // Handle whitelist candidates and add them to the UI
+        handleWhitelistCandidates(testResult.speedKit[dataView], testOverview.whitelist);
+        $('#servedRequests').text(calculateServedRequests(testResult.speedKit.firstView));
+
         // If served rate is not satisfactory ==> show warning message and list of suggested domains
         // Else don´t do anything
         if (!isServedRateSatisfactory(testResult.speedKit[dataView])) {
-          // Handle whitelist candidates and add them to the UI
-          handleWhitelistCandidates(testResult.speedKit[dataView], testOverview.whitelist);
-          $('#servedRequests').text(calculateServedRequests(testResult.speedKit.firstView));
           e.message = 'Low served rate';
         }
         verifyWarningMessage(e);

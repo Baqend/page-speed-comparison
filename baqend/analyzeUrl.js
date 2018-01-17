@@ -159,26 +159,34 @@ function raceBestResult(resultPromises) {
 }
 
 /**
+ * Analyzes a single result.
+ *
  * @param {string} query The URL to test.
  * @param {boolean} mobile Whether to fetch the mobile variant of the site.
- * @return {Promise}
+ * @return {Promise<Result>} A promise which resolves with the analysis's result.
+ * @template Result
  */
-function analyzeUrl(query, mobile) {
+function analyzeUrl(query, mobile = false) {
   const urlsToTest = addSchema(query);
   const fetchPromises = urlsToTest.map(url => fetchUrl(url, mobile));
 
   // Race for the best result
-  return raceBestResult(fetchPromises).then(result => [query, result]);
+  return raceBestResult(fetchPromises);
 }
 
 /**
- * @param {string[]} urls The URL to fetch.
+ * Analyzes a bunch of URLs.
+ * The result is given in a Map returning a result for each query sent.
+ *
+ * @param {string[]} queries The URLs to test.
  * @param {boolean} mobile Whether to fetch the mobile variant of the site.
+ * @return {Promise<Map<string, Result>>} A promise which resolves with the analysis's result map.
+ * @template Result
  */
-function analyzeUrls(urls, mobile) {
-  return Promise.all(urls.map(url => analyzeUrl(url, mobile)));
+function analyzeUrls(queries, mobile = false) {
+  return Promise.all(queries.map(query => analyzeUrl(query, mobile).then(result => [query, result]))).then(map => new Map(map));
 }
 
 exports.analyzeUrl = analyzeUrl;
 exports.analyzeUrls = analyzeUrls;
-exports.call = (db, { urls, mobile }) => analyzeUrls([].concat(urls), mobile === true || mobile === 'true');
+exports.call = (db, { urls, mobile }) => analyzeUrls([].concat(urls), mobile === true || mobile === 'true').then(map => [...map]);
