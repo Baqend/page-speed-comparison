@@ -13,6 +13,7 @@ function analyzeSpeedKit(urlToTest) {
   };
 
   const urlString = URL.format(url);
+  const now = Date.now();
   return fetch(urlString)
     .then((res) => {
       if (res.status === 404) {
@@ -20,6 +21,8 @@ function analyzeSpeedKit(urlToTest) {
       }
 
       return res.json();
+    }).catch(err => {
+      throw new Error(`Fetching config from Speed Kit website failed, request time: ${Date.now() - start}ms`, err);
     });
 }
 

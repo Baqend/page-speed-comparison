@@ -80,7 +80,9 @@ function queueTest({
   pendingTest.priority = priority;
 
   const commandLine = createCommandLineFlags(url, isClone);
-  db.log.info('flags: %s', commandLine);
+  if (commandLine) {
+    db.log.info('flags: %s', commandLine);
+  }
   const runs = isClone ? 3 : 1;
   const testOptions = {
     firstViewOnly: !caching,
@@ -116,22 +118,6 @@ function queueTest({
 
   promise
     .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))
-    /* .then(() => {
-      if (!requirePrewarm) {
-        return null;
-      }
-
-      const prewarmOptions = Object.assign({}, testOptions, {
-        runs: 2,
-        timeline: false,
-        video: false,
-        firstViewOnly: true,
-        minimalResults: true,
-      });
-
-      return API.runTest(url, prewarmOptions, db)
-        .then(testId => getPrewarmResult(db, testId, isSpeedKitComparison));
-    }) */
     .then(testScript => {
       return new Promise((res, rej) => {
         setTimeout(() => res(testScript), isClone ? 5000 : 0);
@@ -150,26 +136,6 @@ function queueTest({
         return API.waitOnTest(testId, db);
       })
       .then(testId => getTestResult(db, pendingTest, testId))
-      /* .catch((e) => {
-        db.log.info(`First try failed. Second try for: ${pendingTest.testId}:\n ${e && e.stack}`);
-
-        testScript =
-          createTestScript(url, isClone, !caching, activityTimeout, isSpeedKitComparison, true, speedKitConfig);
-
-        return API.runTestWithoutWait(testScript, testOptions)
-          .then((testId) => {
-            db.log.info(`Second try started, testId: ${testId} script:\n${testScript}`);
-            pendingTest.testId = testId;
-            pendingTest.hasFinished = false;
-            pendingTest.retryRequired = true;
-            pendingTest.ready().then(() => pendingTest.save());
-            return API.waitOnTest(testId, db);
-          })
-          .then((testId) => {
-            db.log.info(`Getting Test result of second try: ${testId} script:\n${testScript}`);
-            return getTestResult(db, pendingTest, testId);
-          });
-      }) */
       .then((result) => {
         db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
         return result;
@@ -197,24 +163,6 @@ function createCommandLineFlags(testUrl, isClone) {
   }
   return '';
 }
-
-/**
- * @param db The Baqend instance.
- * @param {string} testId
- * @param {boolean} isSpeedKitComparison
- */
-/* function getPrewarmResult(db, testId, isSpeedKitComparison) {
-  return API.getTestResults(testId, {
-    requests: false,
-    breakdown: false,
-    domains: false,
-    pageSpeed: false,
-  }).then((result) => {
-    const ttfb = isSpeedKitComparison ? result.data.runs['2'].firstView.TTFB : result.data.runs['1'].firstView.TTFB;
-    db.log.info(`TTFB of prewarm: ${ttfb} with testId ${testId}`, result.data.runs['1'].firstView);
-    return ttfb;
-  });
-} */
 
 /**
  * @param db The Baqend instance.
