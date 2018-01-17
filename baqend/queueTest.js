@@ -8,6 +8,7 @@ const { toFile } = require('./download');
 const { countHits } = require('./countHits');
 const { createTestScript } = require('./createTestScript');
 const { analyzeSpeedKit } = require('./analyzeSpeedKit');
+const { sleep } = require('./sleep');
 const fetch = require('node-fetch');
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
@@ -118,7 +119,7 @@ function queueTest({
 
   promise
     .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))
-    .then(testScript => delay(testScript, isClone ? 5000 : 0))
+    .then(testScript => sleep(isClone ? 5000 : 0, testScript))
     .then(testScript => API.runTestWithoutWait(testScript, testOptions)
       .then((testId) => {
         db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
@@ -142,12 +143,6 @@ function queueTest({
     .then(updatedResult => finish && finish(updatedResult));
 
   return pendingTest.ready().then(() => pendingTest.save());
-}
-
-function delay(value, timeout) {
-  return new Promise(function(resolve) {
-    setTimeout(resolve.bind(null, value), timeout)
-  });
 }
 
 /**

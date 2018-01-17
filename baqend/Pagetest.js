@@ -1,5 +1,6 @@
 const WebPageTest = require('webpagetest');
 const credentials = require('./credentials');
+const { sleep } = require('./sleep');
 
 const PING_BACK_URL = `https://${credentials.app}.app.baqend.com/v1/code/testPingback`;
 
@@ -152,11 +153,8 @@ class Pagetest {
         }
 
         // Retry after 500 milliseconds
-        return new Promise((resolve) => {
-          setTimeout(resolve, 500);
-        });
-      })
-      .then(() => this.wptGetTestResults(testId, options));
+        return sleep(500).then(() => this.wptGetTestResults(testId, options));
+      });
   }
 
   wptGetTestResults(testId, options = {}) {
