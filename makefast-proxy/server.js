@@ -4,6 +4,7 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const express = require('express');
+const queue = require('express-queue');
 const chalk = require('chalk');
 const request = require('request');
 const path = require('path');
@@ -92,6 +93,8 @@ app.get('/install-speed-kit', (req, res) => {
     res.send(createPage(config, body));
   });
 });
+
+app.get('/config', queue({ activeLimit: 2, queuedLimit: -1 }));
 
 app.get('/config', async (req, res) => {
   const { url = null } = req.query;
