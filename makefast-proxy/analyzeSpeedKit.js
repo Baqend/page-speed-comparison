@@ -24,6 +24,29 @@ async function evaluateSpeedKit(url) {
 }
 
 /**
+ * @param {Array<Promise<T | null>>} promises
+ * @return {Promise<T>}
+ * @template T
+ */
+function raceNonNullPromise(promises) {
+  let unresolved = true;
+  return new Promise((resolve, reject) => {
+    for (const promise of promises) {
+      promise.then((result) => {
+        if (unresolved && result !== null) {
+          unresolved = false;
+          resolve(result);
+        }
+      });
+    }
+
+    Promise.all(promises)
+      .then(() => reject(new Error('No non-null candidate existed.')))
+      .catch(() => reject(new Error('No non-null candidates resolved.')));
+  });
+}
+
+/**
  * @param client
  * @param {string} url
  * @return {Promise<{}>}
@@ -45,7 +68,7 @@ async function analyzeSpeedKit(client, url) {
       awaitPromise: true,
     });
 
-    return value ? JSON.parse(value) : value;
+    return value ? JSON.parse(value) : null;
   }
 
   let http2 = false;
@@ -110,12 +133,12 @@ async function analyzeSpeedKit(client, url) {
   });
 
   // Await matching config
-  const configs = await Promise.all([
+  const config = await raceNonNullPromise([
     loadEventFired,
     domContentEventFired,
     navigate,
   ]);
-  const config = configs.find(optConfig => optConfig !== null);
+  console.log('Config', config);
   if (!config) {
     throw new Error('Server has no Speed Kit installed');
   }
