@@ -320,8 +320,8 @@ function createBulkTest(db, createdBy, {
         mobile,
         priority,
         speedKitConfig: config,
-        isSpeedKitComparison: analyzedUrl.enabled,
-        speedKitVersion: analyzedUrl.version,
+        isSpeedKitComparison: analyzedUrl ? analyzedUrl.enabled : false,
+        speedKitVersion: analyzedUrl ? analyzedUrl.version : null,
       });
     })
     .then((overviews) => {
