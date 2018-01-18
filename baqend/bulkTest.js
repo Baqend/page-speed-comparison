@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-syntax, no-param-reassign */
 
 const { aggregateFields } = require('./helpers');
-const { queueTest, DEFAULT_LOCATION } = require('./queueTest');
+const { queueTest, DEFAULT_LOCATION, DEFAULT_ACTIVITY_TIMEOUT } = require('./queueTest');
 const { generateSpeedKitConfig, getTLD } = require('./getSpeedKitUrl');
 const { generateUniqueId } = require('./generateUniqueId');
 const { analyzeUrl } = require('./analyzeUrl');
@@ -168,6 +168,7 @@ function createTestOverview(db, {
   location,
   caching,
   url,
+  activityTimeout,
   speedKitConfig,
   isSpeedKitComparison,
   speedKitVersion,
@@ -196,6 +197,7 @@ function createTestOverview(db, {
       location,
       caching,
       url,
+      activityTimeout,
       priority,
       isSpeedKitComparison,
       mobile,
@@ -225,6 +227,7 @@ function createTestOverview(db, {
       location,
       caching,
       url,
+      activityTimeout,
       isSpeedKitComparison,
       speedKitConfig,
       priority,
@@ -271,6 +274,7 @@ function createTestOverviews(db, options) {
  * @param {string} url The URL under test.
  * @param {string} whitelist A whitelist to use for the test.
  * @param {boolean} speedKitConfig Configuration for the speed kit snippet.
+ * @param {number} [activityTimeout] The timeout when the test should be aborted.
  * @param {string} [location] The server location to execute the test.
  * @param {number} [runs] The number of runs to execute.
  * @param {boolean} [caching] If true, browser caching will be used. Defaults to false.
@@ -282,13 +286,14 @@ function createBulkTest(db, createdBy, {
   url,
   whitelist,
   speedKitConfig,
+  activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
   runs = 1,
   caching = false,
   location = DEFAULT_LOCATION,
   mobile = false,
   priority = 9,
 }) {
-  const config = speedKitConfig || generateSpeedKitConfig(url, whitelist, mobile);
+  const promise = !speedKitConfig ? generateSpeedKitConfig(url, whitelist, mobile) : Promise.resolve();
 
   const bulkTest = new db.BulkTest();
   bulkTest.url = url;
@@ -301,20 +306,24 @@ function createBulkTest(db, createdBy, {
   bulkTest.completedRuns = 0;
 
   return bulkTest.save()
-    .then(() => analyzeUrl(url))
-    .then(analyzedUrl => createTestOverviews(db, {
-      bulkTest,
-      url,
-      whitelist,
-      runs,
-      caching,
-      location,
-      mobile,
-      priority,
-      speedKitConfig: config,
-      isSpeedKitComparison: analyzedUrl.enabled,
-      speedKitVersion: analyzedUrl.version,
-    }))
+    .then(() => Promise.all([promise, analyzeUrl(url)]))
+    .then((results) => {
+      const [config, analyzedUrl] = results;
+      return createTestOverviews(db, {
+        bulkTest,
+        url,
+        whitelist,
+        activityTimeout,
+        runs,
+        caching,
+        location,
+        mobile,
+        priority,
+        speedKitConfig: config,
+        isSpeedKitComparison: analyzedUrl.enabled,
+        speedKitVersion: analyzedUrl.version,
+      });
+    })
     .then((overviews) => {
       bulkTest.testOverviews = overviews;
 

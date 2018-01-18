@@ -1,6 +1,8 @@
 const credentials = require('./credentials');
+const fetch = require('node-fetch');
 const urlModule = require('url');
 
+const CDN_LOCAL_URL = 'https://makefast.app.baqend.com/v1/file/www/assets/selfMaintainedCDNList';
 /**
  * Extracts the top level domain of a URL.
  *
@@ -47,6 +49,15 @@ function generateRules(originalUrl, whitelist) {
   return `/^(?:[\\w-]*\\.){0,3}(?:${[domain, ...whitelist].map(item => escapeRegExp(item)).join('|')})/`;
 }
 
+function generateCDNRegex() {
+  return fetch(CDN_LOCAL_URL)
+    .then(resp => resp.text())
+    .then((text) => {
+      const lines = text.trim().split('\n');
+      return `/${lines.map(line => line.split(/(?=\.)/g).map(it => `\\${it}`).join('')).join('|')}/`;
+    });
+}
+
 /**
  * Returns the URL to send to Speed Kit.
  *
@@ -62,12 +73,11 @@ function generateSpeedKitConfig(originalUrl, whitelistStr, enableUserAgentDetect
     .filter(item => !!item);
 
   const whitelist = generateRules(originalUrl, whitelistDomains);
-
-  return `{
+  return generateCDNRegex().then(cdnRegex => `{
     appName: "${credentials.app}",
-    whitelist: [{ host: [ ${whitelist} ] }],
+    whitelist: [{ host: [ ${whitelist}, /cdn/, ${cdnRegex}] }],
     userAgentDetection: ${enableUserAgentDetection},
-  }`;
+    }`);
 }
 
 exports.generateSpeedKitConfig = generateSpeedKitConfig;

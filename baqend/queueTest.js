@@ -420,3 +420,4 @@ function startTest(
 exports.startTest = startTest;
 exports.queueTest = queueTest;
 exports.DEFAULT_LOCATION = DEFAULT_LOCATION;
+exports.DEFAULT_ACTIVITY_TIMEOUT = DEFAULT_ACTIVITY_TIMEOUT;

@@ -1,7 +1,5 @@
 /* global APP document */
-
 const BAQEND_URL = `https://${APP}.speed-kit.com/`;
-
 /**
  * Extracts the top level domain of a URL.
  *
