@@ -94,7 +94,7 @@ app.get('/install-speed-kit', (req, res) => {
   });
 });
 
-app.get('/config', queue({ activeLimit: 2, queuedLimit: -1 }));
+app.get('/config', queue({ activeLimit: 1, queuedLimit: -1 }));
 
 app.get('/config', async (req, res) => {
   const { url = null } = req.query;
