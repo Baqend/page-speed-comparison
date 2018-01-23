@@ -188,6 +188,7 @@ function createTestOverview(db, {
     testOverview.hasFinished = false;
     testOverview.isSpeedKitComparison = isSpeedKitComparison;
     testOverview.speedKitVersion = speedKitVersion;
+    testOverview.activityTimeout = activityTimeout || DEFAULT_ACTIVITY_TIMEOUT;
 
     return testOverview.save();
   }).then(() => Promise.all([

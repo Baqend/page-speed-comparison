@@ -21,8 +21,8 @@ function getTLD(url) {
   const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
   const [, domain] = domainFilter.exec(hostname);
 
-  // remove the dor at the end of the string
-  return domain.substring(0, domain.length - 1);
+  // remove the dot at the end of the string
+  return domain.substring(0, domain.length);
 }
 
 /**

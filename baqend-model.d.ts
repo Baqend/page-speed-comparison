@@ -49,6 +49,7 @@ interface TestOverview extends binding.Entity {
   factors: Mean;
   isSpeedKitComparison: boolean;
   speedKitVersion: string;
+  activityTimeout: number;
 }
 
 interface User extends binding.Entity {
