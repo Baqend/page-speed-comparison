@@ -1,5 +1,4 @@
 .clients.turbobytes.net
-.turbobytes-cdn.com
 .akamai.net
 .akamaiedge.net
 .akamaihd.net
@@ -8,7 +7,6 @@
 .gslb.tbcache.com
 .cloudfront.net
 .att-dsa.net
-.azioncdn.net
 .bluehatnetwork.com
 .cachefly.net
 .ccgslb.com
@@ -21,10 +19,8 @@
 .edgesuite.net
 .fastly.net
 .fastlylb.net
-.googlesyndication
 .googleusercontent.com
-.gstatic.com
-.l.doubleclick.net
+.fonts.gstatic.com
 .incapdns.net
 .inscname.net
 .insnw.net
@@ -40,3 +36,5 @@
 .gslb.taobao.com
 .ay1.b.yahoo.com
 .zenedge.net
+.code.jquery.com
+.fast.fonts.com
