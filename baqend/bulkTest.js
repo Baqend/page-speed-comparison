@@ -294,7 +294,7 @@ function createBulkTest(db, createdBy, {
   mobile = false,
   priority = 9,
 }) {
-  const promise = !speedKitConfig ? generateSpeedKitConfig(url, whitelist, mobile) : Promise.resolve();
+  const promise = !speedKitConfig ? generateSpeedKitConfig(url, whitelist, mobile) : Promise.resolve(speedKitConfig);
 
   const bulkTest = new db.BulkTest();
   bulkTest.url = url;
