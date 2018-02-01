@@ -148,8 +148,8 @@ async function executeAnalyzerTest() {
     await execNonSpeedKit();
     await execSpeedKit();
   } catch(err) {
-    console.error(err.message, err.stack);
-    throw err;
+    console.error(err.stack, err.cause);
+    process.exit(1);
   }
 }
 
