@@ -82,6 +82,7 @@ interface Hits extends binding.Managed {
   hit: number;
   miss: number;
   other: number;
+  size: number;
 }
 
 interface TestEntry extends binding.Managed {
