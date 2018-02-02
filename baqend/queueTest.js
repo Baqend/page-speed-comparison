@@ -84,7 +84,7 @@ function queueTest({
   if (commandLine) {
     db.log.info('flags: %s', commandLine);
   }
-  const runs = isClone ? 3 : 1;
+  const runs = 1;
   const testOptions = {
     firstViewOnly: !caching,
     runs,
@@ -115,11 +115,11 @@ function queueTest({
   };
 
   // Get the Speed Kit config from the page if it is already running Speed Kit
-  const promise = isSpeedKitComparison ? analyzeSpeedKit(url, db).then(it => it.config) : Promise.resolve(speedKitConfig);
+  const promise = isSpeedKitComparison ? analyzeSpeedKit(url, db).then(it => it.config) : Promise.resolve(speedKitConfig || getDefaultConfig(url));
 
   promise
     .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))
-    .then(testScript => sleep(isClone ? 5000 : 0, testScript))
+    .then(testScript => executePrewarm(url, isClone, testScript, testOptions, isSpeedKitComparison, activityTimeout))
     .then(testScript => API.runTestWithoutWait(testScript, testOptions)
       .then((testId) => {
         db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
@@ -143,6 +143,60 @@ function queueTest({
     .then(updatedResult => finish && finish(updatedResult));
 
   return pendingTest.ready().then(() => pendingTest.save());
+}
+
+function executePrewarm(url, isClone, testScript, testOptions, isSpeedKitComparison, activityTimeout) {
+  if (!isClone) {
+    return testScript;
+  }
+
+  const prewarmOptions = Object.assign({}, testOptions, {
+    runs: 2,
+    timeline: false,
+    video: false,
+    firstViewOnly: true,
+    minimalResults: true,
+  });
+
+  return API.runTest(testScript, prewarmOptions, db)
+    .then(testId => createSmartConfig(testId))
+    .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout));
+}
+
+function createSmartConfig() {
+  const options = {
+    requests: true,
+    breakdown: false,
+    domains: false,
+    pageSpeed: false,
+  };
+
+  return API.getTestResults(testId, options)
+    .then(result => {
+      const run = result.data.runs[0];
+asdasdas
+    });
+}
+
+function getDefaultConfig(url) {
+  const tld = getTLD(url);
+  const domainRegex = `/^(?:[\\w-]*\\.){0,3}(?:${escapeRegExp(tld)})/`;
+
+  return `{
+    appName: "makefast",
+    whitelist: [{ host: ${domainRegex} }],
+    userAgentDetection: false
+  }`;
+}
+
+function getTLD(url) {
+  const { hostname } = URL.parse(url);
+
+  const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
+  const [, domain] = domainFilter.exec(hostname);
+
+  // remove the dot at the end of the string
+  return domain;
 }
 
 /**

@@ -98,12 +98,12 @@ function createTestScript(
   activityTimeout = DEFAULT_ACTIVITY_TIMEOUT,
   timeout = DEFAULT_TIMEOUT
 ) {
-  if (!speedKitConfig) {
-    throw new Error('Empty Speed Kit Config');
-  }
 
   // Resolve Speed Kit config
   if (isTestWithSpeedKit) {
+    if (!speedKitConfig) {
+      throw new Error('Empty Speed Kit Config');
+    }
     return createSpeedKitTestScript(url, speedKitConfig, { activityTimeout, timeout });
   }
 
