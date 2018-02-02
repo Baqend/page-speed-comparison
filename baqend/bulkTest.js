@@ -294,8 +294,6 @@ function createBulkTest(db, createdBy, {
   mobile = false,
   priority = 9,
 }) {
-  const promise = !speedKitConfig ? generateSpeedKitConfig(url, whitelist, mobile) : Promise.resolve(speedKitConfig);
-
   const bulkTest = new db.BulkTest();
   bulkTest.url = url;
   bulkTest.createdBy = createdBy;
@@ -307,24 +305,31 @@ function createBulkTest(db, createdBy, {
   bulkTest.completedRuns = 0;
 
   return bulkTest.save()
-    .then(() => Promise.all([promise, analyzeUrl(url)]))
-    .then((results) => {
-      const [config, analyzedUrl] = results;
-      return createTestOverviews(db, {
-        bulkTest,
-        url,
-        whitelist,
-        activityTimeout,
-        runs,
-        caching,
-        location,
-        mobile,
-        priority,
-        speedKitConfig: config,
-        isSpeedKitComparison: analyzedUrl ? analyzedUrl.enabled : false,
-        speedKitVersion: analyzedUrl ? analyzedUrl.version : null,
-      });
+    .then(() => analyzeUrl(url))
+    .then((urlAnalysis) => {
+      bulkTest.urlAnalysis = new db.UrlAnalysis(urlAnalysis);
+
+      return bulkTest.save();
     })
+    .then(() => {
+      const urlTo = bulkTest.urlAnalysis ? bulkTest.urlAnalysis.url : url;
+
+      return speedKitConfig || generateSpeedKitConfig(urlTo, whitelist, mobile);
+    })
+    .then(config => createTestOverviews(db, {
+      bulkTest,
+      whitelist,
+      activityTimeout,
+      runs,
+      caching,
+      location,
+      mobile,
+      priority,
+      speedKitConfig: config,
+      url: bulkTest.urlAnalysis ? bulkTest.urlAnalysis.url : url,
+      isSpeedKitComparison: bulkTest.urlAnalysis ? bulkTest.urlAnalysis.enabled : false,
+      speedKitVersion: bulkTest.urlAnalysis ? bulkTest.urlAnalysis.version : null,
+    }))
     .then((overviews) => {
       bulkTest.testOverviews = overviews;
 
