@@ -169,7 +169,6 @@ function createCommandLineFlags(testUrl, isClone) {
  */
 function getTestResult(db, originalResult, testId) {
   const testResult = originalResult;
-  db.log.info(`Pingback received for ${testId}`);
 
   if (testResult.hasFinished) {
     db.log.info(`Result already exists for ${testId}`);
@@ -328,7 +327,9 @@ function createRun(db, data) {
  * @return {boolean}
  */
 function iskWordPress(url) {
-  return fetch(url).then(res => res.text().then(text => text.indexOf('wp-content') !== -1));
+  const analyzeSite = fetch(url).then(res => res.text().then(text => text.indexOf('wp-content') !== -1))
+  const timneout = sleep(10000, false);
+  return Promise.race([ analyzeSite, timneout ]);
 }
 
 function createFailedRequestsCount(data) {
