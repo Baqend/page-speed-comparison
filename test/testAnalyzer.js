@@ -57,7 +57,7 @@ async function testAnalyzer(siteUrl, expectedUrlInfo, speedKitConfigString) {
 
   const skBody = {
     url: urlInfo[0].url,
-    isSpeedKitComparison: false,
+    isSpeedKitComparison: urlInfo.speedkit,
     speedKitConfig: speedKitConfigString,
     location: "eu-central-1:Chrome.Native",
     isClone:true,
