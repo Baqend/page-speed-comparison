@@ -73,6 +73,16 @@
       "name": "factors",
       "type": "/db/Mean",
       "order": 11
+    },
+    "isSpeedKitComparison": {
+      "name": "isSpeedKitComparison",
+      "type": "/db/Boolean",
+      "order": 12
+    },
+    "speedKitVersion": {
+      "name": "speedKitVersion",
+      "type": "/db/String",
+      "order": 13
     }
   }
 }

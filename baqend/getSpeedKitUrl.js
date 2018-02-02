@@ -12,7 +12,8 @@ const CDN_LOCAL_URL = 'https://makefast.app.baqend.com/v1/file/www/assets/selfMa
 function getTLD(url) {
   const parsedUrl = urlModule.parse(url);
 
-  let hostname = parsedUrl.hostname;
+  let hostname = parsedUrl.protocol ? parsedUrl.hostname : url;
+
   // Remove "www" in the beginning
   if (hostname.includes('www.')) {
     hostname = hostname.substr(hostname.indexOf('www.') + 4);

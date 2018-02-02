@@ -25,6 +25,11 @@
       "name": "other",
       "type": "/db/Integer",
       "order": 2
+    },
+    "size": {
+      "name": "size",
+      "type": "/db/Integer",
+      "order": 3
     }
   }
 }

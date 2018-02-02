@@ -83,6 +83,11 @@
       "name": "priority",
       "type": "/db/Integer",
       "order": 13
+    },
+    "urlAnalysis": {
+      "name": "urlAnalysis",
+      "type": "/db/UrlAnalysis",
+      "order": 14
     }
   }
 }
