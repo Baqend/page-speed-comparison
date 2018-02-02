@@ -119,17 +119,17 @@ function reportError(msg, err) {
 
 function checkTestResult(result, speedKit) {
   try {
-    assert.ok(result.firstView);
-    assert.ok(result.firstView.speedIndex);
-    assert.ok(result.firstView.firstMeaningfulPaint);
-    assert.ok(result.url);
-    assert.ok(result.summaryUrl);
-    assert.ok(result.videoIdFirstView);
-    assert.ok(result.videoFileFirstView);
-    assert.ok(!result.testDataMissing);
-    assert.ok(result.hasFinished);
-    assert.ok(!result.isWordPress);
-    assert.equal(0, result.priority);
+    assert.ok(result.firstView, "First View missing");
+    assert.ok(result.firstView.speedIndex, "Speed Index missing");
+    assert.ok(result.firstView.firstMeaningfulPaint, "First Meaningful Paint missing");
+    assert.ok(result.url, "Url missing");
+    assert.ok(result.summaryUrl, "Summary Link missing");
+    assert.ok(result.videoIdFirstView, "Video Id missing");
+    assert.ok(result.videoFileFirstView, "Video File missing");
+    assert.ok(!result.testDataMissing, "Test Data missing");
+    assert.ok(result.hasFinished, "Test not finished");
+    assert.ok(!result.isWordPress, "Testpage wrongly categoriezed as WordPress");
+    assert.equal(0, result.priority, "Priority not 0");
   } catch(err) {
     console.log(err);
     reportError(`Testresult for ${speedKit? 'Speed Kit' : 'Competitor'} not valid. Id: ${result.id}`, err);
