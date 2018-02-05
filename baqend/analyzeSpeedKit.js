@@ -22,7 +22,12 @@ function analyzeSpeedKit(urlToTest, db) {
         throw new Error(`Not a valid Speed Kit URL: ${urlString}`);
       }
 
-      return res.json();
+      return res.json().then(info => {
+        if (!info.config) {
+          db.log.error(`No Speed Kit config found. URL: ${urlString}`);
+        }
+        return info;
+      });
     }).catch(err => {
       throw new Error(`Fetching config from Speed Kit website failed, request time: ${Date.now() - start}ms`, err);
     });

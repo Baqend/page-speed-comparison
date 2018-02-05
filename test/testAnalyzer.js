@@ -42,7 +42,7 @@ async function testAnalyzer(siteUrl, expectedUrlInfo, speedKitConfigString) {
 
   const compBody = {
     url: urlInfo[0].url,
-    isSpeedKitComparison: urlInfo.speedkit,
+    isSpeedKitComparison: urlInfo[0].speedkit,
     location: "eu-central-1:Chrome.Native",
     isClone:false,
     caching:false,
@@ -57,7 +57,7 @@ async function testAnalyzer(siteUrl, expectedUrlInfo, speedKitConfigString) {
 
   const skBody = {
     url: urlInfo[0].url,
-    isSpeedKitComparison: false,
+    isSpeedKitComparison: urlInfo[0].speedkit,
     speedKitConfig: speedKitConfigString,
     location: "eu-central-1:Chrome.Native",
     isClone:true,
@@ -145,7 +145,9 @@ async function post(url, body) {
 
 async function executeAnalyzerTest() {
   try {
+    console.log('Testing kicker.de (no Speed Kit installed)');
     await execNonSpeedKit();
+    console.log('Testing fussballdaten.de (with Speed Kit installed)');
     await execSpeedKit();
   } catch(err) {
     console.error(err.stack, err.cause);
