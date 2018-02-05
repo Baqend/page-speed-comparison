@@ -145,7 +145,9 @@ async function post(url, body) {
 
 async function executeAnalyzerTest() {
   try {
-    // await execNonSpeedKit();
+    console.log('Testing kicker.de (no Speed Kit installed)');
+    await execNonSpeedKit();
+    console.log('Testing fussballdaten.de (with Speed Kit installed)');
     await execSpeedKit();
   } catch(err) {
     console.error(err.stack, err.cause);
