@@ -55,7 +55,7 @@ function generateCDNRegex() {
     .then(resp => resp.text())
     .then((text) => {
       const lines = text.trim().split('\n');
-      return `/${lines.map(line => line.split(/(?=\.)/g).map(it => `\\${it}`).join('')).join('|')}/`;
+      return `/${lines.map(line => line.replace(/\./g, '\\.')).join('|')}/`;
     });
 }
 
