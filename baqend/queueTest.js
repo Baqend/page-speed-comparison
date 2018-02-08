@@ -9,6 +9,7 @@ const { countHits } = require('./countHits');
 const { createTestScript } = require('./createTestScript');
 const { analyzeSpeedKit } = require('./analyzeSpeedKit');
 const { sleep } = require('./sleep');
+const { getDefaultConfig, createSmartConfig } = require('./configGeneration');
 const fetch = require('node-fetch');
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
@@ -114,12 +115,14 @@ function queueTest({
     location,
   };
 
+  const isSmartConfigNeeded = isClone && !isSpeedKitComparison;//  && !speedKitConfig;
+  db.log.info(`NEW - generating smart config ${isSmartConfigNeeded}`, {isClone, isSpeedKitComparison, speedKitConfig});
   // Get the Speed Kit config from the page if it is already running Speed Kit
   const promise = isSpeedKitComparison ? analyzeSpeedKit(url, db).then(it => it.config) : Promise.resolve(speedKitConfig || getDefaultConfig(url));
 
   promise
     .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))
-    .then(testScript => executePrewarm(url, isClone, testScript, testOptions, isSpeedKitComparison, activityTimeout))
+    .then(testScript => executePrewarm(isSmartConfigNeeded, isClone, url, testScript, testOptions, activityTimeout, db))
     .then(testScript => API.runTestWithoutWait(testScript, testOptions)
       .then((testId) => {
         db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
@@ -145,7 +148,7 @@ function queueTest({
   return pendingTest.ready().then(() => pendingTest.save());
 }
 
-function executePrewarm(url, isClone, testScript, testOptions, isSpeedKitComparison, activityTimeout) {
+function executePrewarm(isSmartConfigNeeded, isClone, url, testScript, testOptions, activityTimeout, db) {
   if (!isClone) {
     return testScript;
   }
@@ -158,45 +161,31 @@ function executePrewarm(url, isClone, testScript, testOptions, isSpeedKitCompari
     minimalResults: true,
   });
 
+  db.log.info(`NEW - Executing prewarm`);
   return API.runTest(testScript, prewarmOptions, db)
-    .then(testId => createSmartConfig(testId))
-    .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout));
+    .then(testId => isSmartConfigNeeded ? getSmartConfig(url, testId, db) : false)
+    .then(config => {
+      if (config) {
+        db.log.info(`NEW - Returning smart config ${config}`);
+        return createTestScript(url, isClone, false, config, activityTimeout);
+      }
+      return testScript;
+    });
 }
 
-function createSmartConfig() {
+function getSmartConfig(url, testId, db) {
   const options = {
     requests: true,
     breakdown: false,
-    domains: false,
+    domains: true,
     pageSpeed: false,
   };
 
   return API.getTestResults(testId, options)
     .then(result => {
-      const run = result.data.runs[0];
-asdasdas
+      const domains = result.data;
+      return createSmartConfig(url, domains, db);
     });
-}
-
-function getDefaultConfig(url) {
-  const tld = getTLD(url);
-  const domainRegex = `/^(?:[\\w-]*\\.){0,3}(?:${escapeRegExp(tld)})/`;
-
-  return `{
-    appName: "makefast",
-    whitelist: [{ host: ${domainRegex} }],
-    userAgentDetection: false
-  }`;
-}
-
-function getTLD(url) {
-  const { hostname } = URL.parse(url);
-
-  const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
-  const [, domain] = domainFilter.exec(hostname);
-
-  // remove the dot at the end of the string
-  return domain;
 }
 
 /**

@@ -1,29 +1,22 @@
 const credentials = require('./credentials');
 const fetch = require('node-fetch');
-const urlModule = require('url');
+const URL = require('url');
 
 const CDN_LOCAL_URL = 'https://makefast.app.baqend.com/v1/file/www/assets/selfMaintainedCDNList';
 /**
- * Extracts the top level domain of a URL.
+ * Extracts the first level domain of a URL.
  *
  * @param {string} url The URL to extract the hostname of.
  * @return {string} The extracted hostname.
  */
 function getTLD(url) {
-  const parsedUrl = urlModule.parse(url);
-
-  let hostname = parsedUrl.protocol ? parsedUrl.hostname : url;
-
-  // Remove "www" in the beginning
-  if (hostname.includes('www.')) {
-    hostname = hostname.substr(hostname.indexOf('www.') + 4);
-  }
+  const { hostname } = URL.parse(url);
 
   const domainFilter = /^(?:[\w-]*\.){0,3}([\w-]*\.)[\w]*$/;
   const [, domain] = domainFilter.exec(hostname);
 
   // remove the dot at the end of the string
-  return domain.substring(0, domain.length);
+  return domain;
 }
 
 /**
@@ -34,6 +27,17 @@ function getTLD(url) {
  */
 function escapeRegExp(str) {
   return str.replace(/[[\]/{}()*+?.\\^$|-]/g, '\\$&');
+}
+
+function getDefaultConfig(url) {
+  const tld = getTLD(url);
+  const domainRegex = `/^(?:[\\w-]*\\.){0,3}(?:${escapeRegExp(tld)})/`;
+
+  return `{
+    appName: "${credentials.app}",
+    whitelist: [{ host: [ ${domainRegex} ] }],
+    userAgentDetection: false
+  }`;
 }
 
 /**
@@ -76,10 +80,11 @@ function generateSpeedKitConfig(originalUrl, whitelistStr, enableUserAgentDetect
   const whitelist = generateRules(originalUrl, whitelistDomains);
   return generateCDNRegex().then(cdnRegex => `{
     appName: "${credentials.app}",
-    whitelist: [{ host: [ ${whitelist}, /cdn/, ${cdnRegex}] }],
+    whitelist: [{ host: [ ${whitelist}, ${cdnRegex}] }],
     userAgentDetection: ${enableUserAgentDetection},
     }`);
 }
 
 exports.generateSpeedKitConfig = generateSpeedKitConfig;
 exports.getTLD = getTLD;
+exports.getDefaultConfig = getDefaultConfig;
