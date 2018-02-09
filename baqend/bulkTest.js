@@ -186,6 +186,7 @@ function createTestOverview(db, {
     testOverview.caching = caching;
     testOverview.mobile = mobile;
     testOverview.hasFinished = false;
+    testOverview.speedKitConfig = speedKitConfig;
     testOverview.isSpeedKitComparison = isSpeedKitComparison;
     testOverview.speedKitVersion = speedKitVersion;
     testOverview.activityTimeout = activityTimeout || DEFAULT_ACTIVITY_TIMEOUT;
