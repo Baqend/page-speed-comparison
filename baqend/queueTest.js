@@ -140,7 +140,8 @@ function queueTest({
       .catch(error => handleTestError(db, pendingTest, testScript, error)))
     .catch(error => handleTestError(db, pendingTest, null, error))
     // Trigger the callback
-    .then(updatedResult => finish && finish(updatedResult));
+    .then(updatedResult => finish && finish(updatedResult))
+    .catch(error => handleTestError(db, pendingTest, null, error));
 
   return pendingTest.ready().then(() => pendingTest.save());
 }

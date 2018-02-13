@@ -206,7 +206,7 @@ function createTestOverview(db, {
       isClone: false,
       finish(testResult) {
         testOverview.competitorTestResult = testResult;
-        if (testResult.testDataMissing !== true) {
+        if (testResult.testDataMissing !== true && testResult.firstView) {
           testOverview.psiDomains = testResult.firstView.domains.length;
           testOverview.psiRequests = testResult.firstView.requests;
           testOverview.psiResponseSize = testResult.firstView.bytes;
