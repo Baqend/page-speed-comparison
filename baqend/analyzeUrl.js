@@ -100,10 +100,13 @@ function urlToUnicode(url) {
  * @param {number} redirectsPerformed The count of redirects performed so far.
  * @return {Promise<*>}
  */
-function fetchUrl(url, mobile, redirectsPerformed = 0) {
+function fetchUrl(url, mobile, redirectsPerformed = 0, db) {
   const userAgent = mobile ? MOBILE_USER_AGENT : undefined;
-  return fetch(url, { redirect: 'manual', headers: { 'User-Agent': userAgent }, timeout: 12000 })
+  return fetch(url, { redirect: 'manual', headers: { 'UserAgent': userAgent }, timeout: 12000 })
     .then((response) => {
+      if (response.status >= 400) {
+        throw new Error('Status Code of Response is 400 or higher.');
+      }
       const location = response.headers.get('location');
 
       // Redirect if location header found
@@ -122,7 +125,10 @@ function fetchUrl(url, mobile, redirectsPerformed = 0) {
     })
     .then(opts => Object.assign(opts, { supported: opts.enabled || opts.type === 'wordpress' }))
     .then(opts => testForSpeedKit(url).then(speedKit => Object.assign(opts, speedKit)))
-    .catch(() => null);
+    .catch((error) => {
+     db.log.error(`fetchUrl catched an error with message ${error.message} and returned null.`);
+     return null;
+    });
 }
 
 /**
@@ -166,9 +172,9 @@ function raceBestResult(resultPromises) {
  * @return {Promise<Result>} A promise which resolves with the analysis's result.
  * @template Result
  */
-function analyzeUrl(query, mobile = false) {
+function analyzeUrl(query, mobile = false, db) {
   const urlsToTest = addSchema(query);
-  const fetchPromises = urlsToTest.map(url => fetchUrl(url, mobile));
+  const fetchPromises = urlsToTest.map(url => fetchUrl(url, mobile, db));
 
   // Race for the best result
   return raceBestResult(fetchPromises);
@@ -183,8 +189,8 @@ function analyzeUrl(query, mobile = false) {
  * @return {Promise<Map<string, Result>>} A promise which resolves with the analysis's result map.
  * @template Result
  */
-function analyzeUrls(queries, mobile = false) {
-  return Promise.all(queries.map(query => analyzeUrl(query, mobile).then(result => [query, result]))).then(map => new Map(map));
+function analyzeUrls(queries, mobile = false, db) {
+  return Promise.all(queries.map(query => analyzeUrl(query, mobile, db).then(result => [query, result]))).then(map => new Map(map));
 }
 
 exports.analyzeUrl = analyzeUrl;

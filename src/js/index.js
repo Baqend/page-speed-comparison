@@ -238,7 +238,7 @@ window.whitelistCandidateClicked = (elementId) => {
  * @return {Promise<{ url: string, speedkit: boolean }>}
  */
 async function normalizeUrl(url, mobile) {
-  return db.modules.post('normalizeUrl', { urls: url, mobile });
+  return db.modules.post('normalizeUrl', db, { urls: url, mobile });
 }
 
 function initTest() {
