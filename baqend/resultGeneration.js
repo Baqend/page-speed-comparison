@@ -5,6 +5,7 @@ const { sleep } = require('./sleep');
 const { API } = require('./Pagetest');
 const { countHits } = require('./countHits');
 const fetch = require('node-fetch');
+const { getFMP } = require('./calculateFMP');
 
 /**
  * Generates a test result from the given test and returns the updated test database object.
@@ -115,7 +116,7 @@ function createTestResult(wptData, pendingTest, db) {
     .then((firstView) => {
       pendingTest.firstView = firstView
     })
-    .then(() => createRun(db, resultRun.repeatView))
+    .then(() => createRun(db, resultRun.repeatView, pendingTest.testId))
     .then((repeatView) => {
       pendingTest.repeatView = repeatView
     })
@@ -136,7 +137,7 @@ function isValidRun(run) {
  * @param {object} data The data to create the run of.
  * @return {Promise<Run>} A promise resolving with the created run.
  */
-function createRun(db, data) {
+function createRun(db, data, testId) {
   if (!data) {
     return null;
   }
@@ -147,15 +148,6 @@ function createRun(db, data) {
   for (const field of ['loadTime', 'fullyLoaded', 'firstPaint', 'lastVisualChange', 'domElements']) {
     run[field] = data[field];
   }
-
-  // Search First Meaningful Paint from timing
-  const { chromeUserTiming = [] } = data;
-  const firstMeaningfulPaintObject =
-    chromeUserTiming
-      .reverse()
-      .find(entry => entry.name === 'firstMeaningfulPaint' || entry.name === 'firstMeaningfulPaintCandidate');
-
-  run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
 
   // Set TTFB
   run.ttfb = data.TTFB;
@@ -182,8 +174,32 @@ function createRun(db, data) {
 
   run.domains = [];
 
-  return createDomainList(data, run);
+  return chooseFMP(db, data, testId).then((firstMeaningfulPaint) => {
+    run.firstMeaningfulPaint = firstMeaningfulPaint;
+  }).then(() => createDomainList(data, run));
 }
+
+/**
+ * @param db The Baqend instance.
+ * @param {object} data The data to choose the FMP of.
+ * @param {string} testId The id of the test to choose the FMP for.
+ */
+function chooseFMP(db, data, testId) {
+  return getFMP(testId).then(firstMeaningfulPaint => parseInt(firstMeaningfulPaint, 10))
+    .catch(() => {
+      db.log.warn(`Could not calculate FMP for test ${testId}. Use FMP from wepPageTest instead!`);
+
+      // Search First Meaningful Paint from timing
+      const { chromeUserTiming = [] } = data;
+      const firstMeaningfulPaintObject =
+        chromeUserTiming
+          .reverse()
+          .find(entry => entry.name === 'firstMeaningfulPaint' || entry.name === 'firstMeaningfulPaintCandidate');
+
+      return firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
+    });
+}
+
 
 /**
  * Method to check whether the website with the given url is based on WordPress

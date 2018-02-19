@@ -126,7 +126,7 @@ function fetchUrl(url, mobile, redirectsPerformed = 0, db) {
     .then(opts => Object.assign(opts, { supported: opts.enabled || opts.type === 'wordpress' }))
     .then(opts => testForSpeedKit(url).then(speedKit => Object.assign(opts, speedKit)))
     .catch((error) => {
-     db.log.error(`fetchUrl catched an error with message ${error.message} and returned null.`);
+     db.log.error(`normalyzeUrl failed with error: ${error.stack}`);
      return null;
     });
 }

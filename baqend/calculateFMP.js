@@ -1,4 +1,5 @@
 const request = require('request-promise');
+const credentials = require('./credentials');
 
 /**
  * Get the raw visual progress data of a given html string.
@@ -9,8 +10,15 @@ const request = require('request-promise');
 function getDataFromHtml(htmlString) {
   const regex = /google\.visualization\.arrayToDataTable(((.|\n)*?));/gm;
   const matchArray = regex.exec(htmlString);
-  const dataString = matchArray ? matchArray[1] : null;
-  const data = dataString ? eval(dataString) : null;
+
+  if (!matchArray && matchArray[1]) {
+    return null;
+  }
+
+  const data = eval(matchArray[1]);
+  if (!data) {
+    return null;
+  }
 
   // Remove the first item of the data array because it has irrelevant data like "Time (ms)"
   data.shift();
@@ -40,7 +48,7 @@ function calculateFMP(data) {
 
     if (diff > highestDiff) {
       highestDiff = diff;
-      [firstMeaningfulPaint] = data[i - 1];
+      [firstMeaningfulPaint] = data[i];
     }
   }
 
@@ -48,7 +56,7 @@ function calculateFMP(data) {
 }
 
 function getFMP(testId) {
-  const url = `http://ec2-18-195-220-131.eu-central-1.compute.amazonaws.com/video/compare.php?tests=${testId}`;
+  const url = `http://${credentials.wpt_dns}/video/compare.php?tests=${testId}`;
   return request(url)
     .then((htmlString) => {
       const dataArray = getDataFromHtml(htmlString);

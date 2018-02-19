@@ -3,7 +3,7 @@
 const credentials = require('./credentials');
 const { isRateLimited } = require('./rateLimiter');
 const { analyzeSpeedKit } = require('./analyzeSpeedKit');
-const { getFMP } = require('./calculateFMP');const { executeTest, handleTestError } = require('./testExecution');
+const { executeTest, handleTestError } = require('./testExecution');
 const { executePrewarm } = require('./prewarming');
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
