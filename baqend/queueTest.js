@@ -8,6 +8,7 @@ const { toFile } = require('./download');
 const { countHits } = require('./countHits');
 const { createTestScript } = require('./createTestScript');
 const { analyzeSpeedKit } = require('./analyzeSpeedKit');
+const { getFMP } = require('./calculateFMP');
 const { sleep } = require('./sleep');
 const fetch = require('node-fetch');
 
@@ -253,7 +254,7 @@ function createTestResult(db, originalObject, testResult, runIndex) {
 
       const lastRun = testResult.runs[runIndex];
 
-      return createRun(db, lastRun.firstView).then((firstView) => {
+      return createRun(db, lastRun.firstView, testObject.testId).then((firstView) => {
         testObject.firstView = firstView;
         testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
 
@@ -261,7 +262,7 @@ function createTestResult(db, originalObject, testResult, runIndex) {
           return testObject;
         }
 
-        return createRun(db, lastRun.repeatView).then((repeatView) => {
+        return createRun(db, lastRun.repeatView, testObject.testId).then((repeatView) => {
           testObject.repeatView = repeatView;
           testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
           return testObject;
@@ -274,9 +275,10 @@ function createTestResult(db, originalObject, testResult, runIndex) {
 /**
  * @param db The Baqend instance.
  * @param {object} data The data to create the run of.
+ * @param {string} testId The id of the test to create the run for.
  * @return {Promise<Run>} A promise resolving with the created run.
  */
-function createRun(db, data) {
+function createRun(db, data, testId) {
   /** @var {Run} run */
   const run = new db.Run();
 
@@ -284,15 +286,6 @@ function createRun(db, data) {
   for (const field of ['loadTime', 'fullyLoaded', 'firstPaint', 'lastVisualChange', 'domElements']) {
     run[field] = data[field];
   }
-
-  // Search First Meaningful Paint from timing
-  const { chromeUserTiming = [] } = data;
-  const firstMeaningfulPaintObject =
-    chromeUserTiming
-      .reverse()
-      .find(entry => entry.name === 'firstMeaningfulPaint' || entry.name === 'firstMeaningfulPaintCandidate');
-
-  run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
 
   // Set TTFB
   run.ttfb = data.TTFB;
@@ -319,7 +312,30 @@ function createRun(db, data) {
 
   run.domains = [];
 
-  return createDomainList(data, run);
+  return chooseFMP(db, data, testId).then((firstMeaningfulPaint) => {
+    run.firstMeaningfulPaint = firstMeaningfulPaint;
+  }).then(() => createDomainList(data, run));
+}
+
+/**
+ * @param db The Baqend instance.
+ * @param {object} data The data to choose the FMP of.
+ * @param {string} testId The id of the test to choose the FMP for.
+ */
+function chooseFMP(db, data, testId) {
+  return getFMP(testId).then(firstMeaningfulPaint => parseInt(firstMeaningfulPaint, 10))
+    .catch(() => {
+      db.log.warn(`Could not calculate FMP for test ${testId}. Use FMP from wepPageTest instead!`);
+
+      // Search First Meaningful Paint from timing
+      const { chromeUserTiming = [] } = data;
+      const firstMeaningfulPaintObject =
+        chromeUserTiming
+          .reverse()
+          .find(entry => entry.name === 'firstMeaningfulPaint' || entry.name === 'firstMeaningfulPaintCandidate');
+
+      return firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
+    });
 }
 
 /**

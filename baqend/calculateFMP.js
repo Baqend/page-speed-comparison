@@ -47,8 +47,7 @@ function calculateFMP(data) {
   return (parseFloat(firstMeaningfulPaint) * 1000).toString();
 }
 
-exports.call = (db, data) => {
-  const { testId } = data;
+function getFMP(testId) {
   const url = `http://ec2-18-195-220-131.eu-central-1.compute.amazonaws.com/video/compare.php?tests=${testId}`;
   return request(url)
     .then((htmlString) => {
@@ -59,4 +58,11 @@ exports.call = (db, data) => {
     .catch((err) => {
       throw new Abort(err.mesage);
     });
+}
+
+exports.call = (db, data) => {
+  const { testId } = data;
+  return getFMP(testId);
 };
+
+exports.getFMP = getFMP;
