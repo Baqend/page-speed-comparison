@@ -12,7 +12,7 @@ const PREWARM_RUNS = 2;
  *
  * @return The final test script for the actual test runs.
  */
-function executePrewarm(testInfo, db) {
+function executePrewarm(testInfo, pendingTest, db) {
   return getPrewarmScript(testInfo, db)
     .then(testScript => {
       if (testInfo.skipPrewarm || !testInfo.isTestWithSpeedKit) {
@@ -38,7 +38,8 @@ function getFinalTestScript(testScript, testInfo, db) {
     return Promise.resolve(testScript);
   }
 
-  return getSmartConfigTestScript(testInfo).then(testScript => prepareSmartConfig(testScript, testInfo, db));
+  const minimalTestScript = getTestScriptWithMinimalWhitelist(testInfo);
+  return prepareSmartConfig(minimalTestScript, testInfo, db);
 }
 
 function getPrewarmScript({ url, customSpeedKitConfig, isSpeedKitComparison, isTestWithSpeedKit, activityTimeout }, db) {
@@ -86,9 +87,9 @@ function prewarm(testScript, runs, { url, testOptions }, db) {
     });
 }
 
-function getSmartConfigTestScript({url, isTestWithSpeedKit, isSpeedKitComparison, activityTimeout}) {
-  return getMinimalConfig(url)
-    .then(config => createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout));
+function getTestScriptWithMinimalWhitelist({url, isTestWithSpeedKit, isSpeedKitComparison, activityTimeout}) {
+  const config = getMinimalConfig(url);
+  return createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout);
 }
 
 function prepareSmartConfig(testScript, testInfo, db) {

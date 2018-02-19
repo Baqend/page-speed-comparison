@@ -100,7 +100,7 @@ function urlToUnicode(url) {
  * @param {number} redirectsPerformed The count of redirects performed so far.
  * @return {Promise<*>}
  */
-function fetchUrl(url, mobile, redirectsPerformed = 0, db) {
+function fetchUrl(url, mobile, db, redirectsPerformed = 0) {
   const userAgent = mobile ? MOBILE_USER_AGENT : undefined;
   return fetch(url, { redirect: 'manual', headers: { 'UserAgent': userAgent }, timeout: 12000 })
     .then((response) => {
@@ -115,7 +115,7 @@ function fetchUrl(url, mobile, redirectsPerformed = 0, db) {
           throw new Abort('The URL resolves in too many redirects.');
         }
 
-        return fetchUrl(location, mobile, redirectsPerformed + 1);
+        return fetchUrl(location, mobile, db, redirectsPerformed + 1);
       }
 
       // Retrieve properties of that domain
@@ -126,7 +126,7 @@ function fetchUrl(url, mobile, redirectsPerformed = 0, db) {
     .then(opts => Object.assign(opts, { supported: opts.enabled || opts.type === 'wordpress' }))
     .then(opts => testForSpeedKit(url).then(speedKit => Object.assign(opts, speedKit)))
     .catch((error) => {
-     db.log.error(`normalyzeUrl failed with error: ${error.stack}`);
+     db.log.error(`Error while fetching ${url} in analyzeURL: ${error.stack}`);
      return null;
     });
 }

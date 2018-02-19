@@ -66,7 +66,7 @@ function queueTest({
     domains: false,
     saveResponseBodies: false,
     tcpDump: false,
-    timeline: true, // TODO: only for debugging
+    timeline: false,
     minimumDuration: 1, // capture at least one second
     chromeTrace: false,
     netLog: false,
@@ -100,7 +100,7 @@ function queueTest({
   pendingTest.url = url;
   pendingTest.priority = priority;
 
-  executePrewarm(testInfo, db)
+  executePrewarm(testInfo, pendingTest, db)
     .then(testScript => executeTest(testScript, pendingTest, testInfo, db))
     // Trigger the callback
     .then(updatedResult => finish && finish(updatedResult))

@@ -99,6 +99,7 @@ function createTestResult(wptData, pendingTest, db) {
   pendingTest.testDataMissing = false;
 
   const runIndex = Object.keys(wptData.runs).find(index => isValidRun(wptData.runs[index]));
+  db.log.info(`Choosing run ${runIndex}`, { runs: Object.keys(wptData.runs) });
 
   if (!runIndex) {
     pendingTest.testDataMissing = true;
@@ -112,7 +113,7 @@ function createTestResult(wptData, pendingTest, db) {
 
   const resultRun = wptData.runs[runIndex];
 
-  createRun(db, resultRun.firstView)
+  createRun(db, resultRun.firstView, pendingTest.testId)
     .then((firstView) => {
       pendingTest.firstView = firstView
     })

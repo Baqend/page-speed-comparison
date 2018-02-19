@@ -123,7 +123,7 @@ function getDomains(testResult, db) {
 }
 
 exports.getTLD = getTLD;
-exports.getDefaultConfig = getMinimalConfig;
+exports.getMinimalConfig = getMinimalConfig;
 exports.createSmartConfig = createSmartConfig;
 exports.getFallbackConfig = getFallbackConfig;
 exports.getCacheWarmingConfig = getCacheWarmingConfig;
