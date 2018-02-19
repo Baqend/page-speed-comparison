@@ -22,9 +22,6 @@ function generateTestResult(testId, pendingTest, db) {
     return Promise.resolve(pendingTest);
   }
 
-  // FIXME do we need to do this?
-  pendingTest.testId = testId;
-
   return getResultData(testId, pendingTest, db)
     .then(usedRunIndex => createVideos(testId, pendingTest, usedRunIndex, db))
     .catch(error => {

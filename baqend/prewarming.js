@@ -1,4 +1,4 @@
-const { getDefaultConfig, createSmartConfig, getFallbackConfig } = require('./configGeneration');
+const { getMinimalConfig, createSmartConfig, getFallbackConfig, getCacheWarmingConfig } = require('./configGeneration');
 const { createTestScript } = require('./createTestScript');
 const { analyzeSpeedKit } = require('./analyzeSpeedKit');
 const { API } = require('./Pagetest');
@@ -38,7 +38,7 @@ function getFinalTestScript(testScript, testInfo, db) {
     return Promise.resolve(testScript);
   }
 
-  return prepareSmartConfig(testScript, testInfo, db)
+  return getSmartConfigTestScript(testInfo).then(testScript => prepareSmartConfig(testScript, testInfo, db));
 }
 
 function getPrewarmScript({ url, customSpeedKitConfig, isSpeedKitComparison, isTestWithSpeedKit, activityTimeout }, db) {
@@ -62,7 +62,7 @@ function getPrewarmConfig(url, speedKitConfig, isSpeedKitComparison, db) {
 
   // Return a default config
   db.log.info(`Using a default config: ${url}`);
-  return Promise.resolve(getDefaultConfig(url));
+  return Promise.resolve(getCacheWarmingConfig());
 }
 
 function prewarm(testScript, runs, { url, testOptions }, db) {
@@ -86,8 +86,13 @@ function prewarm(testScript, runs, { url, testOptions }, db) {
     });
 }
 
+function getSmartConfigTestScript({url, isTestWithSpeedKit, isSpeedKitComparison, activityTimeout}) {
+  return getMinimalConfig(url)
+    .then(config => createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout));
+}
+
 function prepareSmartConfig(testScript, testInfo, db) {
-  const { url, testOptions, activityTimeout } = testInfo;
+  const { url, activityTimeout } = testInfo;
 
   db.log.info(`Generating Smart Config using prewarm`, {url});
   return prewarm(testScript, 1, testInfo, db)
