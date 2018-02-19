@@ -241,7 +241,7 @@ function startCheckStateInterval(db, bulkTests) {
       clearInterval(interval);
       sendSuccessMail(db, finishedBulkTests);
     } else if (iterations >= MAX_INTERVAL_ITERATIONS) {
-      db.log.info('Clear interval because of failure');
+      db.log.error('Clear interval because of failure');
       clearInterval(interval);
     }
   }, 30000);
