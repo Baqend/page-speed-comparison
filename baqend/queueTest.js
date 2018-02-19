@@ -3,10 +3,8 @@
 const credentials = require('./credentials');
 const { isRateLimited } = require('./rateLimiter');
 const { analyzeSpeedKit } = require('./analyzeSpeedKit');
-
-const { executeTest, handleTestError } = require('./testExecution');
+const { getFMP } = require('./calculateFMP');const { executeTest, handleTestError } = require('./testExecution');
 const { executePrewarm } = require('./prewarming');
-
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
 const DEFAULT_ACTIVITY_TIMEOUT = 75;

@@ -135,14 +135,14 @@ app.get('/config', async (req, res) => {
 
     const { config, http2, speedKit } = await promise;
 
-    // Delete map entry after resolving
-    analyzeSpeedKitPromises.delete(url);
-
     res.json({
       config, url, http2, speedKit,
     });
   } catch (e) {
     res.status(404).json({ error: e.message, status: 404 });
+  } finally {
+    // Delete map entry after resolving
+    analyzeSpeedKitPromises.delete(url);
   }
 });
 
