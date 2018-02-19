@@ -19,6 +19,17 @@ function getDefaultConfig(url) {
   }`;
 }
 
+function getFallbackConfig(url) {
+  const tld = getTLD(url);
+  const domainRegex = `/^(?:[\\w-]*\\.){0,3}(?:${escapeForRegex(tld)})/`;
+
+  return `{
+    appName: "${credentials.app}",
+    whitelist: [{ host: [ ${domainRegex}, /cdn/, /assets\./, /static/./ ] }],
+    userAgentDetection: false
+  }`;
+}
+
 /**
  * Extracts the first level domain of a URL.
  *
@@ -45,19 +56,16 @@ function getTLD(url) {
 function createSmartConfig(url, testResult, db, whitelist = '') {
   const domains = getDomains(testResult, db);
 
-  db.log.info(`NEW - found domains`, {domains});
+  db.log.info(`Analyzing domains: ${url}`, {domains});
   return filterCDNs(domains, db)
     .then((cdnsWithAds) => {
-      db.log.info(`NEW - filtered CDNs`, {cdnsWithAds});
       return filterAds(cdnsWithAds, db);
     })
     .then((cdnsWithoutAds) => {
-      db.log.info(`NEW - filtered Ads`, {cdnsWithoutAds});
+      db.log.info(`Filtered domains to whitelist`, {cdnsWithoutAds});
       return cdnsWithoutAds.map(toRegex).join(', ');
     })
     .then((cdnRegexs) => {
-      db.log.info(`Filtered Regexs ${cdnRegexs}`);
-
       const whitelistedHosts = whitelist.length? `${cdnRegexs}, ${whitelist}` : cdnRegexs;
 
       const tld = getTLD(url);
@@ -79,7 +87,6 @@ function filterCDNs(domains, db) {
       return text.trim().split('\n').map(toRegex)
     })
     .then((regExs) => {
-      db.log.info(`NEW - CDN regexs ${regExs}`);
       return domains.filter((domain) => regExs.some((regEx) => regEx.test(domain)))
     });
 }
@@ -88,7 +95,6 @@ function filterAds(domains, db) {
   return getAdSet()
     .then(ads => [...ads].filter(it => !!it.length).map(toRegex))
     .then((regExs) => {
-      db.log.info(`NEW - AD regexs ${regExs.join('\n')}`);
       return domains.filter((domain) => !regExs.some((regEx) => regEx.test(domain)))
     });
 }
@@ -103,8 +109,7 @@ function escapeForRegex(str) {
 
 function getDomains(testResult, db) {
   if (!testResult || !testResult.runs || !testResult.runs['1'] || !testResult.runs['1'].firstView || !testResult.runs['1'].firstView.domains) {
-    db.log.info('NEW - No data to extract domains!');
-    return [];
+    throw new Error(`No testdata to analyze domains ${testResult.url}`);
   }
 
   return Object.keys(testResult.runs['1'].firstView.domains);
@@ -113,3 +118,4 @@ function getDomains(testResult, db) {
 exports.getTLD = getTLD;
 exports.getDefaultConfig = getDefaultConfig;
 exports.createSmartConfig = createSmartConfig;
+exports.getFallbackConfig = getFallbackConfig;

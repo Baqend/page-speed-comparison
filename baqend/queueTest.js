@@ -1,16 +1,12 @@
 /* eslint-disable comma-dangle, no-use-before-define, no-restricted-syntax */
 /* global Abort */
-const { API } = require('./Pagetest');
 const credentials = require('./credentials');
 const { isRateLimited } = require('./rateLimiter');
-const { getAdSet } = require('./adBlocker');
-const { toFile } = require('./download');
-const { countHits } = require('./countHits');
-const { createTestScript } = require('./createTestScript');
 const { analyzeSpeedKit } = require('./analyzeSpeedKit');
-const { sleep } = require('./sleep');
-const { getDefaultConfig, createSmartConfig } = require('./configGeneration');
-const fetch = require('node-fetch');
+
+const { executeTest, handleTestError } = require('./testExecution');
+const { executePrewarm } = require('./prewarming');
+
 
 const DEFAULT_LOCATION = 'eu-central-1:Chrome.Native';
 const DEFAULT_ACTIVITY_TIMEOUT = 75;
@@ -25,24 +21,6 @@ exports.call = function callQueueTest(db, data, req) {
   return queueTest(Object.assign({}, { db }, data))
     .then(testResult => ({ baqendId: testResult.key }));
 };
-
-/**
- * @param db The Baqend instance.
- * @param test The test which erred.
- * @param {string|null} testScript The script which was executed.
- * @param {Error} error The error thrown.
- */
-function handleTestError(db, test, testScript, error) {
-  const testToUpdate = test;
-  db.log.warn(`Test failed, id: ${test.id}, testId: ${test.testId} ${testScript !== null ? `script:\n${testScript}` : ''}\n\n${error.stack}`);
-  return testToUpdate.ready()
-    .then(() => {
-      // Save that test has finished without data
-      testToUpdate.testDataMissing = true;
-      testToUpdate.hasFinished = true;
-      return testToUpdate.save();
-    });
-}
 
 /**
  * @param db The Baqend instance.
@@ -73,19 +51,11 @@ function queueTest({
   priority = 0,
   finish = null,
 }) {
-  // Create a new test result
-  /** @var {TestResult} pendingTest */
-  const pendingTest = new db.TestResult();
-  pendingTest.id = db.util.uuid();
-  pendingTest.hasFinished = false;
-  pendingTest.url = url;
-  pendingTest.priority = priority;
-
   const commandLine = createCommandLineFlags(url, isClone);
   if (commandLine) {
     db.log.info('flags: %s', commandLine);
   }
-  const runs = 1;
+  const runs = 2;
   const testOptions = {
     firstViewOnly: !caching,
     runs,
@@ -115,77 +85,30 @@ function queueTest({
     location,
   };
 
-  const isSmartConfigNeeded = isClone && !isSpeedKitComparison;//  && !speedKitConfig;
-  db.log.info(`NEW - generating smart config ${isSmartConfigNeeded}`, {isClone, isSpeedKitComparison, speedKitConfig});
-  // Get the Speed Kit config from the page if it is already running Speed Kit
-  const promise = isSpeedKitComparison ? analyzeSpeedKit(url, db).then(it => it.config) : Promise.resolve(speedKitConfig || getDefaultConfig(url));
-
-  promise
-    .then(config => createTestScript(url, isClone, isSpeedKitComparison, config, activityTimeout))
-    .then(testScript => executePrewarm(isSmartConfigNeeded, isClone, url, testScript, testOptions, activityTimeout, db))
-    .then(testScript => API.runTestWithoutWait(testScript, testOptions)
-      .then((testId) => {
-        db.log.info(`Test started, testId: ${testId} script:\n${testScript}`);
-        pendingTest.testId = testId;
-        pendingTest.ready().then(() => {
-          if (credentials.app === 'makefast-staging') {
-            db.log.info(`Save testId for test: ${pendingTest.testId}`);
-          }
-          return pendingTest.save();
-        });
-        return API.waitOnTest(testId, db);
-      })
-      .then(testId => getTestResult(db, pendingTest, testId))
-      .then((result) => {
-        db.log.info(`Test completed, id: ${result.id}, testId: ${result.testId} script:\n${testScript}`);
-        return result;
-      })
-      .catch(error => handleTestError(db, pendingTest, testScript, error)))
-    .catch(error => handleTestError(db, pendingTest, null, error))
-    // Trigger the callback
-    .then(updatedResult => finish && finish(updatedResult));
-
-  return pendingTest.ready().then(() => pendingTest.save());
-}
-
-function executePrewarm(isSmartConfigNeeded, isClone, url, testScript, testOptions, activityTimeout, db) {
-  if (!isClone) {
-    return testScript;
-  }
-
-  const prewarmOptions = Object.assign({}, testOptions, {
-    runs: 2,
-    timeline: false,
-    video: false,
-    firstViewOnly: true,
-    minimalResults: true,
-  });
-
-  db.log.info(`NEW - Executing prewarm`);
-  return API.runTest(testScript, prewarmOptions, db)
-    .then(testId => isSmartConfigNeeded ? getSmartConfig(url, testId, db) : false)
-    .then(config => {
-      if (config) {
-        db.log.info(`NEW - Returning smart config ${config}`);
-        return createTestScript(url, isClone, false, config, activityTimeout);
-      }
-      return testScript;
-    });
-}
-
-function getSmartConfig(url, testId, db) {
-  const options = {
-    requests: true,
-    breakdown: false,
-    domains: true,
-    pageSpeed: false,
+  const testInfo = {
+    url: url,
+    isTestWithSpeedKit: isClone,
+    customSpeedKitConfig: speedKitConfig,
+    isSpeedKitComparison: isSpeedKitComparison,
+    activityTimeout: activityTimeout,
+    testOptions: testOptions,
+    skipPrewarm: false // TODO should be an option that is set by the bulk test after the first test.
   };
 
-  return API.getTestResults(testId, options)
-    .then(result => {
-      const domains = result.data;
-      return createSmartConfig(url, domains, db);
-    });
+  // Create a new test result
+  const pendingTest = new db.TestResult();
+  pendingTest.id = db.util.uuid();
+  pendingTest.hasFinished = false;
+  pendingTest.url = url;
+  pendingTest.priority = priority;
+
+  executePrewarm(testInfo, db)
+    .then(testScript => executeTest(testScript, pendingTest, testInfo, db))
+    // Trigger the callback
+    .then(updatedResult => finish && finish(updatedResult))
+    .catch(error => handleTestError(pendingTest, 'No script', error, db));
+
+  return pendingTest.ready().then(() => pendingTest.save());
 }
 
 /**
@@ -202,224 +125,6 @@ function createCommandLineFlags(testUrl, isClone) {
     return `--unsafely-treat-insecure-origin-as-secure="${origin}"`;
   }
   return '';
-}
-
-/**
- * @param db The Baqend instance.
- * @param {TestResult} originalResult
- * @param {string} testId
- * @return {Promise<object>} A promised test result.
- */
-function getTestResult(db, originalResult, testId) {
-  const testResult = originalResult;
-
-  if (testResult.hasFinished) {
-    db.log.info(`Result already exists for ${testId}`);
-    return Promise.resolve(testResult);
-  }
-
-  testResult.testId = testId;
-
-  const options = {
-    requests: true,
-    breakdown: false,
-    domains: false,
-    pageSpeed: false,
-  };
-
-  return API.getTestResults(testId, options).then((result) => {
-    db.log.info(`Saving test result for ${testId}`);
-
-    const lastRunIndex = Object.keys(result.data.runs).pop();
-
-    return createTestResult(db, testResult, result.data, lastRunIndex).then(() => {
-      if (testResult.testDataMissing) {
-        throw new Error('Test Data Missing');
-      }
-
-      db.log.info(`creating video for ${testId}`);
-      return Promise.all([
-        API.createVideo(`${testId}-r:${lastRunIndex}-c:0`),
-        API.createVideo(`${testId}-r:${lastRunIndex}-c:1`),
-      ]);
-    });
-  }).then(([firstVideoResult, repeatedVideoResult]) => {
-    db.log.info(`videos created for ${testId}`);
-
-    testResult.videoIdFirstView = firstVideoResult.data.videoId;
-    const videoFirstViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdFirstView), `/www/videoFirstView/${testId}.mp4`);
-
-    let videoRepeatViewPromise = Promise.resolve(true);
-    if (repeatedVideoResult.data && repeatedVideoResult.data.videoId) {
-      testResult.videoIdRepeatedView = repeatedVideoResult.data.videoId;
-      videoRepeatViewPromise = toFile(db, constructVideoLink(testId, testResult.videoIdRepeatedView), `/www/videoRepeatView/${testId}.mp4`);
-    }
-
-    return Promise.all([videoFirstViewPromise, videoRepeatViewPromise]).then(([videoFirstView, videoRepeatView]) => {
-      testResult.videoFileFirstView = videoFirstView;
-      testResult.videoFileRepeatView = videoRepeatView;
-      testResult.hasFinished = true;
-      return testResult.save();
-    });
-  });
-}
-
-/**
- * @param {string} testId
- * @param {string} videoId
- * @return {string}
- */
-function constructVideoLink(testId, videoId) {
-  const date = `${testId.substr(0, 2)}/${testId.substr(2, 2)}/${testId.substr(4, 2)}`;
-  const videoLink = videoId.substr(videoId.indexOf('_') + 1, videoId.length);
-  return `http://${credentials.wpt_dns}/results/video/${date}/${videoLink}/video.mp4`;
-}
-
-/**
- * @param db The Baqend instance.
- * @param {TestResult} originalObject
- * @param {{ location: string, testUrl: string, summary: string, runs: Object<string, object> }} testResult
- * @param {string} runIndex the index of the run to use
- * @return {Promise<TestResult>} A promise resolving with the created test result.
- */
-function createTestResult(db, originalObject, testResult, runIndex) {
-  /** @var {TestResult} testObject */
-  const testObject = originalObject;
-  testObject.location = testResult.location;
-  testObject.url = testResult.testUrl;
-  testObject.summaryUrl = testResult.summary;
-
-  return iskWordPress(testResult.testUrl)
-    .then((isWordPress) => {
-      testObject.isWordPress = isWordPress;
-
-      const lastRun = testResult.runs[runIndex];
-
-      return createRun(db, lastRun.firstView).then((firstView) => {
-        testObject.firstView = firstView;
-        testObject.testDataMissing = testObject.firstView.lastVisualChange <= 0;
-
-        if (!lastRun.repeatView) {
-          return testObject;
-        }
-
-        return createRun(db, lastRun.repeatView).then((repeatView) => {
-          testObject.repeatView = repeatView;
-          testObject.testDataMissing = testObject.repeatView.lastVisualChange <= 0;
-          return testObject;
-        });
-      });
-    })
-    .then(() => testObject);
-}
-
-/**
- * @param db The Baqend instance.
- * @param {object} data The data to create the run of.
- * @return {Promise<Run>} A promise resolving with the created run.
- */
-function createRun(db, data) {
-  /** @var {Run} run */
-  const run = new db.Run();
-
-  // Copy fields
-  for (const field of ['loadTime', 'fullyLoaded', 'firstPaint', 'lastVisualChange', 'domElements']) {
-    run[field] = data[field];
-  }
-
-  // Search First Meaningful Paint from timing
-  const { chromeUserTiming = [] } = data;
-  const firstMeaningfulPaintObject =
-    chromeUserTiming
-      .reverse()
-      .find(entry => entry.name === 'firstMeaningfulPaint' || entry.name === 'firstMeaningfulPaintCandidate');
-
-  run.firstMeaningfulPaint = firstMeaningfulPaintObject ? firstMeaningfulPaintObject.time : 0;
-
-  // Set TTFB
-  run.ttfb = data.TTFB;
-
-  // Set other
-  run.domLoaded = data.domContentLoadedEventStart;
-  run.load = data.loadEventStart;
-  run.startRender = data.render;
-  run.speedIndex = data.SpeedIndex;
-  run.requests = data.requests.length;
-  run.failedRequests = createFailedRequestsCount(data);
-  run.bytes = data.bytesIn;
-  run.hits = new db.Hits(countHits(data.requests));
-  run.basePageCDN = data.base_page_cdn;
-
-  // Set visual completeness
-  const completeness = new db.Completeness();
-  completeness.p85 = data.visualComplete85;
-  completeness.p90 = data.visualComplete90;
-  completeness.p95 = data.visualComplete95;
-  completeness.p99 = data.visualComplete99;
-  completeness.p100 = data.visualComplete;
-  run.visualCompleteness = completeness;
-
-  run.domains = [];
-
-  return createDomainList(data, run);
-}
-
-/**
- * Method to check whether the website with the given url is based on WordPress
- * @param url
- * @return {boolean}
- */
-function iskWordPress(url) {
-  const analyzeSite = fetch(url).then(res => res.text().then(text => text.indexOf('wp-content') !== -1))
-  const timneout = sleep(10000, false);
-  return Promise.race([ analyzeSite, timneout ]);
-}
-
-function createFailedRequestsCount(data) {
-  let failedRequests = 0;
-  data.requests.forEach((request) => {
-    if (request.responseCode >= 400) {
-      failedRequests += 1;
-    }
-  });
-
-  return failedRequests;
-}
-
-/**
- * @param {{ domains: Object<string, object> }} data
- * @param {Run} run The run to create the domain list for.
- * @return {Promise<Run>} Passing through `run`.
- */
-function createDomainList(data, run) {
-  return getAdSet().then((adSet) => {
-    for (const key of Object.keys(data.domains)) {
-      const domainObject = data.domains[key];
-      domainObject.isAdDomain = isAdDomain(key, adSet);
-      domainObject.url = key;
-      run.domains.push(domainObject);
-    }
-
-    return run;
-  });
-}
-
-/**
- * @param {string} url
- * @param {Set<string>} adSet
- * @return {boolean}
- */
-function isAdDomain(url, adSet) {
-  const index = url.indexOf('.');
-  if (index === -1) {
-    return false;
-  }
-
-  if (adSet.has(url)) {
-    return true;
-  }
-
-  return isAdDomain(url.substr(index + 1), adSet);
 }
 
 /**
