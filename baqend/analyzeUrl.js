@@ -148,7 +148,7 @@ function addSchema(query) {
  * @return {Promise<null|T>} The best raced result.
  * @type T The result type.
  */
-function raceBestResult(resultPromises) {
+function raceBestResult(resultPromises, db) {
   return new Promise((resolveOuter) => {
     const promises = resultPromises.map(p => p.then((result) => {
       if (result && result.secured) {
@@ -157,6 +157,8 @@ function raceBestResult(resultPromises) {
       }
 
       return result;
+    }).catch((error) => {
+      db.log.warn(`raceBestResult threw an error in resultPromises with ${error.stack}.`);
     }));
 
     // Fallback to best matching result
@@ -177,7 +179,7 @@ function analyzeUrl(query, mobile = false, db) {
   const fetchPromises = urlsToTest.map(url => fetchUrl(url, mobile, db));
 
   // Race for the best result
-  return raceBestResult(fetchPromises);
+  return raceBestResult(fetchPromises, db);
 }
 
 /**

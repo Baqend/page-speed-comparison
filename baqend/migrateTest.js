@@ -29,6 +29,8 @@ exports.call = function(db, data, req) {
         return Promise.all([newTest, newSKVideoFirst, newCompVideoFirst, newSKVideoSecond, newCompVideoSecond]);
       });
     });
+  }).catch((error) => {
+    db.log.warn(`Migrating test failed with error ${error.stack}.`);
   });
 };
 
