@@ -79,7 +79,7 @@ async function testAnalyzer(siteUrl, expectedUrlInfo, speedKitConfigString) {
 
   // Wait for tests to finish
   console.log('Waiting for Results');
-  await waitAndReport(120);
+  await waitAndReport(240);
 
   const compResultRes = await fetch(`${analyzerAPIUrl}/db/TestResult/${compId}`);
 
