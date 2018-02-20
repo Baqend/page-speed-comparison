@@ -148,7 +148,7 @@ function addSchema(query) {
  * @return {Promise<null|T>} The best raced result.
  * @type T The result type.
  */
-function raceBestResult(resultPromises, db) {
+function raceBestResult(resultPromises) {
   return new Promise((resolveOuter) => {
     const promises = resultPromises.map(p => p.then((result) => {
       if (result && result.secured) {
