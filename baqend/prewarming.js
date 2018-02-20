@@ -58,7 +58,10 @@ function getPrewarmConfig(url, speedKitConfig, isSpeedKitComparison, db) {
   // Get the config from the actual site if it uses Speed Kit
   if (isSpeedKitComparison) {
     db.log.info(`Extracting config from Website: ${url}`, {url, isSpeedKitComparison});
-    return analyzeSpeedKit(url, db).then(it => it.config);
+    return analyzeSpeedKit(url, db).then(it => it.config).catch(error => {
+      db.log.warn(`Could not analyze speed kit config`, {url, error: error.stack});
+      return getFallbackConfig();
+    });
   }
 
   // Return a default config

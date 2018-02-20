@@ -157,8 +157,6 @@ function raceBestResult(resultPromises, db) {
       }
 
       return result;
-    }).catch((error) => {
-      db.log.warn(`raceBestResult threw an error in resultPromises with ${error.stack}.`);
     }));
 
     // Fallback to best matching result
@@ -174,12 +172,17 @@ function raceBestResult(resultPromises, db) {
  * @return {Promise<Result>} A promise which resolves with the analysis's result.
  * @template Result
  */
-function analyzeUrl(query, mobile = false, db) {
+function analyzeUrl(query, db, mobile = false) {
   const urlsToTest = addSchema(query);
   const fetchPromises = urlsToTest.map(url => fetchUrl(url, mobile, db));
 
   // Race for the best result
-  return raceBestResult(fetchPromises, db);
+  return raceBestResult(fetchPromises).then(result => {
+    if (!result) {
+      db.log.error(`NormalizeUrl failed.`, {query, mobile, result});
+    }
+    return result;
+  });
 }
 
 /**
@@ -191,10 +194,10 @@ function analyzeUrl(query, mobile = false, db) {
  * @return {Promise<Map<string, Result>>} A promise which resolves with the analysis's result map.
  * @template Result
  */
-function analyzeUrls(queries, mobile = false, db) {
-  return Promise.all(queries.map(query => analyzeUrl(query, mobile, db).then(result => [query, result]))).then(map => new Map(map));
+function analyzeUrls(queries, db, mobile = false) {
+  return Promise.all(queries.map(query => analyzeUrl(query, db, mobile).then(result => [query, result]))).then(map => new Map(map));
 }
 
 exports.analyzeUrl = analyzeUrl;
 exports.analyzeUrls = analyzeUrls;
-exports.call = (db, { urls, mobile }) => analyzeUrls([].concat(urls), mobile === true || mobile === 'true').then(map => [...map]);
+exports.call = (db, { urls, mobile }) => analyzeUrls([].concat(urls), db, mobile === true || mobile === 'true').then(map => [...map]);

@@ -314,7 +314,7 @@ function createBulkTest(db, createdBy, {
   bulkTest.completedRuns = 0;
 
   return bulkTest.save()
-    .then(() => analyzeUrl(url))
+    .then(() => analyzeUrl(url, db))
     .then((urlAnalysis) => {
       bulkTest.urlAnalysis = urlAnalysis && new db.UrlAnalysis(urlAnalysis);
 

@@ -16,7 +16,7 @@ function analyzeSpeedKit(urlToTest, db) {
   db.log.info(`Analyzing Speed Kit Website via ${urlString}`);
 
   const start = Date.now();
-  return fetch(urlString)
+  return fetch(urlString, { timeout: 30000 })
     .then((res) => {
       if (res.status === 404) {
         throw new Error(`Not a valid Speed Kit URL: ${urlString}`);
