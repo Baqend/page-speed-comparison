@@ -1,6 +1,6 @@
 const { analyzeUrls } = require('./analyzeUrl');
 
-exports.call = (db, { urls, mobile }) => analyzeUrls([].concat(urls), mobile === true || mobile === 'true', db)
+exports.call = (db, { urls, mobile }) => analyzeUrls([].concat(urls), db, mobile === true || mobile === 'true')
   .then(results => [...results].filter(([, result]) => !!result).map(([query, result]) => ({
     query,
     url: result.url,

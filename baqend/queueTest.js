@@ -2,7 +2,6 @@
 /* global Abort */
 const credentials = require('./credentials');
 const { isRateLimited } = require('./rateLimiter');
-const { analyzeSpeedKit } = require('./analyzeSpeedKit');
 const { executeTest, handleTestError } = require('./testExecution');
 const { executePrewarm } = require('./prewarming');
 

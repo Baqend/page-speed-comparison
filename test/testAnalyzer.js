@@ -96,10 +96,10 @@ async function testAnalyzer(siteUrl, expectedUrlInfo, speedKitConfigString) {
   const compResult = await compResultRes.json();
   const skResult = await skResultRes.json();
 
-  checkTestResult(compResult);
+  checkTestResult(compResult, false);
 
   console.log('Competitor Test OK');
-  checkTestResult(skResult);
+  checkTestResult(skResult, true);
 
   console.log('Speed Kit Test OK');
   console.log(`Test Successful. Speedup: ${(compResult.firstView.speedIndex - skResult.firstView.speedIndex)}ms SI -- ${(compResult.firstView.firstMeaningfulPaint - skResult.firstView.firstMeaningfulPaint)}ms FMP`);
