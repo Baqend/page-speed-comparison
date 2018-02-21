@@ -126,7 +126,7 @@ function fetchUrl(url, mobile, db, redirectsPerformed = 0) {
     .then(opts => Object.assign(opts, { supported: opts.enabled || opts.type === 'wordpress' }))
     .then(opts => testForSpeedKit(url).then(speedKit => Object.assign(opts, speedKit)))
     .catch((error) => {
-     db.log.warn(`Error while fetching ${url} in analyzeURL: ${error.stack}`);
+     db.log.error(`Error while fetching ${url} in analyzeURL: ${error.stack}`);
      return null;
     });
 }

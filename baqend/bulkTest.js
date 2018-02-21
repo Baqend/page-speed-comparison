@@ -219,7 +219,10 @@ function createTestOverview(db, {
 
         testOverview.ready()
           .then(() => testOverview.save())
-          .then(() => updateBulkTest(db, bulkTest));
+          .then(() => updateBulkTest(db, bulkTest))
+          .catch((error) => {
+            db.log.warn(`Could not save competitor testOverview with error ${error.stack}.`);
+          });
       },
     }),
 
@@ -245,7 +248,10 @@ function createTestOverview(db, {
 
         testOverview.ready()
           .then(() => testOverview.save())
-          .then(() => updateBulkTest(db, bulkTest));
+          .then(() => updateBulkTest(db, bulkTest))
+          .catch((error) => {
+            db.log.warn(`Could not save speed kit testOverview with error ${error.stack}.`);
+          });
       },
     }),
   ])
@@ -253,7 +259,9 @@ function createTestOverview(db, {
     testOverview.competitorTestResult = competitor;
     testOverview.speedKitTestResult = speedKit;
     return testOverview.ready().then(() => testOverview.save());
-  });
+  }).catch((error) => {
+    db.log.warn(`Could not save overall testOverview with error ${error.stack}.`);
+  })
 }
 
 /**
@@ -335,6 +343,8 @@ function createBulkTest(db, createdBy, {
       bulkTest.testOverviews = overviews;
 
       return bulkTest.save();
+    }).catch((error) => {
+      db.log.warn(`Could not save bulkTest with error ${error.stack}.`);
     });
 }
 

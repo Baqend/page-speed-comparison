@@ -18,14 +18,18 @@ function executeTest(testScript, pendingTest, { testOptions }, db) {
 function waitForStartedTest(testId, testScript, pendingTest, db) {
   db.log.info(`Test started: ${testId}`, { testScript });
   pendingTest.testId = testId;
-  pendingTest.ready().then(() => pendingTest.save());
+  pendingTest.ready().then(() => pendingTest.save()).catch((error) => {
+    db.log.warn(`Saving pendingTest failed with error ${error.stack}.`);
+  });
   return API.waitOnTest(testId, db);
 }
 
 function saveTestResult(testId, pendingTest, testScript, db) {
   db.log.info(`Test successful: ${testId}`, { testResult: pendingTest.id, testId: pendingTest.testId, testScript});
   return generateTestResult(testId, pendingTest, db)
-    .then(() => pendingTest.ready().then(() => pendingTest.save()));
+    .then(() => pendingTest.ready().then(() => pendingTest.save())).catch((error) => {
+      db.log.warn(`Saving pendingTest failed with error ${error.stack}.`);
+    });
 }
 
 /**
@@ -44,6 +48,8 @@ function handleTestError(test, testScript, error, db) {
       test.testDataMissing = true;
       test.hasFinished = true;
       return test.save();
+    }).catch((error) => {
+      db.log.warn(`Couldnt save test without data. Error ${error.stack}.`);
     });
 }
 
