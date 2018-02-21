@@ -113,7 +113,7 @@ function createTestResult(wptData, pendingTest, db) {
 
   const resultRun = wptData.runs[runIndex];
 
-  createRun(db, resultRun.firstView, pendingTest.testId)
+  return createRun(db, resultRun.firstView, pendingTest.testId)
     .then((firstView) => {
       pendingTest.firstView = firstView
     })
@@ -187,8 +187,8 @@ function createRun(db, data, testId) {
  */
 function chooseFMP(db, data, testId) {
   return getFMP(testId).then(firstMeaningfulPaint => parseInt(firstMeaningfulPaint, 10))
-    .catch(() => {
-      db.log.warn(`Could not calculate FMP for test ${testId}. Use FMP from wepPageTest instead!`);
+    .catch((error) => {
+      db.log.warn(`Could not calculate FMP for test ${testId}. Use FMP from wepPageTest instead!`, { error: error.stack });
 
       // Search First Meaningful Paint from timing
       const { chromeUserTiming = [] } = data;
