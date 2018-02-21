@@ -30,7 +30,7 @@ function executePrewarm(testInfo, db) {
     })
     .catch(error => {
       db.log.warn(`Prewarm failed, using fallback config`, {testInfo, error: error.stack});
-      return getFallbackConfig(testInfo.url);
+      return getFallbackConfig(testInfo.url, testInfo.testOptions.mobile);
     })
     .then(config => [getScriptForConfig(config, testInfo), config]);
 }
@@ -50,7 +50,7 @@ function getScriptForConfig(config, { url, isSpeedKitComparison, isTestWithSpeed
   return createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout);
 }
 
-function getPrewarmConfig({url, speedKitConfig, isSpeedKitComparison}, db) {
+function getPrewarmConfig({url, speedKitConfig, isSpeedKitComparison, testOptions}, db) {
 
   // Always return the config if it is given
   if (speedKitConfig) {
@@ -63,13 +63,13 @@ function getPrewarmConfig({url, speedKitConfig, isSpeedKitComparison}, db) {
     db.log.info(`Extracting config from Website: ${url}`, {url, isSpeedKitComparison});
     return analyzeSpeedKit(url, db).then(it => it.config).catch(error => {
       db.log.warn(`Could not analyze speed kit config`, {url, error: error.stack});
-      return getFallbackConfig();
+      return getFallbackConfig(url, testOptions.mobile);
     });
   }
 
   // Return a default config
   db.log.info(`Using a default config: ${url}`);
-  return Promise.resolve(getCacheWarmingConfig());
+  return Promise.resolve(getCacheWarmingConfig(testOptions.mobile));
 }
 
 function prewarm(testScript, runs, { url, testOptions }, db) {
@@ -93,8 +93,8 @@ function prewarm(testScript, runs, { url, testOptions }, db) {
     });
 }
 
-function getTestScriptWithMinimalWhitelist({url, isTestWithSpeedKit, isSpeedKitComparison, activityTimeout}) {
-  const config = getMinimalConfig(url);
+function getTestScriptWithMinimalWhitelist({ url, isTestWithSpeedKit, isSpeedKitComparison, activityTimeout, testOptions }) {
+  const config = getMinimalConfig(url, testOptions.mobile);
   return createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout);
 }
 
@@ -103,7 +103,7 @@ function prepareSmartConfig(testScript, testInfo, db) {
 
   db.log.info(`Generating Smart Config using prewarm`, {url});
   return prewarm(testScript, 1, testInfo, db)
-    .then(testId => getSmartConfig(url, testId, db))
+    .then(testId => getSmartConfig(url, testId, testInfo, db))
     .then(config => {
       db.log.info(`Smart Config generated`, {url, config});
       return config;
@@ -114,7 +114,7 @@ function prepareSmartConfig(testScript, testInfo, db) {
     });
 }
 
-function getSmartConfig(url, testId, db) {
+function getSmartConfig(url, testId, testInfo, db) {
   const options = {
     requests: true,
     breakdown: false,
@@ -125,7 +125,7 @@ function getSmartConfig(url, testId, db) {
   return API.getTestResults(testId, options)
     .then(result => {
       const domains = result.data;
-      return createSmartConfig(url, domains, db);
+      return createSmartConfig(url, domains, testInfo.testOptions.mobile, db);
     });
 }
 

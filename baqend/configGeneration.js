@@ -8,32 +8,32 @@ const CDN_LOCAL_URL = 'https://makefast.app.baqend.com/v1/file/www/assets/selfMa
 /**
  * Returns the default Speed Kit config for the given url.
  */
-function getMinimalConfig(url) {
+function getMinimalConfig(url, mobile) {
   const tld = getTLD(url);
   const domainRegex = `/^(?:[\\w-]*\\.){0,3}(?:${escapeForRegex(tld)})/`;
 
   return `{
     appName: "${credentials.app}",
     whitelist: [{ host: [ ${domainRegex} ] }],
-    userAgentDetection: false
+    userAgentDetection: ${mobile}
   }`;
 }
 
-function getCacheWarmingConfig() {
+function getCacheWarmingConfig(mobile) {
   return `{
     appName: "${credentials.app}",
-    userAgentDetection: false
+    userAgentDetection: ${mobile}
   }`;
 }
 
-function getFallbackConfig(url) {
+function getFallbackConfig(url, mobile) {
   const tld = getTLD(url);
   const domainRegex = `/^(?:[\\w-]*\\.){0,3}(?:${escapeForRegex(tld)})/`;
 
   return `{
     appName: "${credentials.app}",
     whitelist: [{ host: [ ${domainRegex}, /cdn/, /assets\./, /static\./ ] }],
-    userAgentDetection: false
+    userAgentDetection: ${mobile}
   }`;
 }
 
@@ -60,7 +60,7 @@ function getTLD(url) {
  * @param whitelist Whitelisted domains as string.
  * @return
  */
-function createSmartConfig(url, testResult, db, whitelist = '') {
+function createSmartConfig(url, testResult, mobile, db, whitelist = '') {
   const domains = getDomains(testResult, db);
 
   db.log.info(`Analyzing domains: ${url}`, {domains});
@@ -82,7 +82,7 @@ function createSmartConfig(url, testResult, db, whitelist = '') {
       return `{
         appName: "${credentials.app}",
         whitelist: [{ host: [ ${domainRegex}, ${whitelistedHosts} ] }],
-        userAgentDetection: false
+        userAgentDetection: ${mobile}
       }`;
     });
 }
@@ -120,7 +120,12 @@ function getDomains(testResult, db) {
     throw new Error(`No testdata to analyze domains ${testResult.url}`);
   }
 
-  return Object.keys(testResult.runs['1'].firstView.domains);
+  const domains = Object.keys(testResult.runs['1'].firstView.domains);
+  if (!domains.length) {
+    db.log.warn(`Analyzed domains empty.`, {testResult});
+  }
+
+  return domains;
 }
 
 exports.getTLD = getTLD;
