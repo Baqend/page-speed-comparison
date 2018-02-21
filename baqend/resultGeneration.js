@@ -113,11 +113,11 @@ function createTestResult(wptData, pendingTest, db) {
 
   const resultRun = wptData.runs[runIndex];
 
-  return createRun(db, resultRun.firstView, pendingTest.testId)
+  return createRun(db, resultRun.firstView, pendingTest.testId, runIndex)
     .then((firstView) => {
       pendingTest.firstView = firstView
     })
-    .then(() => createRun(db, resultRun.repeatView, pendingTest.testId))
+    .then(() => createRun(db, resultRun.repeatView, pendingTest.testId, runIndex))
     .then((repeatView) => {
       pendingTest.repeatView = repeatView
     })
@@ -138,7 +138,7 @@ function isValidRun(run) {
  * @param {object} data The data to create the run of.
  * @return {Promise<Run>} A promise resolving with the created run.
  */
-function createRun(db, data, testId) {
+function createRun(db, data, testId, runIndex) {
   if (!data) {
     return null;
   }
@@ -175,7 +175,7 @@ function createRun(db, data, testId) {
 
   run.domains = [];
 
-  return chooseFMP(db, data, testId).then((firstMeaningfulPaint) => {
+  return chooseFMP(db, data, testId, runIndex).then((firstMeaningfulPaint) => {
     run.firstMeaningfulPaint = firstMeaningfulPaint;
   }).then(() => createDomainList(data, run));
 }
@@ -185,8 +185,8 @@ function createRun(db, data, testId) {
  * @param {object} data The data to choose the FMP of.
  * @param {string} testId The id of the test to choose the FMP for.
  */
-function chooseFMP(db, data, testId) {
-  return getFMP(testId).then(firstMeaningfulPaint => parseInt(firstMeaningfulPaint, 10))
+function chooseFMP(db, data, testId, runIndex) {
+  return getFMP(testId, runIndex).then(firstMeaningfulPaint => parseInt(firstMeaningfulPaint, 10))
     .catch((error) => {
       db.log.warn(`Could not calculate FMP for test ${testId}. Use FMP from wepPageTest instead!`, { error: error.stack });
 
