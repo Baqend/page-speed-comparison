@@ -108,9 +108,7 @@ function queueTest({
     .then(updatedResult => finish && finish(updatedResult))
     .catch(error => handleTestError(pendingTest, 'No script', error, db));
 
-  return pendingTest.ready().then(() => pendingTest.save()).catch((error) => {
-    db.log.warn(`Could not save pendingTest in quequeTest with error ${error.stack}.`);
-  });
+  return pendingTest.ready().then(() => pendingTest.save());
 }
 
 /**
