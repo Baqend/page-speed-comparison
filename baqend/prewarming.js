@@ -5,49 +5,52 @@ const { API } = require('./Pagetest');
 
 const PREWARM_RUNS = 2;
 /**
- * Executes prewarm runs to prime the CDN caches and returns the final test script for the actual test runs.
+ * Executes prewarm runs to prime the CDN caches and returns the final test script and Speed Kit config for the actual test runs.
  *
  * @param testInfo The basic information about the test.
  * @param db The db reference.
  *
- * @return The final test script for the actual test runs.
+ * @return The final test script and Speed Kit config for the actual test runs.
  */
-function executePrewarm(testInfo, pendingTest, db) {
-  return getPrewarmScript(testInfo, db)
-    .then(testScript => {
+function executePrewarm(testInfo, db) {
+  return getPrewarmConfig(testInfo, db)
+    .then(config => {
       if (testInfo.skipPrewarm || !testInfo.isTestWithSpeedKit) {
-        return testScript;
+        return config;
       }
 
-      const finalTestScript = getFinalTestScript(testScript, testInfo, db);
+      const finalTestConfig = getFinalTestConfig(config, testInfo, db);
+
+      const testScript = getScriptForConfig(config, testInfo);
       const prewarmRun = prewarm(testScript, PREWARM_RUNS, testInfo, db);
 
-      return Promise.all([ finalTestScript, prewarmRun ]).then(() => finalTestScript);
+
+      return Promise.all([ finalTestConfig, prewarmRun ])
+        .then(() => finalTestConfig);
     })
     .catch(error => {
-      db.log.warn(`Prewarm failed`, {testInfo, error: error.stack});
+      db.log.warn(`Prewarm failed, using fallback config`, {testInfo, error: error.stack});
       return getFallbackConfig(testInfo.url);
-    });
+    })
+    .then(config => [getScriptForConfig(config, testInfo), config]);
 }
 
-
-function getFinalTestScript(testScript, testInfo, db) {
+function getFinalTestConfig(config, testInfo, db) {
   const { customSpeedKitConfig, isSpeedKitComparison } = testInfo;
   // If we have a custom Speed Kit config or compare a site that is using Speed Kit, we already have the final script
   if (customSpeedKitConfig || isSpeedKitComparison) {
-    return Promise.resolve(testScript);
+    return Promise.resolve(config);
   }
 
   const minimalTestScript = getTestScriptWithMinimalWhitelist(testInfo);
   return prepareSmartConfig(minimalTestScript, testInfo, db);
 }
 
-function getPrewarmScript({ url, customSpeedKitConfig, isSpeedKitComparison, isTestWithSpeedKit, activityTimeout }, db) {
-  return getPrewarmConfig(url, customSpeedKitConfig, isSpeedKitComparison, db)
-    .then(config => createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout));
+function getScriptForConfig(config, { url, isSpeedKitComparison, isTestWithSpeedKit, activityTimeout }) {
+  return createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout);
 }
 
-function getPrewarmConfig(url, speedKitConfig, isSpeedKitComparison, db) {
+function getPrewarmConfig({url, speedKitConfig, isSpeedKitComparison}, db) {
 
   // Always return the config if it is given
   if (speedKitConfig) {
@@ -96,7 +99,7 @@ function getTestScriptWithMinimalWhitelist({url, isTestWithSpeedKit, isSpeedKitC
 }
 
 function prepareSmartConfig(testScript, testInfo, db) {
-  const { url, activityTimeout } = testInfo;
+  const { url } = testInfo;
 
   db.log.info(`Generating Smart Config using prewarm`, {url});
   return prewarm(testScript, 1, testInfo, db)
@@ -108,8 +111,7 @@ function prepareSmartConfig(testScript, testInfo, db) {
     .catch(error => {
       db.log.warn(`Smart generation failed`, {url, error});
       return getFallbackConfig(url);
-    })
-    .then(config => createTestScript(url, true, false, config, activityTimeout));
+    });
 }
 
 function getSmartConfig(url, testId, db) {

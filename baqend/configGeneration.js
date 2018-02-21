@@ -66,10 +66,11 @@ function createSmartConfig(url, testResult, db, whitelist = '') {
   db.log.info(`Analyzing domains: ${url}`, {domains});
   return filterCDNs(domains, db)
     .then((cdnsWithAds) => {
+      db.log.info(`CDN domains`, {cdnsWithAds});
       return filterAds(cdnsWithAds, db);
     })
     .then((cdnsWithoutAds) => {
-      db.log.info(`Filtered domains to whitelist`, {cdnsWithoutAds});
+      db.log.info(`Domains without ads`, {cdnsWithoutAds});
       return cdnsWithoutAds.map(toRegex).join(', ');
     })
     .then((cdnRegexs) => {
