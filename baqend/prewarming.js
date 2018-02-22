@@ -16,6 +16,7 @@ function executePrewarm(testInfo, db) {
   return getPrewarmConfig(testInfo, db)
     .then(config => {
       if (testInfo.skipPrewarm || !testInfo.isTestWithSpeedKit) {
+        db.log.info(`Prewarm skipped`, {testInfo});
         return config;
       }
 
