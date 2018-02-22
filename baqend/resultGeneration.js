@@ -130,7 +130,7 @@ function createTestResult(wptData, pendingTest, db) {
 }
 
 function isValidRun(run) {
-  return run.firstView.SpeedIndex > 0 && run.firstView.lastVisualChange > 0;
+  return run.firstView && run.firstView.SpeedIndex > 0 && run.firstView.lastVisualChange > 0;
 }
 
 /**
