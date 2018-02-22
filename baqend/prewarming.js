@@ -50,12 +50,12 @@ function getScriptForConfig(config, { url, isSpeedKitComparison, isTestWithSpeed
   return createTestScript(url, isTestWithSpeedKit, isSpeedKitComparison, config, activityTimeout);
 }
 
-function getPrewarmConfig({url, speedKitConfig, isSpeedKitComparison, testOptions}, db) {
+function getPrewarmConfig({url, customSpeedKitConfig, isSpeedKitComparison, testOptions}, db) {
 
   // Always return the config if it is given
-  if (speedKitConfig) {
-    db.log.info(`Using custom config: ${url}`, {url, speedKitConfig, isSpeedKitComparison});
-    return Promise.resolve(speedKitConfig);
+  if (customSpeedKitConfig) {
+    db.log.info(`Using custom config: ${url}`, {url, customSpeedKitConfig, isSpeedKitComparison});
+    return Promise.resolve(customSpeedKitConfig);
   }
 
   // Get the config from the actual site if it uses Speed Kit
