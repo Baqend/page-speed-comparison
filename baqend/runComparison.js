@@ -67,7 +67,7 @@ function runComparison(db, {
           .set('psiResponseSize', pageSpeedInsightsResult.bytes)
           .set('psiScreenshot', pageSpeedInsightsResult.screenshot)
           .execute()
-      })
+      }).catch(error => db.log.warn(`Could not call page speed`, { url, mobile, error: error.stack }));
 
       db.log.info("runCompetitorTest", {
         location, caching, url, activityTimeout, priority, isSpeedKitComparison, mobile
